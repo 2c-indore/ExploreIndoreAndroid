@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="utf-8"?><!--<android.support.v4.widget.NestedScrollView--><!--android:layout_width="match_parent"--><!--android:layout_height="match_parent"--><!--xmlns:android="http://schemas.android.com/apk/res/android"--><!--xmlns:mapbox="http://schemas.android.com/apk/res-auto"--><!--android:scrollbars="vertical"--><!--android:fillViewport="true"--><!--android:id="@+id/map_scroll"--><!--&gt;-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:mapbox="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mapScreen"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+    <ListView
+        android:id="@+id/listView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        />
+
+    <RelativeLayout
+        android:id="@+id/mapView_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="9">
+
+        <com.mapbox.mapboxsdk.maps.MapView
+            android:id="@+id/mapView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            mapbox:mapbox_cameraTargetLat="28.2380"
+            mapbox:mapbox_cameraTargetLng="83.9956"
+            mapbox:mapbox_cameraZoom="11"
+            mapbox:mapbox_styleUrl="@string/mapbox_style_mapbox_streets" />
+
+        <ImageButton
+            android:id="@+id/zoom_fix"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_gravity="center"
+            android:layout_marginBottom="105dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginRight="16dp"
+            android:background="@drawable/circular_background_with_shadow"
+            android:contentDescription="zoom to extent button"
+            android:elevation="16dp"
+            android:src="@drawable/ic_action_zoom_fix" />
+
+        <ImageButton
+            android:id="@+id/gps_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_gravity="center"
+            android:layout_marginBottom="40dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginRight="16dp"
+            android:background="@drawable/circular_background_with_shadow"
+            android:contentDescription="GPS button"
+            android:elevation="16dp"
+            android:src="@drawable/ic_action_gps_off"
+            android:tag="gps_off" />
+    </RelativeLayout>
+
+    <LinearLayout
+        android:id="@+id/container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="2"
+        android:animateLayoutChanges="true"
+        android:background="@color/shadow"
+        android:clickable="true"
+        android:elevation="10dp"
+        android:focusable="true"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:id="@+id/small_info"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+        <LinearLayout
+            android:id="@+id/title_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:background="@color/white"
+            android:padding="5dp">
+
+            <TextView
+                android:id="@+id/hos_name"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="13"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:paddingLeft="5dp"
+                android:textColor="@color/primaryText"
+                android:textSize="18sp"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:textStyle="bold"/>
+
+            <ImageButton
+                android:id="@+id/close_btn"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="2"
+                android:background="@color/transparent"
+                android:contentDescription="close the info display"
+                android:src="@drawable/close" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/shadow"
+            android:padding="5dp"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/detail_btn"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:background="@color/transparent"
+                android:layout_gravity="center"
+                android:contentDescription="Show details of the amenity"
+                android:src="@drawable/more_info_alt" />
+
+            <TextView
+                android:id="@+id/tap_prompt"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="13"
+                android:paddingLeft="5dp"
+                android:text="More Info"
+                android:textColor="@color/secondaryText"
+                android:textSize="15sp" />
+
+            <Button
+                android:id="@+id/startButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="5"
+                android:background="@color/colorPrimary"
+                android:enabled="true"
+                android:text="Route"
+                android:textAllCaps="true"
+                android:textColor="@color/white" />
+
+        </LinearLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/detailView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+   <!-- <RelativeLayout
+        android:id="@+id/container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1.25"
+        android:animateLayoutChanges="true"
+        android:background="@color/white"
+        android:clickable="true"
+        android:focusable="true"
+        android:orientation="vertical"
+        android:visibility="visible">
+        &lt;!&ndash;<RelativeLayout&ndash;&gt;
+        &lt;!&ndash;android:layout_width="match_parent"&ndash;&gt;
+        &lt;!&ndash;android:layout_height="wrap_content"&ndash;&gt;
+        &lt;!&ndash;android:id="@+id/mini_layout">&ndash;&gt;
+        <ImageButton
+            android:id="@+id/close_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:background="@color/transparent"
+            android:src="@drawable/ic_action_close" />
+
+        <RelativeLayout
+            android:id="@+id/small_info"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:id="@+id/hos_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="48dp"
+                android:layout_marginRight="48dp"
+                android:paddingBottom="5dp"
+                android:paddingLeft="16dp"
+                android:paddingStart="16dp"
+                android:paddingTop="7dp"
+                android:text="Hospital"
+                android:textColor="@color/primaryText"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+            &lt;!&ndash;<android.support.v7.widget.AppCompatImageView&ndash;&gt;
+            &lt;!&ndash;android:layout_width="wrap_content"&ndash;&gt;
+            &lt;!&ndash;android:layout_height="wrap_content"&ndash;&gt;
+            &lt;!&ndash;android:paddingLeft="16dp"&ndash;&gt;
+            &lt;!&ndash;android:paddingStart="16dp"&ndash;&gt;
+            &lt;!&ndash;android:paddingBottom="5dp"&ndash;&gt;
+            &lt;!&ndash;android:layout_alignParentRight="true"&ndash;&gt;
+            &lt;!&ndash;android:layout_marginTop="48dp"&ndash;&gt;
+            &lt;!&ndash;android:src="@drawable/swipe_icon"&ndash;&gt;
+            &lt;!&ndash;android:id="@+id/hos_text"&ndash;&gt;
+            &lt;!&ndash;android:textSize="16sp"&ndash;&gt;
+            &lt;!&ndash;android:textColor="@color/tertiaryText"&ndash;&gt;
+            &lt;!&ndash;/>&ndash;&gt;
+
+            <Button
+                android:id="@+id/startButton"
+                android:layout_width="wrap_content"
+                android:layout_height="35dp"
+                android:layout_alignParentBottom="true"
+                android:layout_centerHorizontal="true"
+                android:layout_marginBottom="5dp"
+                android:background="@color/tertiaryText"
+                android:enabled="true"
+                android:padding="2dp"
+                android:text="Route"
+                android:textAllCaps="true"
+                android:textColor="@color/white" />
+        </RelativeLayout>
+
+        <LinearLayout
+            android:id="@+id/detailView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+        </LinearLayout>
+    </RelativeLayout>-->
+
+</LinearLayout><!--</android.support.v4.widget.NestedScrollView>-->
+

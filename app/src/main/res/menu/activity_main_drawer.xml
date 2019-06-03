@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:checkableBehavior="single">
+        <item android:id="@+id/nav_education"
+            android:title="Education">
+            <menu>
+                <item
+                    android:id="@+id/nav_kindergartens"
+                    android:title="Kindergartens" />
+                <item
+                    android:id="@+id/nav_schools"
+                    android:title="Schools" />
+                <item
+                    android:id="@+id/nav_colleges"
+                    android:title="Colleges" />
+                <item
+                    android:id="@+id/nav_universities"
+                    android:title="Universities" />
+            </menu>
+        </item>
+        <item android:id="@+id/nav_health"
+            android:title="Health">
+            <menu>
+                <item
+                    android:id="@+id/nav_hospitals"
+                    android:title="Hospitals" />
+                <item
+                    android:id="@+id/nav_clinics"
+                    android:title="Clinics" />
+                <item
+                    android:id="@+id/nav_healthposts"
+                    android:title="Health Posts" />
+                <item
+                    android:id="@+id/nav_pharmacies"
+                    android:title="Pharmacies" />
+                <item
+                    android:id="@+id/nav_dentists"
+                    android:title="Dentists" />
+                <item
+                    android:id="@+id/nav_veterinaries"
+                    android:title="Veterinaries" />
+            </menu>
+        </item>
+        <item android:id="@+id/nav_financial_institutions"
+            android:title="Financial Institutions">
+            <menu>
+                <item
+                    android:id="@+id/nav_banks"
+                    android:title="Banks" />
+                <item
+                    android:id="@+id/nav_cooperatives"
+                    android:title="Co-operatives" />
+                <item
+                    android:id="@+id/nav_atms"
+                    android:title="ATMs" />
+            </menu>
+        </item>
+        <item android:id="@+id/nav_governance"
+            android:title="Governance">
+            <menu>
+                <item
+                    android:id="@+id/nav_government_offices"
+                    android:title="Government Offices" />
+                <item
+                    android:id="@+id/nav_ngos"
+                    android:title="NGOs" />
+            </menu>
+        </item>
+        <item android:id="@+id/nav_tourism"
+            android:title="Tourism">
+            <menu>
+                <item
+                    android:id="@+id/nav_hotels"
+                    android:title="Hotels" />
+                <item
+                    android:id="@+id/nav_restaurants"
+                    android:title="Restaurants" />
+                <item
+                    android:id="@+id/nav_museums"
+                    android:title="Museums" />
+            </menu>
+        </item>
+        <item android:id="@+id/nav_water"
+            android:title="Water">
+            <menu>
+                <item
+                    android:id="@+id/nav_public_water_tanks"
+                    android:title="Public Water Tanks" />
+                <item
+                    android:id="@+id/nav_public_taps"
+                    android:title="Public Taps" />
+                <item
+                    android:id="@+id/nav_wells"
+                    android:title="Wells" />
+            </menu>
+        </item>
+        <item android:id="@+id/nav_energy"
+            android:title="Energy">
+            <menu>
+                <item
+                    android:id="@+id/nav_fuel_station"
+                    android:title="Fuel Station" />
+            </menu>
+        </item>
+        <item android:id="@+id/nav_communication"
+            android:title="Communication">
+            <menu>
+                <item
+                    android:id="@+id/nav_fm_stations"
+                    android:title="FM Stations" />
+                <item
+                    android:id="@+id/nav_tv_stations"
+                    android:title="TV Stations" />
+                <item
+                    android:id="@+id/nav_newspapers"
+                    android:title="Newspapers" />
+            </menu>
+        </item>
+        <item android:id="@+id/nav_places_of_worship"
+            android:title="Places of Worship">
+            <menu>
+                <item
+                    android:id="@+id/nav_hinduism"
+                    android:title="Hinduism" />
+                <item
+                    android:id="@+id/nav_islam"
+                    android:title="Islam" />
+                <item
+                    android:id="@+id/nav_buddhism"
+                    android:title="Buddhism" />
+                <item
+                    android:id="@+id/nav_christianity"
+                    android:title="Christianity" />
+                <item
+                    android:id="@+id/nav_kirat"
+                    android:title="Kirat" />
+                <item
+                    android:id="@+id/nav_sikhism"
+                    android:title="Sikhism" />
+                <item
+                    android:id="@+id/nav_judaism"
+                    android:title="Judaism" />
+                <item
+                    android:id="@+id/nav_other_religions"
+                    android:title="Other Religions" />
+            </menu>
+        </item>
+        <item android:id="@+id/nav_security"
+            android:title="Security">
+            <menu>
+                <item
+                    android:id="@+id/nav_police_stations"
+                    android:title="Police Stations" />
+            </menu>
+        </item>
+
+        <!--<item-->
+            <!--android:id="@+id/nav_school"-->
+            <!--android:icon="@drawable/ic_school_black_24dp"-->
+            <!--android:title="Schools" />-->
+        <!--<item-->
+            <!--android:id="@+id/nav_bank"-->
+            <!--android:icon="@drawable/ic_account_balance_black_24dp"-->
+            <!--android:title="Banks" />-->
+    </group>
+    <item android:title="Download">
+        <menu>
+            <item
+                android:id="@+id/update"
+                android:icon="@drawable/ic_update_black_24dp"
+                android:title="Update" />
+            <item
+                android:id="@+id/download_map"
+                android:icon="@drawable/ic_update_black_24dp"
+                android:title="Offline map" />
+        </menu>
+    </item>
+
+    <item android:title="About the Project">
+        <menu>
+            <item
+                android:id="@+id/nav_about"
+                android:icon="@drawable/ic_menu_share"
+                android:title="About Us" />
+        </menu>
+    </item>
+
+</menu>

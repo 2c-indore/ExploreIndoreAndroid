@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingTop="10dp"
+    android:paddingBottom="10dp">
+    <android.support.v7.widget.AppCompatCheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Checkbox"
+        android:checked="true"
+        android:id="@+id/checkbox_button"
+        android:textStyle="bold"
+        android:textColor="@color/primaryText"
+        android:textSize="16sp"
+        android:saveEnabled="false"/>
+
+</LinearLayout>

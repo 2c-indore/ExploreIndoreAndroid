@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+    <LinearLayout
+       style="@style/contact_container">
+        <TextView
+           style="@style/info_textwrapper"
+            android:text="Phone"/>
+        <TextView
+            style="@style/info_contentwrapper"
+            android:text="-"
+            android:id="@+id/phone"/>
+    </LinearLayout>
+    <LinearLayout
+        style="@style/contact_container">
+        <TextView
+            style="@style/info_textwrapper"
+            android:text="Email"/>
+        <TextView
+            style="@style/info_contentwrapper"
+            android:text="-"
+            android:id="@+id/email"/>
+    </LinearLayout>
+    <LinearLayout
+        style="@style/contact_container">
+        <TextView
+            style="@style/info_textwrapper"
+            android:text="Website"/>
+        <TextView
+            style="@style/info_contentwrapper"
+            android:text="-"
+            android:id="@+id/website"/>
+    </LinearLayout>
+    <include
+        layout="@layout/info_edit_button"
+       />
+</LinearLayout>

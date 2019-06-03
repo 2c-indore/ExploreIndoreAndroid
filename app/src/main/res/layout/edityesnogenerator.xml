@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:id="@+id/editspinnertype"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <TextView
+        android:id="@+id/yesno_type"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="attribute" />
+   <android.support.v7.widget.AppCompatSpinner
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:id="@+id/yesno_value"
+       android:spinnerMode="dialog"
+       />
+       <FrameLayout
+           android:layout_width="match_parent"
+           android:layout_height="1dp"
+          android:background="@color/secondaryText"/>
+</LinearLayout>
