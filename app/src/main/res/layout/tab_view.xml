@@ -32,12 +32,12 @@
 
         </android.support.design.widget.AppBarLayout>
 
-        <org.kathmandulivinglabs.preparepokhara.Customclass.CustomViewPager
+        <org.kathmandulivinglabs.exploreindore.Customclass.CustomViewPager
             android:id="@+id/viewpager"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="#ffffff"
-            app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+            />
 
     </android.support.design.widget.CoordinatorLayout>
 

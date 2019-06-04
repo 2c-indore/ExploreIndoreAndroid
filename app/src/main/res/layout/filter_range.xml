@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:paddingBottom="10dp">
-    <org.kathmandulivinglabs.preparepokhara.View.RangeWidget
+    <org.kathmandulivinglabs.exploreindore.View.RangeWidget
         android:id="@+id/range_slider"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

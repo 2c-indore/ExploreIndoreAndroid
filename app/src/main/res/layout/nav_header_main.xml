@@ -25,7 +25,7 @@
         android:layout_width="match_parent"
         android:layout_height="30dp"
         android:gravity="bottom"
-        android:text="Explore Pokhara"
+        android:text="Explore Indore"
         android:textColor="#ffffff"
         android:textStyle="bold"
         android:textSize="18sp"

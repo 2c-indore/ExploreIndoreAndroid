@@ -3,12 +3,12 @@ apply plugin: 'realm-android'
 android {
     compileSdkVersion 28
     defaultConfig {
-        applicationId "org.kathmandulivinglabs.preparepokhara"
+        applicationId "org.kathmandulivinglabs.exploreindore"
         minSdkVersion 16
         multiDexEnabled true
         targetSdkVersion 28
-        versionCode 7
-        versionName "1.6"
+        versionCode 1
+        versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     compileOptions {
