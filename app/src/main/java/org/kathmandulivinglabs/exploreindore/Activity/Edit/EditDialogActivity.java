@@ -98,89 +98,83 @@ public class EditDialogActivity extends AppCompatActivity implements MainActivit
                      ) {
                     String vals = maps.getValue();
                     try {
-                        if(vals!=null) {
-                            if (maps.getKey().equals("name"))
-                                explore.setName(vals);
-                            if (maps.getKey().equals("name_ne"))
-                                explore.setName_ne(vals);
-                            if (maps.getKey().equals("contact_phone"))
-                                explore.setContact_phone(vals);
-                            if (maps.getKey().equals("contact_email"))
-                                explore.setContact_email(vals);
-                            if (maps.getKey().equals("web"))
-                                explore.setWeb(vals);
-
-                            if (maps.getKey().equals("capacity_beds"))
-                                if (vals != null && vals.matches("-?\\d+"))
-                                    explore.setCapacity_beds(Integer.parseInt(vals));
-                                else explore.setCapacity_beds(null);
-
-                            if (maps.getKey().equals("personnel_count"))
-                                if (vals != null && vals.matches("-?\\d+"))
-                                    explore.setPersonnel_count(Integer.parseInt(vals));
-                                else explore.setPersonnel_count(null);
-
-                            if (maps.getKey().equals("student_count"))
-                                if (vals != null && vals.matches("-?\\d+"))
-                                    explore.setStudent_count(Integer.parseInt(vals));
-                                else explore.setStudent_count(null);
-
-                            if (maps.getKey().equals("frequency"))
-                                if (vals != null && vals.matches("[+-]?([0-9]*[.])?[0-9]+"))
-                                    explore.setFrequency(Double.parseDouble(vals));
-                                else explore.setFrequency(null);
-
-                            if (maps.getKey().equals("opening_hours"))
-                                explore.setOpening_hours(vals);
-                            if (maps.getKey().equals("facility_xray"))
-                                explore.setFacility_xray(vals);
-                            if (maps.getKey().equals("facility_icu"))
-                                explore.setFacility_icu(vals);
-                            if (maps.getKey().equals("facility_nicu"))
-                                explore.setFacility_nicu(vals);
-                            if (maps.getKey().equals("facility_ventilator"))
-                                explore.setFacility_ventilator(vals);
-                            if (maps.getKey().equals("facility_ambulance"))
-                                explore.setFacility_ambulance(vals);
-                            if (maps.getKey().equals("facility_operating_theatre"))
-                                explore.setFacility_operating_theatre(vals);
-                            explore.setEmergency(vals);
-//                            if (maps.getKey().equals("emergency_services"))
-//                                explore.setEmergency_services(vals);
-//                            if (maps.getKey().equals("healthcare_speciality"))
-//                                explore.setHealthcare_speciality(vals);
+//                        if(vals!=null) {
 //                            if (maps.getKey().equals("name"))
-//                                explore.setNote(vals);
-
-                            if (maps.getKey().equals("atm"))
-                                explore.setAtm(vals);
-                            if (maps.getKey().equals("nrb_class"))
-                                explore.setNrb_class(vals);
-                            if (maps.getKey().equals("operator_type"))
-                                explore.setOperator_type(vals);
-                            if (maps.getKey().equals("drinking_water"))
-                                explore.setDrinking_water(vals);
-                            if (maps.getKey().equals("toilet"))
-                                explore.setToilet(vals);
-                            if (maps.getKey().equals("network"))
-                                explore.setNetwork(vals);
-
-
-                            if (maps.getKey().equals("beds"))
-                                if (vals != null && vals.matches("-?\\d+"))
-                                    explore.setBeds(Integer.parseInt(vals));
-                                else explore.setBeds(null);
-
-                            if (maps.getKey().equals("stars"))
-                                if (vals != null && vals.matches("-?\\d+"))
-                                    explore.setStars(Integer.parseInt(vals));
-                                else explore.setStars(null);
-
-                            if (maps.getKey().equals("rooms"))
-                                if (vals != null && vals.matches("-?\\d+"))
-                                    explore.setRooms(Integer.parseInt(vals));
-                                else explore.setRooms(null);
-                        }
+//                                explore.setName(vals);
+//                            if (maps.getKey().equals("name_ne"))
+//                                explore.setName_ne(vals);
+//                            if (maps.getKey().equals("contact_phone"))
+//                                explore.setContact_phone(vals);
+//                            if (maps.getKey().equals("contact_email"))
+//                                explore.setContact_email(vals);
+//                            if (maps.getKey().equals("web"))
+//                                explore.setWeb(vals);
+//
+//                            if (maps.getKey().equals("capacity_beds"))
+//                                if (vals != null && vals.matches("-?\\d+"))
+//                                    explore.setCapacity_beds(Integer.parseInt(vals));
+//                                else explore.setCapacity_beds(null);
+//
+//                            if (maps.getKey().equals("personnel_count"))
+//                                if (vals != null && vals.matches("-?\\d+"))
+//                                    explore.setPersonnel_count(Integer.parseInt(vals));
+//                                else explore.setPersonnel_count(null);
+//
+//                            if (maps.getKey().equals("student_count"))
+//                                if (vals != null && vals.matches("-?\\d+"))
+//                                    explore.setStudent_count(Integer.parseInt(vals));
+//                                else explore.setStudent_count(null);
+//
+//                            if (maps.getKey().equals("frequency"))
+//                                if (vals != null && vals.matches("[+-]?([0-9]*[.])?[0-9]+"))
+//                                    explore.setFrequency(Double.parseDouble(vals));
+//                                else explore.setFrequency(null);
+//
+//                            if (maps.getKey().equals("opening_hours"))
+//                                explore.setOpening_hours(vals);
+//                            if (maps.getKey().equals("facility_xray"))
+//                                explore.setFacility_xray(vals);
+//                            if (maps.getKey().equals("facility_icu"))
+//                                explore.setFacility_icu(vals);
+//                            if (maps.getKey().equals("facility_nicu"))
+//                                explore.setFacility_nicu(vals);
+//                            if (maps.getKey().equals("facility_ventilator"))
+//                                explore.setFacility_ventilator(vals);
+//                            if (maps.getKey().equals("facility_ambulance"))
+//                                explore.setFacility_ambulance(vals);
+//                            if (maps.getKey().equals("facility_operating_theatre"))
+//                                explore.setFacility_operating_theatre(vals);
+//                            explore.setEmergency(vals);
+//
+//                            if (maps.getKey().equals("atm"))
+//                                explore.setAtm(vals);
+//                            if (maps.getKey().equals("nrb_class"))
+//                                explore.setNrb_class(vals);
+//                            if (maps.getKey().equals("operator_type"))
+//                                explore.setOperator_type(vals);
+//                            if (maps.getKey().equals("drinking_water"))
+//                                explore.setDrinking_water(vals);
+//                            if (maps.getKey().equals("toilet"))
+//                                explore.setToilet(vals);
+//                            if (maps.getKey().equals("network"))
+//                                explore.setNetwork(vals);
+//
+//
+//                            if (maps.getKey().equals("beds"))
+//                                if (vals != null && vals.matches("-?\\d+"))
+//                                    explore.setBeds(Integer.parseInt(vals));
+//                                else explore.setBeds(null);
+//
+//                            if (maps.getKey().equals("stars"))
+//                                if (vals != null && vals.matches("-?\\d+"))
+//                                    explore.setStars(Integer.parseInt(vals));
+//                                else explore.setStars(null);
+//
+//                            if (maps.getKey().equals("rooms"))
+//                                if (vals != null && vals.matches("-?\\d+"))
+//                                    explore.setRooms(Integer.parseInt(vals));
+//                                else explore.setRooms(null);
+//                        }
                     } catch (Exception e) {
                         e.printStackTrace();
                     }

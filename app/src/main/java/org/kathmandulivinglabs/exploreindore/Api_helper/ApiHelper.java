@@ -14,7 +14,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
  */
 
 public class ApiHelper {
-    public static final String BASE_URL = "http://preparepokhara.org/";
+    public static final String BASE_URL = "http://159.65.10.210:5080/";
     public static final String OSM_URL = "https://www.openstreetmap.org/";
 
     private static Retrofit.Builder builder =

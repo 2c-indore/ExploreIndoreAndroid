@@ -94,11 +94,7 @@ public class InsightFragment  extends Fragment {
         SharedPreferences sharedPref = getActivity().getPreferences(Context.MODE_PRIVATE);
         filter_param = new HashMap<>();
         if (getArguments() != null) {
-            selectedType=getArguments().getString("selectedType","attractions");
-//            if(mapfilter.getFilter_parameter()!=null){
-//                filter_param = mapfilter.getFilter_parameter();
-//            }
-
+            selectedType=getArguments().getString("selectedType","public_hospitals");
         }
 
         Realm realm = Realm.getDefaultInstance();
@@ -128,11 +124,15 @@ public class InsightFragment  extends Fragment {
         parentFilterLayout.removeAllViews();
         Map<String,String> switch_selected = new HashMap<>();
         Map<String,String> check_selected = new HashMap<>();
+        int paddingDp = 15;
+        float density = this.getResources().getDisplayMetrics().density;
+        int paddingPixel = (int)(paddingDp * density);
         for(FilterSchema fr : results){
             LayoutInflater title_inflater = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             title_view[i]=title_inflater.inflate(R.layout.filter_title, null);
             title_text[i] = title_view[i].findViewById(R.id.filter_title);
             title_text[i].setText(fr.getLabel());
+            title_view[i].setPadding(0,paddingPixel,0,paddingPixel);
             parentFilterLayout.addView(title_view[i]);
             switch (fr.getType()){
                 case "single-select": LayoutInflater single_inflater = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -142,13 +142,16 @@ public class InsightFragment  extends Fragment {
                                         parentFilterLayout.addView(spinner_view[k]);
                                         k++;
                                         break;
-                case "range":LayoutInflater range_inflater = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                                range_view[j]=range_inflater.inflate(R.layout.filter_range,null );
-                                range_bar[j] = range_view[j].findViewById(R.id.range_slider);
-                                range_bar[j].setRange(fr.getMin(),fr.getMax());
-                                range[j]=fr.getDbkey();
-                                parentFilterLayout.addView(range_view[j]);
-                                j++;
+                case "range":if(fr.getMax()>1)
+                                {
+                                    LayoutInflater range_inflater = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                                    range_view[j] = range_inflater.inflate(R.layout.filter_range, null);
+                                    range_bar[j] = range_view[j].findViewById(R.id.range_slider);
+                                    range_bar[j].setRange(fr.getMin(), fr.getMax());
+                                    range[j] = fr.getDbkey();
+                                    parentFilterLayout.addView(range_view[j]);
+                                    j++;
+                                }
                                 break;
                 case "multi-select":
                     if(fr.get_boolean()!=null && fr.get_boolean()){
@@ -231,19 +234,17 @@ public class InsightFragment  extends Fragment {
                         filter_param.put(check_vals.getKey()+"check",check_vals.getValue());
                 }
                 filter_param.put("wardid",wardid);
+                Log.wtf(filter_param.toString(),"FilterParam");
                 MainActivity.filter_param = filter_param;
                 mapfilter.setFilter_parameter(filter_param);
 
                     ags=true;
                     MapFragment mp = new MapFragment();
-//                Bundle args = new Bundle();
-//                args.putParcelable("FilterValue",mapfilter);
-//                mp.setArguments(args);
-//                getFragmentManager().beginTransaction().add(R.id.container,mp ).commit();
+
                 Intent i = new Intent(getActivity().getBaseContext(),MainActivity.class);
                 i.putExtra("FilterValue",mapfilter);
                 mCallback.onInsight(ags);
-               // getActivity().startActivity(i);
+//                getActivity().startActivity(i);
             }
         });
 

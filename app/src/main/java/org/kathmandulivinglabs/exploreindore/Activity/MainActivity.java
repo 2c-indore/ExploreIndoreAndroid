@@ -35,6 +35,9 @@ import android.widget.ExpandableListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.MapType;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.geometry.LatLngBounds;
@@ -62,13 +65,13 @@ import org.kathmandulivinglabs.exploreindore.Helper.Connectivity;
 
 import org.kathmandulivinglabs.exploreindore.Interface.ToggleTabVisibilityListener;
 import org.kathmandulivinglabs.exploreindore.R;
-import org.kathmandulivinglabs.exploreindore.Realmstore.AttractionSchema;
+
 import org.kathmandulivinglabs.exploreindore.Realmstore.ExploreSchema;
 import org.kathmandulivinglabs.exploreindore.Realmstore.FilterSchema;
 import org.kathmandulivinglabs.exploreindore.Realmstore.PokharaBoundary;
 import org.kathmandulivinglabs.exploreindore.Realmstore.Tag;
 import org.kathmandulivinglabs.exploreindore.Realmstore.Ward;
-import org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.Attractions;
+
 import org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.Features;
 import org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.Filter;
 import org.kathmandulivinglabs.exploreindore.View.ProgressDialogFragment;
@@ -94,8 +97,8 @@ public class MainActivity extends AppCompatActivity
         void onTaskCompleted();
     }
 
-    public static String def_type="hospital";
-    public static String def_type_category = "Hospitals";
+    public static String def_type="public_hospitals";
+    public static String def_type_category = "Public Hospitals";
     public static boolean infoScreen = false;
     private CustomViewPager viewPager;
     private boolean filter_applied = false, navClicked = false;
@@ -112,7 +115,7 @@ public class MainActivity extends AppCompatActivity
     List<ExpandedMenuModel> listDataHeader;
     HashMap<ExpandedMenuModel,List<String>> listDataChild;
     Map<String,String> tagMp;
-    Map<String,String> tagTouism;
+    Map<String,String> tagHospitals,tagClincs,tagOthers;
     private static String oldtag;
     public static Map<String, String> filter_param;
     private static boolean downloadalldata = false;
@@ -180,50 +183,23 @@ public class MainActivity extends AppCompatActivity
         oldtag = def_type;
 
         tagMp = new HashMap<>();
-        //tagMp.put("attraction","Attractions");
-        tagMp.put("school","Schools");
-        tagMp.put("hindu","Hinduism");
-        tagMp.put("police","Police Stations");
-        tagMp.put("hospital","Hospitals");
-        tagMp.put("clinic","Clinics");
-        tagMp.put("health_post","Health Posts");
-        tagMp.put("pharmacy","Pharmacies");
-        tagMp.put("dentist","Dentists");
-        tagMp.put("veterinarians","Veterinarians");
-        tagMp.put("government","Government Offices");
-        tagMp.put("ngo","NGOs");
-        tagMp.put("bank","Banks");
-        tagMp.put("fuel","Fuel Station");
-        tagMp.put("radio","FM Stations");
-        tagMp.put("television","TV Stations");
-        tagMp.put("newspaper","Newspapers");
-        tagMp.put("college","Colleges");
-        tagMp.put("university","Universities");
-        tagMp.put("kindergarten","Kindergartens");
-        tagMp.put("buddhist","Buddhism");
-        tagMp.put("christian","Christianity");
-        tagMp.put("muslim","Islam");
-        tagMp.put("atm","ATMs");
-        tagMp.put("restaurant","Restaurants");
-        tagMp.put("museum","Museums");
-        tagMp.put("park","Parks");
-        tagMp.put("storage_tank","Public Water Tanks");
-        tagMp.put("water_tap","Public Taps");
-        tagMp.put("water_well","Wells");
-        //tagMp.put("gas","Gas");
-        tagMp.put("cooperative","Co-operatives");
-        tagMp.put("hotel","Hotels");
-        tagMp.put("kirat","Kirat");
-        tagMp.put("sikh","Sikhism");
-        tagMp.put("judaism","Judaism");
-        tagMp.put("other-religion","Others Religions");
-
-        tagTouism = new HashMap<>();
-
-        tagTouism.put("stupa","Buddhist Stupa/Monastery");
-        tagTouism.put("caves","Caves");
-        tagTouism.put("temples","Hindu Temples");
-        tagTouism.put("viewtower","View Points/Towers");
+//        tagMp.put("hospitals","Hospitals");
+//        tagMp.put("clinics","Clinics");
+//        tagMp.put("others","Others");
+//        tagHospitals = new HashMap<>();
+//        tagClincs = new HashMap<>();
+//        tagOthers = new HashMap<>();
+        tagMp.put("public_hospitals","Public Hospitals");
+        tagMp.put("private_hospitals","Private Hospitals");
+        tagMp.put("public_clinics","Public Clinics and Government Centers");
+        tagMp.put("private_clinics","Private Clinics");
+        tagMp.put("dentists","Dentists");
+        tagMp.put("veterinaries","Veterinaries");
+        tagMp.put("patho_radio_labs","Pathology and Radiology Labs");
+        tagMp.put("anganwadi","Anganwadis");
+        tagMp.put("blood_banks","Blood Banks");
+        tagMp.put("mental_health_centers","Mental Health Centers");
+        tagMp.put("bus_stops","Bus Stops");
 
 
         menuAdapter = new ExpandableMenuAdapter(this, listDataHeader, listDataChild, expandableList);
@@ -251,12 +227,13 @@ public class MainActivity extends AppCompatActivity
                     if(childValue.equals("Update")){
                         drawer.closeDrawers();
                         updateRealm(oldtag);
-                        if(oldtag.equals("attractions")) {
-                            if (tabs.getTabAt(1)!=null) tabs.removeTabAt(1);
-                            getSupportActionBar().setTitle(def_type_category);
-                        }
-                        else
-                            getSupportActionBar().setTitle(oldtag);
+                        getSupportActionBar().setTitle(def_type_category);
+//                        if(oldtag.equals("attractions")) {
+//                            if (tabs.getTabAt(1)!=null) tabs.removeTabAt(1);
+//                            getSupportActionBar().setTitle(def_type_category);
+//                        }
+//                        else
+//                            getSupportActionBar().setTitle(oldtag);
                    //Remove and Save data to realm
                     }
                     else if(childValue.equals("Offline map")){
@@ -266,12 +243,12 @@ public class MainActivity extends AppCompatActivity
                             downloadBaseMap();
                         }
                         else Snackbar.make(MainActivity.this.findViewById(android.R.id.content), "No internet connection", Snackbar.LENGTH_LONG).show();
-                        if(oldtag.equals("attractions")) {
-                            if (tabs.getTabAt(1)!=null) tabs.removeTabAt(1);
-                            getSupportActionBar().setTitle(def_type_category);
-                        }
-                        else
-                            getSupportActionBar().setTitle(oldtag);
+//                        if(oldtag.equals("attractions")) {
+//                            if (tabs.getTabAt(1)!=null) tabs.removeTabAt(1);
+//                            getSupportActionBar().setTitle(def_type_category);
+//                        }
+//                        else
+//                            getSupportActionBar().setTitle(oldtag);
                     }
 //                    else if(childValue.equals("")){
 //                        drawer.closeDrawers();
@@ -293,25 +270,12 @@ public class MainActivity extends AppCompatActivity
                         startActivity(intentabout);
 
                     }
-                    else if(listDataHeader.get(i).getIconName().equals("Places of Attractions")){
-                        for (Map.Entry<String, String> entry : tagTouism.entrySet()) {
-                            if (entry.getValue().equals(childValue)) {
-                                if(filter_param!=null) filter_param.clear();
-                                filter_param = new HashMap<>();
-                                drawer.closeDrawers();
-                                oldtag = "attractions";
-                                makeMapData("attractions");
-                                def_type_category = entry.getValue();
-                                Log.d(entry.getKey(), "child");
-                                tabs.removeTabAt(1);
-                            }
-                        }
+
 
 
 //                    drawer.closeDrawers();
 //                    oldtag = "attractions";
 //                    makeMapData("attractions");
-                    }
 
                 return false;
             }
@@ -340,28 +304,17 @@ public class MainActivity extends AppCompatActivity
         });
         Realm realm = Realm.getDefaultInstance();
         //TODO
-        final RealmResults<AttractionSchema> initial_data = realm.where(AttractionSchema.class).findAll();
-        final RealmResults<Ward> ward = realm.where(Ward.class).findAll();
+
         final RealmResults<Tag> tag = realm.where(Tag.class).findAll();
         final RealmResults<ExploreSchema> explore_data = realm.where(ExploreSchema.class).findAll();
         List<String> amenity_tag = new ArrayList<>();
         if (tag.size() == 0)
             savetag();
-        if (ward.size() == 0) {
-            saveward();
-        }
 
         if (explore_data.size() == 0) {
             showProgressDialog();
 //            downloadAll();
             saveDataFromV2Api(def_type);
-//            if(explore_data.size()==0)
-//            for (Map.Entry<String,String> variables: tagMp.entrySet()
-//                 ) {
-//                saveDataFromV2Api(variables.getKey());
-//            }
-            //saveDataFromV2Api("school");
-            //saveDataFromV2Api("bank");
         }
         viewPager = (CustomViewPager) findViewById(R.id.viewpager);
         setupViewPager(viewPager);
@@ -388,14 +341,6 @@ public class MainActivity extends AppCompatActivity
 //                    tabs.removeTabAt(1);
                 }
             }
-            else {
-                if(!fromabout[0].equals("attractions"))
-                getSupportActionBar().setTitle(fromabout[0]);
-                else{
-                    getSupportActionBar().setTitle(fromabout[1]);
-                    tabs.removeTabAt(1);
-                }
-            }
 
         }
         else  {
@@ -412,10 +357,6 @@ public class MainActivity extends AppCompatActivity
             public void onPageSelected(int position) {
                 Log.d(String.valueOf(position), "onPageSelected: ");
                 SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
-//                if (position == 1) {
-//                    Log.d(String.valueOf(position), "onPageSelected: ");
-//                    fragmentRefresh();
-//                }
             }
 
             @Override
@@ -424,11 +365,6 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-//        HomeFragment homeFragment = new HomeFragment();
-//
-//        getSupportFragmentManager().beginTransaction()
-//                .add(R.id.content_frame, homeFragment, "HOME")
-//                .commit();
     }
     private void setupDrawerContent(NavigationView navigationView){
         navigationView.setNavigationItemSelectedListener(
@@ -447,7 +383,7 @@ public class MainActivity extends AppCompatActivity
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                saveward();
+//                saveward();
                 savetag();
                 for (Map.Entry<String, String> attribs : tagMp.entrySet()
                 ) {
@@ -467,15 +403,10 @@ public class MainActivity extends AppCompatActivity
         Realm realm = Realm.getDefaultInstance();
         //TODO
         final RealmResults<ExploreSchema> explore = realm.where(ExploreSchema.class).contains("tag",selectedkey).findAll();
-        final RealmResults<AttractionSchema> attract = realm.where(AttractionSchema.class).findAll();
         realm.close();
         def_type = selectedkey;
 
-        if(selectedkey.equals("attractions") && attract.size()==0){
-            showProgressDialog();
-                saveDataFromV2Api(selectedkey);
-        }
-        else if(!selectedkey.equals("attractions") && explore.size()==0)
+        if(explore.size()==0)
         {
             showProgressDialog();
             saveDataFromV2Api(selectedkey);
@@ -489,143 +420,58 @@ public class MainActivity extends AppCompatActivity
     private void updateRealm(String selectedkey){
         showProgressDialog();
         removedata(selectedkey);
-        saveward();
+//        saveward();
         savetag();
         saveDataFromV2Api(selectedkey);
     }
     private void prepareListData() {
         listDataHeader = new ArrayList<ExpandedMenuModel>();
         listDataChild = new HashMap<ExpandedMenuModel, List<String>>();
-        ExpandedMenuModel attraction = new ExpandedMenuModel();
-        attraction.setIconName("Places of Attractions");
-        listDataHeader.add(attraction);
+        ExpandedMenuModel hospitals = new ExpandedMenuModel();
+        hospitals.setIconName("Hospitals");
+        listDataHeader.add(hospitals);
 
-        ExpandedMenuModel education = new ExpandedMenuModel();
-        education.setIconName("Education");
-        listDataHeader.add(education);
+        ExpandedMenuModel clinics = new ExpandedMenuModel();
+        clinics.setIconName("Clinics");
+        listDataHeader.add(clinics);
 
-        ExpandedMenuModel health = new ExpandedMenuModel();
-        health.setIconName("Health");
-        listDataHeader.add(health);
+        ExpandedMenuModel others = new ExpandedMenuModel();
+        others.setIconName("Others");
+        listDataHeader.add(others);
 
-        ExpandedMenuModel finance = new ExpandedMenuModel();
-        finance.setIconName("Financial Institutions");
-        listDataHeader.add(finance);
-
-        ExpandedMenuModel governance = new ExpandedMenuModel();
-        governance.setIconName("Governance");
-        listDataHeader.add(governance);
-
-        ExpandedMenuModel tourism = new ExpandedMenuModel();
-        tourism.setIconName("Tourism");
-        listDataHeader.add(tourism);
-
-        ExpandedMenuModel water = new ExpandedMenuModel();
-        water.setIconName("Water");
-        listDataHeader.add(water);
-
-        ExpandedMenuModel energy = new ExpandedMenuModel();
-        energy.setIconName("Energy");
-        listDataHeader.add(energy);
-
-        ExpandedMenuModel communication = new ExpandedMenuModel();
-        communication.setIconName("Communication");
-        listDataHeader.add(communication);
-
-        ExpandedMenuModel worship = new ExpandedMenuModel();
-        worship.setIconName("Places of Worship");
-        listDataHeader.add(worship);
-
-        ExpandedMenuModel security = new ExpandedMenuModel();
-        security.setIconName("Security");
-        listDataHeader.add(security);
 
         ExpandedMenuModel download = new ExpandedMenuModel();
         download.setIconName("Download");
         listDataHeader.add(download);
 
-//        ExpandedMenuModel update = new ExpandedMenuModel();
-//        update.setIconName("Update");
-//        update.setIconImg(R.drawable.ic_update_black_24dp);
-//        listDataHeader.add(update);
-//
-//        ExpandedMenuModel offline_map = new ExpandedMenuModel();
-//        offline_map.setIconName("Offline Map");
-//        offline_map.setIconImg(R.drawable.download_begin);
-//        listDataHeader.add(offline_map);
-//
-//        ExpandedMenuModel about = new ExpandedMenuModel();
-//        about.setIconName("About Us");
-//        about.setIconImg(R.drawable.ic_list);
-//        listDataHeader.add(about);
 
         ExpandedMenuModel about = new ExpandedMenuModel();
         about.setIconName("About the Project");
         listDataHeader.add(about);
 
         // Adding child data
-        List<String> attractionlist = new ArrayList<>();
-        List<String> educationlist = new ArrayList<String>();
-        List<String> healthlist = new ArrayList<String>();
-        List<String> financelist = new ArrayList<String>();
-        List<String> govlist = new ArrayList<String>();
-        List<String> tourismlist = new ArrayList<String>();
-        List<String> waterlist = new ArrayList<String>();
-        List<String> energylist = new ArrayList<String>();
-        List<String> communicationlist = new ArrayList<String>();
-        List<String> worshiplist = new ArrayList<String>();
-        List<String> securitylist = new ArrayList<String>();
+        List<String> hospitalslist = new ArrayList<>();
+        List<String> clinicslist = new ArrayList<String>();
+        List<String> otherslist = new ArrayList<String>();
         List<String> downloadlist = new ArrayList<String>();
         List<String> aboutlist = new ArrayList<String>();
 
-        attractionlist.add("Buddhist Stupa/Monastery");
-        attractionlist.add("Caves");
-        attractionlist.add("Hindu Temples");
-        attractionlist.add("View Points/Towers");
+        hospitalslist.add("Public Hospitals");
+        hospitalslist.add("Private Hospitals");
 
-        educationlist.add("Kindergartens");
-        educationlist.add("Schools");
-        educationlist.add("Colleges");
-        educationlist.add("Universities");
 
-        healthlist.add("Hospitals");
-        healthlist.add("Clinics");
-        healthlist.add("Health Posts");
-        healthlist.add("Pharmacies");
-        healthlist.add("Dentists");
+        clinicslist.add("Public Clinics and Government Centers");
+        clinicslist.add("Private Clinics");
+        clinicslist.add("Dentists");
+        clinicslist.add("Veterinaries");
+        clinicslist.add("Pathology and Radiology Labs");
 
-        financelist.add("Banks");
-        financelist.add("Co-operatives");
-        financelist.add("ATMs");
+        otherslist.add("Anganwadis");
+        otherslist.add("Blood Banks");
+        otherslist.add("Mental Health Centers");
+        otherslist.add("Bus Stops");
 
-        govlist.add("Government Offices");
-        govlist.add("NGOs");
 
-        tourismlist.add("Hotels");
-        tourismlist.add("Restaurants");
-        tourismlist.add("Museums");
-
-        waterlist.add("Public Water Tanks");
-        waterlist.add("Public Taps");
-        waterlist.add("Wells");
-
-        energylist.add("Fuel Station");
-        //energylist.add("Gas");
-
-        communicationlist.add("FM Stations");
-        communicationlist.add("TV Stations");
-        communicationlist.add("Newspapers");
-
-        worshiplist.add("Hinduism");
-        worshiplist.add("Islam");
-        worshiplist.add("Buddhism");
-        worshiplist.add("Christianity");
-        worshiplist.add("Kirat");
-        worshiplist.add("Sikhism");
-        worshiplist.add("Judaism");
-        worshiplist.add("Other Religions");
-
-        securitylist.add("Police Stations");
 
         downloadlist.add("Update");
        // downloadlist.add("Download map data");
@@ -633,19 +479,11 @@ public class MainActivity extends AppCompatActivity
 
         aboutlist.add("About Us");
 
-        listDataChild.put(listDataHeader.get(0),attractionlist);
-        listDataChild.put(listDataHeader.get(1),educationlist);
-        listDataChild.put(listDataHeader.get(2),healthlist);
-        listDataChild.put(listDataHeader.get(3),financelist);
-        listDataChild.put(listDataHeader.get(4),govlist);
-        listDataChild.put(listDataHeader.get(5),tourismlist);
-        listDataChild.put(listDataHeader.get(6),waterlist);
-        listDataChild.put(listDataHeader.get(7),energylist);
-        listDataChild.put(listDataHeader.get(8),communicationlist);
-        listDataChild.put(listDataHeader.get(9),worshiplist);
-        listDataChild.put(listDataHeader.get(10),securitylist);
-        listDataChild.put(listDataHeader.get(11),downloadlist);
-        listDataChild.put(listDataHeader.get(12),aboutlist);
+        listDataChild.put(listDataHeader.get(0),hospitalslist);
+        listDataChild.put(listDataHeader.get(1),clinicslist);
+        listDataChild.put(listDataHeader.get(2),otherslist);
+        listDataChild.put(listDataHeader.get(3),downloadlist);
+        listDataChild.put(listDataHeader.get(4),aboutlist);
 
 
     }
@@ -687,12 +525,10 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void execute(Realm realm) {
                 final RealmResults<ExploreSchema> explore = realm.where(ExploreSchema.class).contains("tag",amenity_type).findAll();
-                if(explore.size()!=0)
-                explore.deleteAllFromRealm();
-                if(amenity_type.equals("attractions")){
-                    realm.delete(AttractionSchema.class);
-
-                }
+                if(explore.size()!=0) explore.deleteAllFromRealm();
+                final RealmResults<FilterSchema> filter = realm.where(FilterSchema.class).contains("amenity",amenity_type).findAll();
+                if(filter.size()!=0) filter.deleteAllFromRealm();
+                realm.delete(Ward.class);
             }
         });
         realm.executeTransaction(new Realm.Transaction() {
@@ -705,9 +541,8 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void execute(Realm realm) {
                 realm.delete(PokharaBoundary.class);
-                realm.delete(Ward.class);
+//                realm.delete(Ward.class);
                 realm.delete(Tag.class);
-                realm.delete(FilterSchema.class);
             }
         });
         realm.close();
@@ -727,94 +562,73 @@ public class MainActivity extends AppCompatActivity
 
     private void saveDataFromV2Api(final String def_type) {
         ApiInterface apiInterface = new ApiHelper().getApiInterface();
-        if(def_type.equals("attractions")) {
-            saveAttraction();
-        }
-        else {
-            Call<Features> call = apiInterface.getFeature(def_type);
+
+            Call<Features> call = apiInterface.getFeature(def_type, "mobile");
           //  showProgressDialog();
             call.enqueue(new Callback<Features>() {
                 @Override
                 public void onResponse(Call<Features> call, Response<Features> response) {
                     if (response.body() != null) {
                         if (response.body().getSuccess() == 1) {
-
                             Realm realm = Realm.getDefaultInstance();
                             try {
                                 realm.beginTransaction();
                                 List<Features.Geometries.Pois.Feature> features = response.body().getGeometries().getPois().getFeatures();
                                 for (Features.Geometries.Pois.Feature feature : features) {
-                                    org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.Tags tg = feature.getProperties().getTags();
+//                                    org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.Tags tg = feature.getProperties().getTags();
+                                    List<Filter.Option> tg = feature.getProperties().getTags();
                                     ExploreSchema realmObject = realm.createObject(ExploreSchema.class);
+                                    RealmList<String> a_tag = new RealmList<>();
+                                    RealmList<String> a_value = new RealmList<>();
+                                    if(tg.size()>0) {
+                                        for (Filter.Option op : tg
+                                        ) {
+                                            a_tag.add(op.getLabel());
+                                            a_value.add(op.getValue());
+                                            switch (op.getLabel()) {
+                                                case "name":
+                                                    realmObject.setName(op.getValue());
+                                                    break;
+                                                case "name_hindi":
+                                                    realmObject.setNamein(op.getValue());
+                                                    break;
+                                                case "phone":
+                                                    realmObject.setContact_phone(op.getValue());
+                                                    break;
+                                                case "email":
+                                                    realmObject.setContact_email(op.getValue());
+                                                    break;
+                                                case "website":
+                                                    realmObject.setWeb(op.getValue());
+                                                    break;
+                                                case "capacity_beds":
+                                                    if((op.getValue()!=null) && (op.getValue().matches("-?\\d+")))
+                                                    realmObject.setCapacity_beds(Integer.parseInt(op.getValue()));
+                                                    break;
+                                                case "personnel_count":
+                                                    if((op.getValue()!=null) && (op.getValue().matches("-?\\d+")))
+                                                        realmObject.setPersonnel_count(Integer.parseInt(op.getValue()));
+                                                    break;
+                                                default:
+                                                    break;
+                                            }
+                                        }
+                                    }
+
+//                                    if (tg.getCapacityBeds() != null && tg.getCapacityBeds().matches("-?\\d+"))
+//                                        realmObject.setCapacity_beds(Integer.parseInt(tg.getCapacityBeds()));
+//                                    else realmObject.setCapacity_beds(null);
+
+
                                     realmObject.setTag(def_type);
-                                    realmObject.setAmenity(tg.getAmenity());
+
                                     realmObject.setOsm_id(feature.getId());
-                                    realmObject.setWardid(feature.getWardId());
+
                                     realmObject.setId((long) feature.getProperties().getId());
-                                    realmObject.setName(tg.getName());
-                                    realmObject.setName_ne(tg.getNameNe());
-
-                                /*TODO add values to Tags POJO
-                                realmObject.setName_ne(tg.getNameNe());
-                                realmObject.setName_en(tg.getNameEn());
-                                realmObject.setMail(tg.getEmail());
-                                realmObject.setWeb(tg.getWebsite());
-                                */
-                                    realmObject.setContact_phone(tg.getPhone());
-                                    realmObject.setContact_email(tg.getEmail());
-                                    realmObject.setWeb(tg.getWebsite());
-
-                                    if (tg.getCapacityBeds() != null && tg.getCapacityBeds().matches("-?\\d+"))
-                                        realmObject.setCapacity_beds(Integer.parseInt(tg.getCapacityBeds()));
-                                    else realmObject.setCapacity_beds(null);
-
-                                    if (tg.getPersonnelCount() != null && tg.getPersonnelCount().matches("-?\\d+"))
-                                        realmObject.setPersonnel_count(Integer.parseInt(tg.getPersonnelCount()));
-                                    else realmObject.setPersonnel_count(null);
-
-                                    if (tg.getStudentCount() != null && tg.getStudentCount().matches("-?\\d+"))
-                                        realmObject.setStudent_count(Integer.parseInt(tg.getStudentCount()));
-                                    else realmObject.setStudent_count(null);
-
-                                    if (tg.getFrequency() != null && tg.getFrequency().matches("[+-]?([0-9]*[.])?[0-9]+"))
-                                        realmObject.setFrequency(Double.parseDouble(tg.getFrequency()));
-                                    else realmObject.setFrequency(null);
+                                    realmObject.setTag_type(a_tag);
+                                    realmObject.setTag_lable(a_value);
 
 
-                                    realmObject.setOpening_hours(tg.getOpeningHours());
-                                    realmObject.setFacility_xray(tg.getFacilityXRay());
-                                    realmObject.setFacility_icu(tg.getFacilityIcu());
-                                    realmObject.setFacility_nicu(tg.getFacilityNicu());
-                                    realmObject.setFacility_ventilator(tg.getFacilityVentilator());
-                                    realmObject.setFacility_ambulance(tg.getFacilityAmbulance());
-                                    realmObject.setFacility_operating_theatre(tg.getFacilityOperatingTheater());
-                                    realmObject.setEmergency(tg.getEmergency());
-                                    realmObject.setEmergency_services(tg.getEmergencyServices());
-                                    realmObject.setHealthcare_speciality(tg.getHealthcare_speciality());
-                                    realmObject.setNote(tg.getNote());
-                                    realmObject.setAtm(tg.getAtm());
-                                    realmObject.setNrb_class(tg.getNrbClass());
-                                    realmObject.setOperator_type(tg.getOperatorType());
-                                    realmObject.setDrinking_water(tg.getFacility_drinking_water());
-                                    realmObject.setToilet(tg.getFacility_toilet());
-                                    realmObject.setNetwork(tg.getNetwork());
-
-
-
-                                    if (tg.getBeds() != null && tg.getBeds().matches("-?\\d+"))
-                                        realmObject.setBeds(Integer.parseInt(tg.getBeds()));
-                                    else realmObject.setBeds(null);
-                                    if (tg.getStars() != null && tg.getStars().matches("-?\\d+"))
-                                        realmObject.setStars(Integer.parseInt(tg.getStars()));
-                                    else realmObject.setStars(null);
-                                    if (tg.getRooms() != null && tg.getRooms().matches("-?\\d+"))
-                                        realmObject.setRooms(Integer.parseInt(tg.getRooms()));
-                                    else realmObject.setRooms(null);
-
-
-
-                                    //TODO Add null checks
-                                    //realmObject.setPersonnel_count(Integer.valueOf(tg.getPersonnelCount()));
                                     realmObject.setCoordinateslat(feature.getGeometry().getCoordinates().get(0));
                                     realmObject.setCoordinateslong(feature.getGeometry().getCoordinates().get(1));
                                     realmObject.setType(feature.getGeometry().getType());
@@ -846,6 +660,12 @@ public class MainActivity extends AppCompatActivity
                                         filterObject.setOption_key(option_dbkey);
                                     }
 
+                                }
+                                final RealmResults<Ward> ward = realm.where(Ward.class).findAll();
+                                if (ward.size() == 0) {
+                                    Wards.Boundary bound = response.body().getGeometries().getBoundary();
+                                    List <Wards.BoundaryWithWards.Feature> ward_bounds = response.body().getGeometries().getBoundaryWithWards().getFeatures();
+                                    saveward(realm,bound,ward_bounds);
                                 }
 
 
@@ -885,128 +705,22 @@ public class MainActivity extends AppCompatActivity
 
                 }
             });
-        }
 
     }
-    private void saveAttraction(){
-        ApiInterface apiInterface = new ApiHelper().getApiInterface();
-        Call<Attractions> call = apiInterface.getAttraction();
-      //  showProgressDialog();
-        call.enqueue(new Callback<Attractions>() {
-            @Override
-            public void onResponse(Call<Attractions> call, Response<Attractions> response) {
-                if (response.body() != null) {
-                    if (response.body().getSuccess() == 1) {
-//                        Attractions attractions = response.body();
-//                        Realm.init(MainActivity.this);
-//                        RealmConfiguration config = new RealmConfiguration.Builder()
-//                                .name("expl.realm")
-//                                .schemaVersion(1)
-//                                .deleteRealmIfMigrationNeeded()
-//                                .build();
-//                        Realm.setDefaultConfiguration(config);
+    private void saveward(Realm realm,Wards.Boundary bound,List <Wards.BoundaryWithWards.Feature> ward_bounds) {
+//        ApiInterface apiInterface = new ApiHelper().getApiInterface();
+//            Call<Features> call = apiInterface.getFeature("public_hospitals","mobile");
 //
-//
-//                        // add response to realm database
-//                        Realm realma = Realm.getInstance(config);
-//                        realma.beginTransaction();
-//                        realma.copyToRealmOrUpdate();
-//                        realma.commitTransaction();
-//                        realma.close();
+//            call.enqueue(new Callback<Features>() {
+//                @Override
+//                public void onResponse(Call<Features> call, Response<Features> response) {
+//                    if (response.body() != null) {
+//                        if (response.body().getSuccess() == 1) {
 
-
-
-
-
-                        Realm realm = Realm.getDefaultInstance();
-                        try {
-                            realm.beginTransaction();
-                            List<Attractions.Attraction> attractionarray = response.body().getAttractions();
-                            for (Attractions.Attraction attractionlist:attractionarray
-                                 ) {
-                                for (Attractions.Attraction.Pois.Feature attractionFeature:attractionlist.getPois().getFeatures()) {
-                                    AttractionSchema atrrObject=realm.createObject(AttractionSchema.class);
-                                    atrrObject.setCategory(attractionlist.getCategory());
-                                    atrrObject.setOsm_id(attractionFeature.getId());
-                                    Attractions.Attraction.Pois.Feature.Properties.Tags attractionTags = attractionFeature.getProperties().getTags();
-                                    Attractions.Attraction.Pois.Feature.Detail attractionDetail=attractionFeature.getDetail();
-                                    Attractions.Attraction.Pois.Feature.Geometry attractionGeometry=attractionFeature.getGeometry();
-                                    atrrObject.setAmenity(attractionTags.getAmenity());
-                                    atrrObject.setName(attractionTags.getName());
-                                    atrrObject.setName_ne(attractionTags.getNameNe());
-                                    atrrObject.setReligion(attractionTags.getReligion());
-                                    atrrObject.setToilet(attractionTags.getToilets());
-                                    atrrObject.setDrinking_water(attractionTags.getDrinkingWater());
-                                    atrrObject.setWater(attractionTags.getWater());
-                                    atrrObject.setNatural(attractionTags.getNatural());
-                                    atrrObject.setAccess(attractionTags.getAccess());
-                                    atrrObject.setFee(attractionTags.getFee());
-                                    atrrObject.setBarrier(attractionTags.getBarrier());
-                                    atrrObject.setHistoric(attractionTags.getHistoric());
-                                    atrrObject.setContent((String) attractionDetail.getContent());
-                                    atrrObject.setPhoto((String) attractionDetail.getPhoto());
-
-                                    atrrObject.setCoordinateslat(attractionGeometry.getCoordinates().get(0));
-                                    atrrObject.setCoordinateslong(attractionGeometry.getCoordinates().get(1));
-                                    atrrObject.setType(attractionGeometry.getType());
-                                }
-                            }
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        } finally {
-                            realm.commitTransaction();
-                            realm.close();
-                            updateMapView = true;
-                            if(!downloadalldata)
-                            fragmentRefresh();
-                            Log.d("realm closed", "map data ");
-                        }
-                    }
-                }
-                else {
-                    if(!downloadalldata) {
-                        Toast.makeText(getApplicationContext(), "Server is not responding? Please try again later", Toast.LENGTH_LONG).show();
-                        updateMapView = true;
-                        fragmentRefresh();
-                    }
-                }
-                if (tabs.getTabAt(1)!=null) tabs.removeTabAt(1);
-                if(!downloadalldata) dismissProgressDialog();
-            }
-
-            @Override
-            public void onFailure(Call<Attractions> call, Throwable t) {
-                t.printStackTrace();
-//                Toast.makeText(getApplicationContext(), "Are you connected to active internet connection? If not, connect and update the data", Toast.LENGTH_LONG).show();
-//                updateMapView = true;
-//
-                if(!downloadalldata) {
-                    setSnackbar("Could not update the data. Please connect to the internet and hit 'Retry'");
-                    snackbar.show();
-                    dismissProgressDialog();
-                    fragmentRefresh();
-                }
-//                if (tabs.getTabAt(1)!=null) tabs.removeTabAt(1);
-            }
-        });
-    }
-    private void saveward() {
-        ApiInterface apiInterface = new ApiHelper().getApiInterface();
-            Call<Features> call = apiInterface.getFeature("hospital");
-            //  showProgressDialog();
-            call.enqueue(new Callback<Features>() {
-                @Override
-                public void onResponse(Call<Features> call, Response<Features> response) {
-                    if (response.body() != null) {
-                        if (response.body().getSuccess() == 1) {
-
-                           Wards.Boundary bound = response.body().getGeometries().getBoundary();
-//                            Wards.BoundaryWithWards ward_bound ward_bound= response.body().getGeometries().getBoundaryWithWards();
-                            List <Wards.BoundaryWithWards.Feature> ward_bounds = response.body().getGeometries().getBoundaryWithWards().getFeatures();
-                            Realm realm = Realm.getDefaultInstance();
-                            try {
-                                realm.beginTransaction();
-                                for (List<List<Double>> bound_prop :bound.getGeometry().getCoordinates()){
+//        Realm realm = Realm.getDefaultInstance();
+//                            try {
+//                                realm.beginTransaction();
+                                for (List<List<Double>> bound_prop :bound.getFeatures().get(0).getGeometry().getCoordinates().get(0)){
                                     for (List<Double> bound_coord : bound_prop
                                             ) {
                                         PokharaBoundary pb = realm.createObject(PokharaBoundary.class);
@@ -1018,16 +732,19 @@ public class MainActivity extends AppCompatActivity
                             for (Wards.BoundaryWithWards.Feature ward_prop: ward_bounds
                                  ) {
                                 Ward ward = realm.createObject(Ward.class);
-                                String wardname = ward_prop.getProperties().getName();
-                                String dbname = (wardname.split("Pokhara Lekhnath Metropolitan Ward No.")[1]).trim();
+                                String wardname = ward_prop.getProperties().getWard_name();
+//                                String dbname = (wardname.split("Pokhara Lekhnath Metropolitan Ward No.")[1]).trim();
+                                String dbname = ward_prop.getProperties().getWard_no();
                                 int wardno = Integer.parseInt(dbname);
-                                dbname = "Ward No. "+ dbname;
-                                ward.setName(dbname);
+                                Log.wtf(wardname,"ward");
+//                                dbname = "Ward No. "+ dbname;
+                                ward.setName(wardname);
                                 ward.setNumber(wardno);
-                                ward.setOsmID(ward_prop.getId());
-                                ward.setName_ne(ward_prop.getProperties().getNameNe());
-                                ward.setCoordinateslat(ward_prop.getCentroid().getCoordinates().get(1));
-                                ward.setCoordinateslong(ward_prop.getCentroid().getCoordinates().get(0));
+                                ward.setOsmID(dbname);
+//                                ward.setOsmID(ward_prop.getId());
+//                                ward.setName_ne(ward_prop.getProperties().getNameNe());
+//                                ward.setCoordinateslat(ward_prop.getCentroid().getCoordinates().get(1));
+//                                ward.setCoordinateslong(ward_prop.getCentroid().getCoordinates().get(0));
                                 Wards.BoundaryWithWards.Feature.Geometry_ geom = ward_prop.getGeometry();
                                 RealmList<PokharaBoundary> pbound;
                                 pbound = new RealmList<>();
@@ -1048,23 +765,23 @@ public class MainActivity extends AppCompatActivity
 
                                 //Log.wtf(ward_prop.getId(),ward_prop.getProperties().getName());
                             }
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            } finally {
-                                realm.commitTransaction();
-                                realm.close();
-                                if(!downloadalldata)
-                                fragmentRefresh();
-                            }
-                        }
-                    }
-                }
-
-                @Override
-                public void onFailure(Call<Features> call, Throwable t) {
-                    t.printStackTrace();
-                }
-            });
+//                            } catch (Exception e) {
+//                                e.printStackTrace();
+//                            } finally {
+//                                realm.commitTransaction();
+//                                realm.close();
+////                                if(!downloadalldata)
+////                                fragmentRefresh();
+//                            }
+//                        }
+//                    }
+//                }
+//
+//                @Override
+//                public void onFailure(Call<Features> call, Throwable t) {
+//                    t.printStackTrace();
+//                }
+//            });
     }
 
     private void savetag() {
@@ -1212,11 +929,8 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
+
         int id = item.getItemId();
-        //noinspection SimplifiableIfStatement
         if (id == R.id.search) {
             return true;
         }
@@ -1229,50 +943,6 @@ public class MainActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
         navClicked = true;
-       // Realm realm = Realm.getDefaultInstance();
-//        if (id == R.id.nav_hospital) {
-//            def_type = "hospital";
-//            getSupportActionBar().setTitle("Hospitals");
-//            //TODO
-//            final RealmResults<ExploreSchema> hospital = realm.where(ExploreSchema.class).findAll();
-//            if (hospital.size() == 0) {
-//                saveDataFromV2Api(def_type);
-//            }
-//            updateMapView = true;
-//            fragmentRefresh();
-//            // Handle the camera action
-//        } else if (id == R.id.nav_school) {
-//            def_type = "school";
-//            getSupportActionBar().setTitle("Schools");
-//            final RealmResults<School> school = realm.where(School.class).findAll();
-//            if (school.size() == 0) {
-//                saveDataFromV2Api(def_type);
-//            }
-//            updateMapView = true;
-//            fragmentRefresh();
-//        } else if (id == R.id.nav_bank) {
-//            def_type = "bank";
-//            getSupportActionBar().setTitle("Banks");
-//            final RealmResults<Bank> bank = realm.where(Bank.class).findAll();
-//            if (bank.size() == 0) {
-//                saveDataFromV2Api(def_type);
-//            }
-//            updateMapView = true;
-//            fragmentRefresh();
-        //}
-//         if (id == R.id.update) {
-//            removedata();
-//            saveDataFromV2Api(def_type);
-//            saveward();
-//            savetag();
-//        } else if (id == R.id.nav_about) {
-//            Intent i = new Intent(this, AboutActivity.class);
-//            startActivity(i);
-//            finish();
-//        } else if (id == R.id.download_map) {
-//            downloadStarted();
-//            downloadBaseMap();
-//        }
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
@@ -1283,22 +953,10 @@ public class MainActivity extends AppCompatActivity
     public void onInsight(Boolean vals) {
         String tag = "android:switcher:" + R.id.viewpager + ":" + 0;
         filter_applied = vals;
-//        MapFragment mpfrag = (MapFragment)getSupportFragmentManager().findFragmentByTag(tag);
-        //  mpfrag.setFilter(true);
         Log.d(String.valueOf(vals), "onInsight: ");
         MapFragment mpfrag = (MapFragment) getSupportFragmentManager().findFragmentByTag(tag);
         Intent i = getIntent();
         FilterParcel object = i.getParcelableExtra("FilterValue");
-        //if (object != null) {
-           // mpfrag.setFilter(object);
-//            Bundle bd = new Bundle();
-//            bd.putParcelable("FilterValue", object);
-//            bd.putString("selectedType", def_type);
-//            Log.d(def_type, "onResume: ");
-//            mpfrag.setArguments(bd);
-//            viewPager.getAdapter().notifyDataSetChanged();
-
-        //}
         mpfrag.setFilter(vals);
         viewPager.setCurrentItem(0);
     }
@@ -1329,8 +987,6 @@ public class MainActivity extends AppCompatActivity
         FilterParcel object = i.getParcelableExtra("FilterValue");
         if (object != null) {
             Log.d("value changed", "onResume");
-//            Log.d(String.valueOf(object.getEmergency()), "em");
-//            MapFragment mpfrag = new MapFragment();
             String tagmap = "android:switcher:" + R.id.viewpager + ":" + 0;
             MapFragment mpfrag = (MapFragment) getSupportFragmentManager().findFragmentByTag(tagmap);
             Bundle bd = new Bundle();

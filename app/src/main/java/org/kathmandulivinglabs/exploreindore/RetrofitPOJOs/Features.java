@@ -1,8 +1,12 @@
 package org.kathmandulivinglabs.exploreindore.RetrofitPOJOs;
 
+import android.util.JsonToken;
+
+import com.google.gson.Gson;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
+import org.json.JSONObject;
 import org.kathmandulivinglabs.exploreindore.Api_helper.Wards;
 
 import java.util.List;
@@ -198,7 +202,16 @@ public class Features {
                     private long id;
                     @SerializedName("tags")
                     @Expose
-                    private Tags tags;
+                    private List<Filter.Option> tags = null;
+
+                    public List<Filter.Option> getTags() {
+                        return tags;
+                    }
+
+                    public void setTags(List<Filter.Option> tags) {
+                        this.tags = tags;
+                    }
+
                     @SerializedName("relations")
                     @Expose
                     private List<Object> relations = null;
@@ -222,13 +235,6 @@ public class Features {
                         this.id = id;
                     }
 
-                    public Tags getTags() {
-                        return tags;
-                    }
-
-                    public void setTags(Tags tags) {
-                        this.tags = tags;
-                    }
 
                     public List<Object> getRelations() {
                         return relations;

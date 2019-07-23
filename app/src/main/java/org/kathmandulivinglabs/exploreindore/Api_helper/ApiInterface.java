@@ -1,7 +1,7 @@
 package org.kathmandulivinglabs.exploreindore.Api_helper;
 
 import org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.AccessToken;
-import org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.Attractions;
+
 import org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.Features;
 
 import retrofit2.Call;
@@ -17,13 +17,10 @@ import retrofit2.http.Query;
  */
 
 public interface ApiInterface {
-    @GET("http://preparepokhara.org/api/v2/features")
-    Call<Features> getFeature(@Query("type") String type);
+    @GET("http://159.65.10.210:5080/api/amenities/data")
+    Call<Features> getFeature(@Query("type") String type, @Query("platform") String client);
 
     @GET("http://preparepokhara.org/api/v2/features/tags")
     Call<Tags> getTag();
-
-    @GET("https://preparepokhara.org/api/v2/features/attractions")
-    Call<Attractions> getAttraction();
 
 }
