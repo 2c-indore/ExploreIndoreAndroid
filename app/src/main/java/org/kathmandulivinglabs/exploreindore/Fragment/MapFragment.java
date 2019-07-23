@@ -958,16 +958,16 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
 
         if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             if(originLocation!=null) {
-                if ((originLocation.getLatitude() > 28.31285 || originLocation.getLatitude() < 28.11532
-                        || originLocation.getLongitude() > 84.14949 || originLocation.getLongitude() < 83.84905)) {
-                    Toast.makeText(getContext(), "You are not in Pokhara", Toast.LENGTH_SHORT).show();
-                } else {
+//                if ((originLocation.getLatitude() > 28.31285 || originLocation.getLatitude() < 28.11532
+//                        || originLocation.getLongitude() > 84.14949 || originLocation.getLongitude() < 83.84905)) {
+//                    Toast.makeText(getContext(), "You are not in Pokhara", Toast.LENGTH_SHORT).show();
+//                } else {
                     gps.setImageResource(0);
                     gps.setImageResource(R.drawable.ic_action_gps_searching);
                     gps.setTag("gps_searching");
                     Toast.makeText(getContext(), "GPS is locating you", Toast.LENGTH_SHORT).show();
 
-                }
+//                }
             }
             else {
                 initializeLocationEngine();
@@ -1173,7 +1173,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
                                     .build();
                             mapboxMap.moveCamera(CameraUpdateFactory.newLatLngBounds(latLngBounds, 50));
                             mapboxMap.setLatLngBoundsForCameraTarget(latLngBounds);
-//                            wardBound(polygon);
+                            wardBound(polygon);
                         }
                         if (filter_data.getKey().endsWith("max")) {
                             String rangeMax = filter_data.getKey().split("max")[0];
@@ -1211,22 +1211,47 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
                         else {
                             if (!(filter_data.getKey().equals("wardid") && filter_data.getValue().equals("all"))) {
 //                                query.contains("tag_lable", filter_data.getValue(), Case.INSENSITIVE);
-                                Log.wtf("TAADF", "bbb");
-//                                for (ExploreSchema ep : query.findAll()
-//                                ) {
-//                                    RealmList<String> key = ep.getTag_type();
-//                                    RealmList<String> value = ep.getTag_lable();
-//                                    int i = 0;
-//
-//                                    for (String str : key
-//                                    ) {
-//                                        if (value.get(i).matches(filter_data.getValue())) {
-//                                            querycollection.add(ep);
-//                                        }
-//                                        i++;
-//                                    }
-//
-//                                }
+//                                Log.wtf("TAADF", "bbb");
+                                if(querycollection.size()<=0) {
+                                    for (ExploreSchema ep : query.findAll()
+                                    ) {
+                                        RealmList<String> key = ep.getTag_type();
+                                        RealmList<String> value = ep.getTag_lable();
+                                        int i = 0;
+
+                                        for (String str : key
+                                        ) {
+//                                        Log.wtf(str,String.valueOf(value.get(i)));
+//                                        Log.wtf("value", filter_data.getValue());
+                                            if (value.get(i).matches(filter_data.getValue()) && str.matches(filter_data.getKey())) {
+                                                querycollection.add(ep);
+                                            }
+                                            i++;
+                                        }
+
+                                    }
+                                }
+                                else if(querycollection.size()>0){
+                                    RealmList<ExploreSchema> qr = querycollection;
+                                    querycollection.clear();
+                                    for (ExploreSchema ep : qr
+                                    ) {
+                                        RealmList<String> key = ep.getTag_type();
+                                        RealmList<String> value = ep.getTag_lable();
+                                        int i = 0;
+
+                                        for (String str : key
+                                        ) {
+//                                        Log.wtf(str,String.valueOf(value.get(i)));
+//                                        Log.wtf("value", filter_data.getValue());
+                                            if (value.get(i).matches(filter_data.getValue()) && str.matches(filter_data.getKey())) {
+                                                querycollection.add(ep);
+                                            }
+                                            i++;
+                                        }
+
+                                    }
+                                }
                             }
 
                         }
@@ -1234,55 +1259,56 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
                             E.printStackTrace();
                         }
                     }
-                        int i = 0;
-                        if (check1.size() > 0)
-                            for (Map.Entry<String, String> check_set : check1.entrySet()
-                            ) {
-                                Log.wtf("check 1", check_set.getKey());
-                                try {
-                                    if (i == 0 && i != check1.size() - 1) {
-                                        query.beginGroup().contains(check_set.getValue(), check_set.getKey(), Case.INSENSITIVE);
-                                    } else if (i == 0 && i == check1.size() - 1) {
-                                        query.contains(check_set.getValue(), check_set.getKey(), Case.INSENSITIVE);
-                                    } else if ((i < check1.size() - 1)) {
-                                        query.or().contains(check_set.getValue(), check_set.getKey(), Case.INSENSITIVE);
-                                    } else if (i == check1.size() - 1) {
-                                        query.or().contains(check_set.getValue(), check_set.getKey(), Case.INSENSITIVE).endGroup();
-                                    }
-                                } catch (Exception e){
-                                    e.printStackTrace();
-                                }
-                                i++;
-                            }
-                        i = 0;
-                        if (check2.size() > 0)
-                            for (Map.Entry<String, String> check_set : check2.entrySet()
-                            ) {
-                                Log.wtf("check 2", check_set.getKey());
-                                try {
-
-                                    if (i == 0 && i != check2.size() - 1) {
-//                                query.find(query,check_set.getValue(),)
-                                        query.beginGroup().contains(check_set.getValue(), check_set.getKey(), Case.INSENSITIVE);
-                                    } else if (i == 0 && i == check2.size() - 1) {
-                                        query.contains(check_set.getValue(), check_set.getKey(), Case.INSENSITIVE);
-                                    } else if ((i < check2.size() - 1)) {
-                                        query.or().contains(check_set.getValue(), check_set.getKey(), Case.INSENSITIVE);
-                                    } else if (i == check2.size() - 1) {
-                                        query.or().contains(check_set.getValue(), check_set.getKey(), Case.INSENSITIVE).endGroup();
-                                    }
-                                } catch (Exception e){
-                                    e.printStackTrace();
-                                }
-                                i++;
-                            }
+//                        int i = 0;
+//                        Log.wtf("size", String.valueOf(querycollection.size()));
+//                        if (check1.size() > 0)
+//                            for (Map.Entry<String, String> check_set : check1.entrySet()
+//                            ) {
+//                                Log.wtf("check 1", check_set.getKey());
+//                                try {
+//                                    if (i == 0 && i != check1.size() - 1) {
+//                                        query.beginGroup().contains(check_set.getValue(), check_set.getKey(), Case.INSENSITIVE);
+//                                    } else if (i == 0 && i == check1.size() - 1) {
+//                                        query.contains(check_set.getValue(), check_set.getKey(), Case.INSENSITIVE);
+//                                    } else if ((i < check1.size() - 1)) {
+//                                        query.or().contains(check_set.getValue(), check_set.getKey(), Case.INSENSITIVE);
+//                                    } else if (i == check1.size() - 1) {
+//                                        query.or().contains(check_set.getValue(), check_set.getKey(), Case.INSENSITIVE).endGroup();
+//                                    }
+//                                } catch (Exception e){
+//                                    e.printStackTrace();
+//                                }
+//                                i++;
+//                            }
+//                        i = 0;
+//                        if (check2.size() > 0)
+//                            for (Map.Entry<String, String> check_set : check2.entrySet()
+//                            ) {
+//                                Log.wtf("check 2", check_set.getKey());
+//                                try {
+//
+//                                    if (i == 0 && i != check2.size() - 1) {
+////                                query.find(query,check_set.getValue(),)
+//                                        query.beginGroup().contains(check_set.getValue(), check_set.getKey(), Case.INSENSITIVE);
+//                                    } else if (i == 0 && i == check2.size() - 1) {
+//                                        query.contains(check_set.getValue(), check_set.getKey(), Case.INSENSITIVE);
+//                                    } else if ((i < check2.size() - 1)) {
+//                                        query.or().contains(check_set.getValue(), check_set.getKey(), Case.INSENSITIVE);
+//                                    } else if (i == check2.size() - 1) {
+//                                        query.or().contains(check_set.getValue(), check_set.getKey(), Case.INSENSITIVE).endGroup();
+//                                    }
+//                                } catch (Exception e){
+//                                    e.printStackTrace();
+//                                }
+//                                i++;
+//                            }
                     check1.clear();
                     check2.clear();
                 }
 
                 MainActivity.filter_param.clear();
-                RealmResults<ExploreSchema> results = query.findAll();
-//        RealmList<ExploreSchema> results = querycollection;
+//                RealmResults<ExploreSchema> results = query.findAll();
+        RealmList<ExploreSchema> results = querycollection;
         realm.close();
                 List<MyItem> items = new ArrayList<MyItem>();
                 if (searches.size() > 0) {

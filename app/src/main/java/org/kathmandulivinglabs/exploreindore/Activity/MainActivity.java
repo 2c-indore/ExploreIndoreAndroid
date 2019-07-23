@@ -609,6 +609,8 @@ public class MainActivity extends AppCompatActivity
                                                     if((op.getValue()!=null) && (op.getValue().matches("-?\\d+")))
                                                         realmObject.setPersonnel_count(Integer.parseInt(op.getValue()));
                                                     break;
+
+
                                                 default:
                                                     break;
                                             }
