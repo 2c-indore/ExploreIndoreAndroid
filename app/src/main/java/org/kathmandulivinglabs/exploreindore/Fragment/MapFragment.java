@@ -185,7 +185,6 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
 
     @Override
     public boolean onBackPressed() {
-        Log.wtf("back", "pressed");
         final boolean[] b = {true};
         if ((detail_screen != null && detail_screen.getChildCount() > 0) || (lm.getVisibility() == View.VISIBLE)) {
             swipeValue = 0;
@@ -913,7 +912,6 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
             for (String tg : dbvalue.getTag_type()) {
                 String label = Utils.toTitleCase(labels.get(i));
                 String key = Utils.toTitleCase(keys.get(i).replace("_"," "));
-                Log.wtf(label,key);
                 if(key.equals("Mobile")) mob = label;
                 if (!key.equals("Name") && !key.equals("Name Hindi") && !key.equals("Phone Number") &&
                         !key.equals("Email Address") && !key.equals("Id") && !key.equals("Latitude") && !key.equals("Longitude")
@@ -930,9 +928,6 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
             if (dbvalue.getContact_phone() != null || mob!=null) {
                 String pho = null;
                 if(dbvalue.getContact_phone() != null) pho = dbvalue.getContact_phone();
-                if (dbvalue.getContact_phone() != null) {
-                    Log.wtf(dbvalue.getContact_phone().toString(),"phone");
-                }
                 if(mob!=null) {
                     if (pho != null)
                         pho = pho + "," + mob;
@@ -1144,168 +1139,91 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
                 Realm realm = Realm.getDefaultInstance();
                 RealmQuery<ExploreSchema> query = realm.where(ExploreSchema.class).equalTo("tag", amenity);
                 RealmList<ExploreSchema> querycollection = new RealmList<>();
-
                 if (MainActivity.filter_param.size() > 0 && filterflag) {
-                    String container1 = null, container2 = null;
-                    Map<String, String> check1 = new HashMap<>();
-                    Map<String, String> check2 = new HashMap<>();
-
                     for (Map.Entry<String, String> filter_data : MainActivity.filter_param.entrySet()
                             ) {
-                        Log.wtf(filter_data.getValue(), filter_data.getKey());
+//                        Log.wtf(filter_data.getValue(), filter_data.getKey());
                         try {
-                        if ((filter_data.getKey().equals("wardid") && !filter_data.getValue().equals("all"))) {
-                            RealmResults<Ward> wardR = realm.where(Ward.class).contains("osmID", filter_data.getValue()).findAll();
-                            RealmList<PokharaBoundary> pbound = wardR.get(0).getBoundry();
-                            polygon = new ArrayList<>();
-                            double bbboxlat1 = 0, bbboxlat2 = 22.7230, bbboxlong1 = 0, bbboxlong2 = 75.8572;
-                            for (int i = 0; i < pbound.size(); i++) {
-                                bbboxlat1 = pbound.get(i).getCoordinateslat() > bbboxlat1 ? pbound.get(i).getCoordinateslat() : bbboxlat1;
-                                bbboxlong1 = pbound.get(i).getCoordinateslong() > bbboxlong1 ? pbound.get(i).getCoordinateslong() : bbboxlong1;
-                                bbboxlat2 = pbound.get(i).getCoordinateslat() < bbboxlat2 ? pbound.get(i).getCoordinateslat() : bbboxlat2;
-                                bbboxlong2 = pbound.get(i).getCoordinateslong() < bbboxlong2 ? pbound.get(i).getCoordinateslong() : bbboxlong2;
-                                polygon.add(new LatLng(pbound.get(i).getCoordinateslat(), pbound.get(i).getCoordinateslong()));
-                                Log.wtf(String.valueOf(pbound.get(i).getCoordinateslat()), "Lat");
-                            }
-                            LatLngBounds latLngBounds = new LatLngBounds.Builder()
-                                    .include(new LatLng(bbboxlat1, bbboxlong1)) // Northeast
-                                    .include(new LatLng(bbboxlat2, bbboxlong2)) // Southwest
-                                    .build();
-                            mapboxMap.moveCamera(CameraUpdateFactory.newLatLngBounds(latLngBounds, 50));
-                            mapboxMap.setLatLngBoundsForCameraTarget(latLngBounds);
-                            wardBound(polygon);
-                        }
-                        if (filter_data.getKey().endsWith("max")) {
-                            String rangeMax = filter_data.getKey().split("max")[0];
-                            int max = Integer.parseInt(filter_data.getValue());
-                            query.beginGroup().lessThanOrEqualTo(rangeMax, max).or().isNull(rangeMax).endGroup();
-                        } else if (filter_data.getKey().endsWith("min")) {
-                            String rangeMin = filter_data.getKey().split("min")[0];
-                            int min = Integer.parseInt(filter_data.getValue());
-                            Log.d(String.valueOf(min), "Minimun Value");
-                            if (min > 0) query.greaterThanOrEqualTo(rangeMin, min);
-                            else
-                                query.beginGroup().greaterThanOrEqualTo(rangeMin, min).or().isNull(rangeMin).endGroup();
-                        } else if (filter_data.getKey().endsWith("check")) {
-                            Log.wtf("check","not null");
-                            String qp = filter_data.getKey().split("check")[0];
-
-                            if (container1 == null) container1 = filter_data.getValue();
-                            else if (!container1.equals(filter_data.getValue()))
-                                container2 = filter_data.getValue();
-                            if (container1.equals(filter_data.getValue())) {
-                                check1.put(qp, filter_data.getValue());
-                                //query.equalTo(filter_data.getValue(), qp, Case.INSENSITIVE);
-                            } else if (container2 != null && container2.equals(filter_data.getValue())) {
-                                check2.put(qp, filter_data.getValue());
-                                //query.equalTo(filter_data.getValue(), qp, Case.INSENSITIVE);
-
-                            }
-                        }
-//                else if(filter_data.getKey().equals("wardid")){
-//                    if(!filter_data.getValue().equals("all")){
-//                        Log.wtf(filter_data.getValue(),filter_data.getKey());
-//                        query.equalTo(filter_data.getKey(),filter_data.getValue(),Case.INSENSITIVE);
-//                    }
-//                }
-                        else {
-                            if (!(filter_data.getKey().equals("wardid") && filter_data.getValue().equals("all"))) {
-//                                query.contains("tag_lable", filter_data.getValue(), Case.INSENSITIVE);
-//                                Log.wtf("TAADF", "bbb");
-                                if(querycollection.size()<=0) {
-                                    for (ExploreSchema ep : query.findAll()
-                                    ) {
-                                        RealmList<String> key = ep.getTag_type();
-                                        RealmList<String> value = ep.getTag_lable();
-                                        int i = 0;
-
-                                        for (String str : key
-                                        ) {
-//                                        Log.wtf(str,String.valueOf(value.get(i)));
-//                                        Log.wtf("value", filter_data.getValue());
-                                            if (value.get(i).matches(filter_data.getValue()) && str.matches(filter_data.getKey())) {
-                                                querycollection.add(ep);
-                                            }
-                                            i++;
-                                        }
-
-                                    }
+                            if ((filter_data.getKey().equals("wardid") && !filter_data.getValue().equals("all"))) {
+                                RealmResults<Ward> wardR = realm.where(Ward.class).contains("osmID", filter_data.getValue()).findAll();
+                                RealmList<PokharaBoundary> pbound = wardR.get(0).getBoundry();
+                                polygon = new ArrayList<>();
+                                double bbboxlat1 = 0, bbboxlat2 = 22.7230, bbboxlong1 = 0, bbboxlong2 = 75.8572;
+                                for (int i = 0; i < pbound.size(); i++) {
+                                    bbboxlat1 = pbound.get(i).getCoordinateslat() > bbboxlat1 ? pbound.get(i).getCoordinateslat() : bbboxlat1;
+                                    bbboxlong1 = pbound.get(i).getCoordinateslong() > bbboxlong1 ? pbound.get(i).getCoordinateslong() : bbboxlong1;
+                                    bbboxlat2 = pbound.get(i).getCoordinateslat() < bbboxlat2 ? pbound.get(i).getCoordinateslat() : bbboxlat2;
+                                    bbboxlong2 = pbound.get(i).getCoordinateslong() < bbboxlong2 ? pbound.get(i).getCoordinateslong() : bbboxlong2;
+                                    polygon.add(new LatLng(pbound.get(i).getCoordinateslat(), pbound.get(i).getCoordinateslong()));
+                                    Log.wtf(String.valueOf(pbound.get(i).getCoordinateslat()), "Lat");
                                 }
-                                else if(querycollection.size()>0){
-                                    RealmList<ExploreSchema> qr = querycollection;
-                                    querycollection.clear();
-                                    for (ExploreSchema ep : qr
-                                    ) {
-                                        RealmList<String> key = ep.getTag_type();
-                                        RealmList<String> value = ep.getTag_lable();
-                                        int i = 0;
-
-                                        for (String str : key
-                                        ) {
-//                                        Log.wtf(str,String.valueOf(value.get(i)));
-//                                        Log.wtf("value", filter_data.getValue());
-                                            if (value.get(i).matches(filter_data.getValue()) && str.matches(filter_data.getKey())) {
-                                                querycollection.add(ep);
-                                            }
-                                            i++;
-                                        }
-
-                                    }
-                                }
+                                LatLngBounds latLngBounds = new LatLngBounds.Builder()
+                                        .include(new LatLng(bbboxlat1, bbboxlong1)) // Northeast
+                                        .include(new LatLng(bbboxlat2, bbboxlong2)) // Southwest
+                                        .build();
+                                mapboxMap.moveCamera(CameraUpdateFactory.newLatLngBounds(latLngBounds, 50));
+                                mapboxMap.setLatLngBoundsForCameraTarget(latLngBounds);
+                                wardBound(polygon);
+                                query.contains("ward_id", filter_data.getValue());
+                            }
+                            if (filter_data.getKey().endsWith("max")) {
+                                String rangeMax = filter_data.getKey().split("max")[0];
+                                int max = Integer.parseInt(filter_data.getValue());
+                                query.beginGroup().lessThanOrEqualTo(rangeMax, max).or().isNull(rangeMax).endGroup();
+                            } else if (filter_data.getKey().endsWith("min")) {
+                                String rangeMin = filter_data.getKey().split("min")[0];
+                                int min = Integer.parseInt(filter_data.getValue());
+                                if (min > 0) query.greaterThanOrEqualTo(rangeMin, min);
+                                else
+                                    query.beginGroup().greaterThanOrEqualTo(rangeMin, min).or().isNull(rangeMin).endGroup();
+//                            Log.wtf(String.valueOf(query.findAll().size()),"Range size");
                             }
 
-                        }
-                    } catch (Exception E){
+                        } catch (Exception E) {
                             E.printStackTrace();
                         }
                     }
-//                        int i = 0;
-//                        Log.wtf("size", String.valueOf(querycollection.size()));
-//                        if (check1.size() > 0)
-//                            for (Map.Entry<String, String> check_set : check1.entrySet()
-//                            ) {
-//                                Log.wtf("check 1", check_set.getKey());
-//                                try {
-//                                    if (i == 0 && i != check1.size() - 1) {
-//                                        query.beginGroup().contains(check_set.getValue(), check_set.getKey(), Case.INSENSITIVE);
-//                                    } else if (i == 0 && i == check1.size() - 1) {
-//                                        query.contains(check_set.getValue(), check_set.getKey(), Case.INSENSITIVE);
-//                                    } else if ((i < check1.size() - 1)) {
-//                                        query.or().contains(check_set.getValue(), check_set.getKey(), Case.INSENSITIVE);
-//                                    } else if (i == check1.size() - 1) {
-//                                        query.or().contains(check_set.getValue(), check_set.getKey(), Case.INSENSITIVE).endGroup();
-//                                    }
-//                                } catch (Exception e){
-//                                    e.printStackTrace();
-//                                }
-//                                i++;
-//                            }
-//                        i = 0;
-//                        if (check2.size() > 0)
-//                            for (Map.Entry<String, String> check_set : check2.entrySet()
-//                            ) {
-//                                Log.wtf("check 2", check_set.getKey());
-//                                try {
-//
-//                                    if (i == 0 && i != check2.size() - 1) {
-////                                query.find(query,check_set.getValue(),)
-//                                        query.beginGroup().contains(check_set.getValue(), check_set.getKey(), Case.INSENSITIVE);
-//                                    } else if (i == 0 && i == check2.size() - 1) {
-//                                        query.contains(check_set.getValue(), check_set.getKey(), Case.INSENSITIVE);
-//                                    } else if ((i < check2.size() - 1)) {
-//                                        query.or().contains(check_set.getValue(), check_set.getKey(), Case.INSENSITIVE);
-//                                    } else if (i == check2.size() - 1) {
-//                                        query.or().contains(check_set.getValue(), check_set.getKey(), Case.INSENSITIVE).endGroup();
-//                                    }
-//                                } catch (Exception e){
-//                                    e.printStackTrace();
-//                                }
-//                                i++;
-//                            }
-                    check1.clear();
-                    check2.clear();
-                }
+                    querycollection.addAll(query.findAll());
 
+                        for (Map.Entry<String, String> filter_data : MainActivity.filter_param.entrySet()
+                        ) {
+//                            Log.wtf(filter_data.getValue(), filter_data.getKey());
+                            try {
+                                if (!filter_data.getKey().equals("wardid") && !filter_data.getKey().endsWith("max") && !filter_data.getKey().endsWith("min")) {
+                                        RealmList<ExploreSchema> qr = new RealmList<>();
+                                        qr.addAll(querycollection);
+                                        querycollection.clear();
+                                        for (ExploreSchema ep : qr
+                                        ) {
+                                            RealmList<String> key = ep.getTag_type();
+                                            RealmList<String> value = ep.getTag_lable();
+                                            int i = 0;
+
+                                            for (String str : key
+                                            ) {
+                                                if (str.equalsIgnoreCase("delivery_service")) {
+                                                    if (!value.get(i).equalsIgnoreCase("no") && str.equalsIgnoreCase(filter_data.getKey())) {
+                                                        querycollection.add(ep);
+                                                    }
+                                                } else if (value.get(i).equalsIgnoreCase(filter_data.getValue()) && str.equalsIgnoreCase(filter_data.getKey())) {
+                                                    querycollection.add(ep);
+                                                }
+                                                i++;
+                                            }
+
+                                        }
+                                    }
+                            }
+                                catch (Exception E) {
+                                    E.printStackTrace();
+                                }
+
+                    }
+                }
+                else {
+                    querycollection.addAll(query.findAll());
+                }
+//else querycollection.addAll(query.findAll());
                 MainActivity.filter_param.clear();
 //                RealmResults<ExploreSchema> results = query.findAll();
         RealmList<ExploreSchema> results = querycollection;
@@ -1462,12 +1380,10 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
 
     //edit
     private void editAmenity(String amenity) {
-//        Intent i = new Intent(getContext(), EditDialogActivity.class);
-//        String[] editInfo = {amenity, editName,editLat,editLong};
-//        i.putExtra("amenity", editInfo);
-//        startActivity(i);
-
-
+        Intent i = new Intent(getContext(), EditDialogActivity.class);
+        String[] editInfo = {amenity, editName,editLat,editLong};
+        i.putExtra("amenity", editInfo);
+        startActivity(i);
     }
 
 

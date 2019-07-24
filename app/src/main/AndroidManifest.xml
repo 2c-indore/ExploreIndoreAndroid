@@ -42,6 +42,10 @@
             android:hardwareAccelerated="true"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat" />
+        <activity
+            android:name=".Activity.Edit.EditDialogActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AppCompat" />
         <activity android:name=".Activity.AboutActivity"></activity>
         <!--<activity android:name=".Activity.Edit.EditDialogActivity"-->
             <!--android:windowSoftInputMode="adjustResize">-->

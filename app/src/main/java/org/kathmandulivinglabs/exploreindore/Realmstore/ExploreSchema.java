@@ -22,7 +22,7 @@ public class ExploreSchema extends RealmObject {
     private RealmList<String> tag_type;
     private RealmList<String> tag_lable;
     private Integer capacity_beds, personnel_count;
-
+    private String ward_id, ward_name;
 
     public RealmList<String> getTag_type() {
         return tag_type;
@@ -146,6 +146,21 @@ public class ExploreSchema extends RealmObject {
 
     public void setPersonnel_count(Integer personnel_count) {
         this.personnel_count = personnel_count;
+    }
+    public String getWard_id() {
+        return ward_id;
+    }
+
+    public void setWard_id(String ward_id) {
+        this.ward_id = ward_id;
+    }
+
+    public String getWard_name() {
+        return ward_name;
+    }
+
+    public void setWard_name(String ward_name) {
+        this.ward_name = ward_name;
     }
 }
 

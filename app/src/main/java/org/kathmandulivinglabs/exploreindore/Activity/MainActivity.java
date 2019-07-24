@@ -609,7 +609,12 @@ public class MainActivity extends AppCompatActivity
                                                     if((op.getValue()!=null) && (op.getValue().matches("-?\\d+")))
                                                         realmObject.setPersonnel_count(Integer.parseInt(op.getValue()));
                                                     break;
-
+                                                case "ward_no":
+                                                    realmObject.setWard_id(op.getValue());
+                                                    break;
+                                                case "ward_name":
+                                                    realmObject.setWard_name(op.getValue());
+                                                    break;
 
                                                 default:
                                                     break;

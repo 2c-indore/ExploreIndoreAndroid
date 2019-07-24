@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
@@ -31,7 +32,6 @@ import com.github.ybq.android.spinkit.style.Wave;
 import org.kathmandulivinglabs.exploreindore.Activity.MainActivity;
 import org.kathmandulivinglabs.exploreindore.FilterParcel;
 import org.kathmandulivinglabs.exploreindore.R;
-import org.kathmandulivinglabs.exploreindore.Realmstore.Bank;
 import org.kathmandulivinglabs.exploreindore.Realmstore.FilterSchema;
 import org.kathmandulivinglabs.exploreindore.Realmstore.Ward;
 import org.kathmandulivinglabs.exploreindore.View.ProgressDialogFragment;
@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import io.apptik.widget.MultiSlider;
 import io.realm.Realm;
@@ -222,7 +223,7 @@ public class InsightFragment  extends Fragment {
         applyFilter.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
+                filter_param.put("wardid",wardid);
                     for(int i=0;i<range_size;i++) {
                        filter_param.put(range[i]+"max", String.valueOf(range_bar[i].getMaxValue().intValue()));
                         filter_param.put(range[i]+"min", String.valueOf(range_bar[i].getMinValue().intValue()));
@@ -233,7 +234,7 @@ public class InsightFragment  extends Fragment {
                 for(Map.Entry<String,String> check_vals:check_selected.entrySet()){
                         filter_param.put(check_vals.getKey()+"check",check_vals.getValue());
                 }
-                filter_param.put("wardid",wardid);
+
                 Log.wtf(filter_param.toString(),"FilterParam");
                 MainActivity.filter_param = filter_param;
                 mapfilter.setFilter_parameter(filter_param);

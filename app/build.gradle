@@ -68,16 +68,6 @@ dependencies {
     }
 //    implementation 'com.mapbox.mapboxsdk:mapbox-android-plugin-cluster-utils:0.2.0-SNAPSHOT'
     testImplementation 'junit:junit:4.12'
-
-    implementation 'com.github.scribejava:scribejava-apis:5.5.0'
-
-    // talking with OSM Api
-    implementation 'oauth.signpost:signpost-core:1.2.1.2'
-    implementation ('de.westnordost:osmapi:1.8')
-            {
-                exclude group: 'net.sf.kxml', module: 'kxml2' // already included in Android
-            }
-
     implementation ('com.appyvet:materialrangebar:1.4.2') {
         exclude module: 'support-compat'
     }
