@@ -20,7 +20,7 @@ public interface ApiInterface {
     @GET("http://159.65.10.210:5080/api/amenities/data")
     Call<Features> getFeature(@Query("type") String type, @Query("platform") String client);
 
-    @GET("http://preparepokhara.org/api/v2/features/tags")
+    @GET("http://159.65.10.210:5080/api/amenities/tags")
     Call<Tags> getTag();
 
 }

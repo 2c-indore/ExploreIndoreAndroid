@@ -183,12 +183,6 @@ public class MainActivity extends AppCompatActivity
         oldtag = def_type;
 
         tagMp = new HashMap<>();
-//        tagMp.put("hospitals","Hospitals");
-//        tagMp.put("clinics","Clinics");
-//        tagMp.put("others","Others");
-//        tagHospitals = new HashMap<>();
-//        tagClincs = new HashMap<>();
-//        tagOthers = new HashMap<>();
         tagMp.put("public_hospitals","Public Hospitals");
         tagMp.put("private_hospitals","Private Hospitals");
         tagMp.put("public_clinics","Public Clinics and Government Centers");
@@ -228,13 +222,7 @@ public class MainActivity extends AppCompatActivity
                         drawer.closeDrawers();
                         updateRealm(oldtag);
                         getSupportActionBar().setTitle(def_type_category);
-//                        if(oldtag.equals("attractions")) {
-//                            if (tabs.getTabAt(1)!=null) tabs.removeTabAt(1);
-//                            getSupportActionBar().setTitle(def_type_category);
-//                        }
-//                        else
-//                            getSupportActionBar().setTitle(oldtag);
-                   //Remove and Save data to realm
+//
                     }
                     else if(childValue.equals("Offline map")){
                         drawer.closeDrawers();
@@ -243,24 +231,9 @@ public class MainActivity extends AppCompatActivity
                             downloadBaseMap();
                         }
                         else Snackbar.make(MainActivity.this.findViewById(android.R.id.content), "No internet connection", Snackbar.LENGTH_LONG).show();
-//                        if(oldtag.equals("attractions")) {
-//                            if (tabs.getTabAt(1)!=null) tabs.removeTabAt(1);
-//                            getSupportActionBar().setTitle(def_type_category);
-//                        }
-//                        else
-//                            getSupportActionBar().setTitle(oldtag);
+//
                     }
-//                    else if(childValue.equals("")){
-//                        drawer.closeDrawers();
-//                        if(oldtag.equals("attractions")) {
-//                            if (tabs.getTabAt(1)!=null) tabs.removeTabAt(1);
-//                            getSupportActionBar().setTitle(def_type_category);
-//                        }
-//                        else
-//                            getSupportActionBar().setTitle(oldtag);
-//                        downloadalldata =true;
-//                        downloadAll();
-//                    }
+//
                     else if(childValue.equals("About Us")){
                         drawer.closeDrawers();
                         Log.d("About Us","entry");
@@ -272,11 +245,6 @@ public class MainActivity extends AppCompatActivity
                     }
 
 
-
-//                    drawer.closeDrawers();
-//                    oldtag = "attractions";
-//                    makeMapData("attractions");
-
                 return false;
             }
         });
@@ -284,21 +252,6 @@ public class MainActivity extends AppCompatActivity
             @Override
             public boolean onGroupClick(ExpandableListView expandableListView, View view, int i, long l) {
                 String childValue = listDataHeader.get(i).getIconName();
-//                if(childValue.equals("Update")){
-//                   // updateRealm();
-//                    //Remove and Save data to realm
-//                }
-//                else if(childValue.equals("Offline Map")){
-//
-//                    downloadStarted();
-//                    downloadBaseMap();
-//                }
-//                else if(childValue.equals("About Us")){
-//                    Log.d("About Us","entry");
-//                    Intent intentabout = new Intent(getApplicationContext(), AboutActivity.class);
-//                    startActivity(intentabout);
-//
-//                }
                 return false;
             }
         });
@@ -337,14 +290,14 @@ public class MainActivity extends AppCompatActivity
                 if (amenityedited != null) {
                     getSupportActionBar().setTitle(amenityedited);
                 } else {
-                    getSupportActionBar().setTitle("Hospitals");
+                    getSupportActionBar().setTitle("Public Hospitals");
 //                    tabs.removeTabAt(1);
                 }
             }
 
         }
         else  {
-            getSupportActionBar().setTitle("Hospitals");
+            getSupportActionBar().setTitle("Public Hospitals");
 //            tabs.removeTabAt(1);
         }
         viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
@@ -395,8 +348,6 @@ public class MainActivity extends AppCompatActivity
         });
         downloadalldata = true;
         thread.start();
-        //dismissProgressDialog();
-        //fragmentRefresh();
     }
 
     private void makeMapData(String selectedkey){
@@ -503,21 +454,6 @@ public class MainActivity extends AppCompatActivity
         viewPager.setAdapter(adapter);
 
     }
-//    private String tagFormat(String text){
-//        char c = text.charAt(1);
-//        int _index = text.indexOf("_");
-//        text = Character.toUpperCase(c)+text.substring(2,_index)+text.substring(_index+1);
-//        Log.d(text,"tagFormat: ");
-//        return text;
-//    }
-//    private void addMenuItems(List<String> menuItem){
-//        int i = 0;
-//        for (String item:menuItem
-//             ) {
-//            navigationView.getMenu().add(R.id.nav_infrastructure,i,i,item);
-//            i++;
-//        }
-//    }
 
     private void removedata(String amenity_type) {
         Realm realm = Realm.getDefaultInstance();
@@ -715,18 +651,6 @@ public class MainActivity extends AppCompatActivity
 
     }
     private void saveward(Realm realm,Wards.Boundary bound,List <Wards.BoundaryWithWards.Feature> ward_bounds) {
-//        ApiInterface apiInterface = new ApiHelper().getApiInterface();
-//            Call<Features> call = apiInterface.getFeature("public_hospitals","mobile");
-//
-//            call.enqueue(new Callback<Features>() {
-//                @Override
-//                public void onResponse(Call<Features> call, Response<Features> response) {
-//                    if (response.body() != null) {
-//                        if (response.body().getSuccess() == 1) {
-
-//        Realm realm = Realm.getDefaultInstance();
-//                            try {
-//                                realm.beginTransaction();
                                 for (List<List<Double>> bound_prop :bound.getFeatures().get(0).getGeometry().getCoordinates().get(0)){
                                     for (List<Double> bound_coord : bound_prop
                                             ) {
@@ -740,18 +664,15 @@ public class MainActivity extends AppCompatActivity
                                  ) {
                                 Ward ward = realm.createObject(Ward.class);
                                 String wardname = ward_prop.getProperties().getWard_name();
-//                                String dbname = (wardname.split("Pokhara Lekhnath Metropolitan Ward No.")[1]).trim();
+//
                                 String dbname = ward_prop.getProperties().getWard_no();
                                 int wardno = Integer.parseInt(dbname);
                                 Log.wtf(wardname,"ward");
-//                                dbname = "Ward No. "+ dbname;
+//
                                 ward.setName(wardname);
                                 ward.setNumber(wardno);
                                 ward.setOsmID(dbname);
-//                                ward.setOsmID(ward_prop.getId());
-//                                ward.setName_ne(ward_prop.getProperties().getNameNe());
-//                                ward.setCoordinateslat(ward_prop.getCentroid().getCoordinates().get(1));
-//                                ward.setCoordinateslong(ward_prop.getCentroid().getCoordinates().get(0));
+//
                                 Wards.BoundaryWithWards.Feature.Geometry_ geom = ward_prop.getGeometry();
                                 RealmList<PokharaBoundary> pbound;
                                 pbound = new RealmList<>();
@@ -769,26 +690,8 @@ public class MainActivity extends AppCompatActivity
 
                                 }
                                 ward.setBoundry(pbound);
-
-                                //Log.wtf(ward_prop.getId(),ward_prop.getProperties().getName());
                             }
-//                            } catch (Exception e) {
-//                                e.printStackTrace();
-//                            } finally {
-//                                realm.commitTransaction();
-//                                realm.close();
-////                                if(!downloadalldata)
-////                                fragmentRefresh();
-//                            }
-//                        }
-//                    }
-//                }
-//
-//                @Override
-//                public void onFailure(Call<Features> call, Throwable t) {
-//                    t.printStackTrace();
-//                }
-//            });
+
     }
 
     private void savetag() {
