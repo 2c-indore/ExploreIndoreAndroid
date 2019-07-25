@@ -18,6 +18,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -38,6 +39,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import io.realm.Realm;
@@ -60,7 +62,10 @@ public class EditDialogActivity extends AppCompatActivity implements MainActivit
                      ) {
                     String vals = maps.getValue();
                     try {
-
+                        if(vals!=null){
+                            if(maps.getKey().equals("name"))
+                                explore.setName(vals);
+                        }
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -93,20 +98,22 @@ public class EditDialogActivity extends AppCompatActivity implements MainActivit
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+//        getWindow().setLayout(WindowManager.LayoutParams.MATCH_PARENT,
+//                WindowManager.LayoutParams.MATCH_PARENT);
         sharedPreferences = this.getPreferences(Context.MODE_PRIVATE);
 
         amenitySelected = getIntent().getStringArrayExtra("amenity");
         setContentView(R.layout.edit_dialog);
         setTitle("Edit");
         LinearLayout container = findViewById(R.id.editLayout);
+
         Button applybtn = findViewById(R.id.apply_edit);
         Realm realm = Realm.getDefaultInstance();
         if (amenitySelected != null) {
             amenityTopass = amenitySelected[0];
-            int size = realm.where(Tag.class).equalTo("amenity", amenitySelected[0]).findAll().get(0).getTagslabel().size();
+            Log.wtf("aminitySelected",amenityTopass);
+            int size = realm.where(Tag.class).equalTo("amenity", amenitySelected[0]).findFirst().getOsmtags().size();
             RealmResults<Tag> tag = realm.where(Tag.class).equalTo("amenity", amenitySelected[0]).findAll();
-            //ExploreSchema hosdet = realm.where(ExploreSchema.class).equalTo("name", amenitySelected[1]).findFirst();
             RealmQuery<ExploreSchema> query = realm.where(ExploreSchema.class);
             realm.close();
             ExploreSchema dbvalue;
@@ -121,10 +128,14 @@ public class EditDialogActivity extends AppCompatActivity implements MainActivit
             if (dbvalue != null) {
                 String allValue;
                 allValue = dbvalue.toString();
+                List<String> tags = dbvalue.getTag_type();
+                List<String> labels = dbvalue.getTag_lable();
+
+                Log.wtf(allValue,"vals");
                 osmId = dbvalue.getOsm_id();
-                View view[];
-                TextView editTag[];
-                AppCompatEditText editValue[];
+                View[] view;
+                TextView[] editTag;
+                AppCompatEditText[] editValue;
                 editTag = new TextView[size];
                 editValue = new AppCompatEditText[size];
                 view = new View[size];
@@ -135,27 +146,31 @@ public class EditDialogActivity extends AppCompatActivity implements MainActivit
                 editKey = new String[size];
                 dbKey = new  String[size];
                 for (Tag tg : tag) {
-                    Log.d(String.valueOf(tg.getOsmtags()), "osm");
-                    Log.d(String.valueOf(tg.getTagslabel()), "lables");
-                    Log.d(String.valueOf(tg.getTagkey()), "key");
+
                     int i = 0;
-                    for (String lis : tg.getTagslabel()) {
-                        String keyValue = tg.getTagkey().get(i);
+                    for (String lis : tg.getOsmtags()) {
+                        String keyValue = tg.getOsmtags().get(i);
+                        Log.wtf(keyValue,"Tags");
+                        Log.wtf("osm",lis);
                         view[i] = getLayoutInflater().inflate(R.layout.edittextgenerator, container, false);
                         editTag[i] = view[i].findViewById(R.id.attribute_type);
                         editValue[i] = view[i].findViewById(R.id.attribute_value);
-                        editTag[i].setText(lis);
+                        editTag[i].setText(Utils.toTitleCase(lis.replace("_"," ")));
+//                        editTag[i].setTextColor(getResources().getColor(android.R.color.black));
                         try {
-                            if (allValue.contains(keyValue)) {
-                                int j = allValue.lastIndexOf(keyValue + ":");
-                                int k = allValue.indexOf("},", j);
-                                String v = allValue.substring(j + (keyValue + ":").length(), k);
-                                if (!v.equals("null")) {
-                                    editValue[i].setText(v);
-                                }
+                            if (tags.contains(keyValue)) {
+//                                int j = allValue.lastIndexOf(lis + ":");
+//                                int k = allValue.indexOf("},", j);
+//                                String v = allValue.substring(j + (lis + ":").length(), k);
+//                                Log.wtf(v,"value");
+//                                if (!v.equals("null")) {
+//                                    editValue[i].setText(v);
+//                                }
                                 editKey[i] = tg.getOsmtags().get(i);
-                                dbKey[i]=tg.getTagkey().get(i);
-                                Log.d(v, "onCreate: ");
+                                dbKey[i]=lis;
+//                                Log.d(v, "onCreate: ");
+                            int p = tags.indexOf(keyValue);
+                            editValue[i].setText(labels.get(p));
                             }
                         } catch (Exception exception) {
                             exception.printStackTrace();
@@ -172,7 +187,6 @@ public class EditDialogActivity extends AppCompatActivity implements MainActivit
                     for (int a = 0; a < size; a++) {
                         realm_key_value.put(dbKey[a],editValue[a].getText().toString());
                         if (!(editValue[a].getText() == null || editValue[a].getText().toString().equals(""))) {
-                            Log.wtf(editKey[a], "keys");
                             edit_key_value.put(editKey[a], editValue[a].getText().toString());
                         }
                     }
@@ -210,9 +224,9 @@ public class EditDialogActivity extends AppCompatActivity implements MainActivit
     @Override
     public void onBackPressed() {
         super.onBackPressed();
-        Intent i = new Intent(this, MainActivity.class);
-        i.putExtra("amenityedited",amenityTopass);
-        startActivity(i);
+//        Intent i = new Intent(this, MainActivity.class);
+//        i.putExtra("amenityedited",amenityTopass);
+//        startActivity(i);
     }
 
     @Override

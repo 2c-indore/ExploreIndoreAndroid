@@ -53,7 +53,8 @@ import org.kathmandulivinglabs.exploreindore.Adapter.ExpandedMenuModel;
 import org.kathmandulivinglabs.exploreindore.Adapter.FragmentAdapter;
 import org.kathmandulivinglabs.exploreindore.Api_helper.ApiHelper;
 import org.kathmandulivinglabs.exploreindore.Api_helper.ApiInterface;
-import org.kathmandulivinglabs.exploreindore.Api_helper.Tags;
+import org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.Data;
+import org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.Tags;
 import org.kathmandulivinglabs.exploreindore.Api_helper.Wards;
 //import org.kathmandulivinglabs.exploreindore.BuildConfig;
 import org.kathmandulivinglabs.exploreindore.BuildConfig;
@@ -77,7 +78,9 @@ import org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.Filter;
 import org.kathmandulivinglabs.exploreindore.View.ProgressDialogFragment;
 
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -144,9 +147,9 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer = findViewById(R.id.drawer_layout);
         expandableList = findViewById(R.id.expand_nav);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -174,7 +177,7 @@ public class MainActivity extends AppCompatActivity
             notificationManager.createNotificationChannel(channel);
         }
 
-        navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView = findViewById(R.id.nav_view);
         if(navigationView!=null){
             setupDrawerContent(navigationView);
         }
@@ -269,11 +272,11 @@ public class MainActivity extends AppCompatActivity
 //            downloadAll();
             saveDataFromV2Api(def_type);
         }
-        viewPager = (CustomViewPager) findViewById(R.id.viewpager);
+        viewPager = findViewById(R.id.viewpager);
         setupViewPager(viewPager);
         viewPager.setOffscreenPageLimit(1);
         // Set Tabs inside Toolbar
-        tabs = (TabLayout) findViewById(R.id.result_tabs);
+        tabs = findViewById(R.id.result_tabs);
         tabs.setupWithViewPager(viewPager);
         Intent  i = getIntent();
         String amenityedited;
@@ -567,7 +570,7 @@ public class MainActivity extends AppCompatActivity
 
                                     realmObject.setOsm_id(feature.getId());
 
-                                    realmObject.setId((long) feature.getProperties().getId());
+                                    realmObject.setId(feature.getProperties().getId());
                                     realmObject.setTag_type(a_tag);
                                     realmObject.setTag_lable(a_value);
 
@@ -703,29 +706,20 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onResponse(Call<Tags> call, Response<Tags> response) {
                 if (response.body() != null) {
-                    if (response.body().getSuccess() == 1) {
+                    if (response.body().getSuccess().equals("1")) {
                         Realm realm = Realm.getDefaultInstance();
-                        List<Tags.Tag> amenityTag = response.body().getTags();
+                        Data[] amenityTag = response.body().getData();
                         realm.beginTransaction();
                         try {
-                            for (Tags.Tag ame : amenityTag
+                            for (Data ame : amenityTag
                                     ) {
                                 String amenity_name = ame.getAmenity();
-                                List<Tags.Tag.Tag_> amenity_tag = ame.getTags();
+                                String[] amenity_tag = ame.getTags();
                                 RealmList<String> osm_tag = new RealmList<>();
-                                RealmList<String> osm_label = new RealmList<>();
-                                RealmList<String> db_key = new RealmList<>();
-                                for (Tags.Tag.Tag_ tags : amenity_tag
-                                        ) {
-                                    osm_tag.add(tags.getTag());
-                                    osm_label.add(tags.getLabel());
-                                    db_key.add(tags.getDatabase_schema_key());
-                                }
+                                osm_tag.addAll(Arrays.asList(amenity_tag));
                                 Tag tagData = realm.createObject(Tag.class);
                                 tagData.setAmenity(amenity_name);
                                 tagData.setOsmtags(osm_tag);
-                                tagData.setTagslabel(osm_label);
-                                tagData.setTagkey(db_key);
                             }
                         } finally {
                             realm.commitTransaction();
@@ -788,7 +782,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         }
@@ -853,7 +847,7 @@ public class MainActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
         navClicked = true;
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
@@ -983,7 +977,7 @@ public class MainActivity extends AppCompatActivity
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("Region Name", "Pokhara Basemap");
                 String json = jsonObject.toString();
-                metadata = json.getBytes("UTF-8");
+                metadata = json.getBytes(StandardCharsets.UTF_8);
             } catch (Exception exception) {
                 exception.printStackTrace();
                 metadata = null;
@@ -1105,7 +1099,7 @@ public class MainActivity extends AppCompatActivity
     public void setSnackbar(String msg) {
         snackbar = Snackbar.make(this.findViewById(android.R.id.content), msg, Snackbar.LENGTH_INDEFINITE);
         View snackbarView = snackbar.getView();
-        TextView textView = (TextView) snackbarView.findViewById(android.support.design.R.id.snackbar_text);
+        TextView textView = snackbarView.findViewById(android.support.design.R.id.snackbar_text);
         textView.setMaxLines(5);
         final Snackbar finalSnackbar = snackbar;
         snackbar.setAction("Retry", new View.OnClickListener() {

@@ -3,6 +3,7 @@ package org.kathmandulivinglabs.exploreindore.Api_helper;
 import org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.AccessToken;
 
 import org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.Features;
+import org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.Tags;
 
 import retrofit2.Call;
 import retrofit2.http.Field;

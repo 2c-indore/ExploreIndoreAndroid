@@ -9,8 +9,8 @@ import io.realm.RealmObject;
 public class Tag extends RealmObject {
     private String amenity;
     private RealmList<String> osmtags;
-    private RealmList<String> tagslabel;
-    private RealmList<String> tagkey;
+//    private RealmList<String> tagslabel;
+//    private RealmList<String> tagkey;
 
     public String getAmenity() {
         return amenity;
@@ -28,19 +28,19 @@ public class Tag extends RealmObject {
         this.osmtags = osmtags;
     }
 
-    public RealmList<String> getTagslabel() {
-        return tagslabel;
-    }
-
-    public void setTagslabel(RealmList<String> tagslabel) {
-        this.tagslabel = tagslabel;
-    }
-
-    public RealmList<String> getTagkey() {
-        return tagkey;
-    }
-
-    public void setTagkey(RealmList<String> tagkey) {
-        this.tagkey = tagkey;
-    }
+//    public RealmList<String> getTagslabel() {
+//        return tagslabel;
+//    }
+//
+//    public void setTagslabel(RealmList<String> tagslabel) {
+//        this.tagslabel = tagslabel;
+//    }
+//
+//    public RealmList<String> getTagkey() {
+//        return tagkey;
+//    }
+//
+//    public void setTagkey(RealmList<String> tagkey) {
+//        this.tagkey = tagkey;
+//    }
 }

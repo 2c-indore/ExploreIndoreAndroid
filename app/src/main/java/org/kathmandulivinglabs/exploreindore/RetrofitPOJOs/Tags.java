@@ -10,22 +10,33 @@ import java.util.Map;
 
 public class Tags {
 
-   private   String key;
-   private String value;
+    private Data[] data;
 
-    public String getKey() {
-        return key;
+    private String success;
+
+    public Data[] getData ()
+    {
+        return data;
     }
 
-    public void setKey(String key) {
-        this.key = key;
+    public void setData (Data[] data)
+    {
+        this.data = data;
     }
 
-    public String getValue() {
-        return value;
+    public String getSuccess ()
+    {
+        return success;
     }
 
-    public void setValue(String value) {
-        this.value = value;
+    public void setSuccess (String success)
+    {
+        this.success = success;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "ClassPojo [data = "+data+", success = "+success+"]";
     }
 }
