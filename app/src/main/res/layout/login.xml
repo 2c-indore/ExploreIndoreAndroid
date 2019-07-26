@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <!--<ScrollView-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="match_parent"-->
+        <!--android:fillViewport="true">-->
+    <LinearLayout
+        android:id="@+id/ll_login_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:focusableInTouchMode="true"
+        android:gravity="center_vertical"
+        >
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="70dp"
+        android:layout_gravity="center">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Explore"
+            android:textSize="18sp"
+            android:textColor="@color/primaryText"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Indore"
+            android:paddingLeft="5dp"
+            android:textSize="18sp"
+            android:textColor="@color/secondaryText"/>
+    </LinearLayout>
+    <EditText
+        android:id="@+id/edittext_username"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="15dp"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:ems="10"
+        android:hint="Email"
+        android:textColorHint="@color/secondaryText"
+        android:inputType="textEmailAddress"
+        android:minHeight="40dp"
+        android:paddingLeft="10dp"
+        android:background="@color/white"
+        android:textColor="@color/primaryText"
+        />
+
+    <EditText
+        android:id="@+id/edittext_password"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="30dp"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:background="@color/white"
+        android:ems="5"
+        android:hint="Password"
+        android:inputType="textPassword"
+        android:textColorHint="@color/secondaryText"
+        android:minHeight="40dp"
+        android:paddingLeft="10dp"
+        android:textColor="@color/primaryText"
+        />
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:background="@color/primaryText"
+        android:gravity="end"
+        android:orientation="horizontal"
+        android:layout_marginBottom="40dp"/>
+
+
+    <Button
+        android:id="@+id/btn_login"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="15dp"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:background="@color/colorAccent"
+        android:elevation="6dp"
+        android:translationZ="2dp"
+        android:minHeight="40dp"
+        android:text="Login"
+        android:textColor="@color/white"
+        />
+    </LinearLayout>
+    <!--</ScrollView>-->
+
+
+
+
+
+
+</android.support.constraint.ConstraintLayout>

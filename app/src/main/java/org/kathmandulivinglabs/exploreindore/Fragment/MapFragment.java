@@ -143,13 +143,8 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
     private int swipeValue = 0;
     private static Map<String, Boolean> filter = new HashMap<>();
     private static Boolean atm;
-    private static String wardId_hos, wardId_sch, wardId_bank, operator;
-    private static Integer bedMin, bedMaxx, studentMin, studentMaxx;
     FilterParcel insightfilter;
     private static String selectedType = MainActivity.def_type;
-    private com.mapbox.mapboxsdk.annotations.Icon hospital_icon, bank_icon, school_icon;
-    private com.mapbox.mapboxsdk.annotations.Icon hospital_selected, bank_selected, school_selected;
-    TextView phone, email, website;
     Marker previous_selected;
 
     private ToggleTabVisibilityListener toggleTabVisibilityListener;
@@ -258,13 +253,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
     @Override
     public void onPrepareOptionsMenu(Menu menu) {
         MenuItem mSearchMenuItem = menu.findItem(R.id.search);
-//        mSearchMenuItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
-//            @Override
-//            public boolean onMenuItemClick(MenuItem item) {
-//                listView.setVisibility(View.VISIBLE);
-//                return false;
-//            }
-//        });
+
         searchView = (SearchView) mSearchMenuItem.getActionView();
         searchView.setOnSearchClickListener(new View.OnClickListener() {
             @Override
@@ -420,187 +409,8 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
         insightfilter = new FilterParcel();
         IconFactory mIconFactory = IconFactory.getInstance(getActivity());
         tagMp_blue = new HashMap<>();
-        tagMp_blue.put("school", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.school)));
-        tagMp_blue.put("hindu", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.hindu)));
-        tagMp_blue.put("Hindu Temples", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.hindu)));
-        tagMp_blue.put("View Points/Towers", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.view_point)));
 
 
-        tagMp_blue.put("police", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.police)));
-        tagMp_blue.put("hospital", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.hospital)));
-        tagMp_blue.put("clinic", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.clinic)));
-        tagMp_blue.put("health_post", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.health_post)));
-        tagMp_blue.put("pharmacy", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.pharmacy)));
-        tagMp_blue.put("dentist", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.dentist)));
-        tagMp_blue.put("veterinarians", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.veterinary)));
-        tagMp_blue.put("government", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.government)));
-        tagMp_blue.put("ngo", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.ngo)));
-        tagMp_blue.put("bank", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.bank)));
-        tagMp_blue.put("fuel", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.fuel)));
-        tagMp_blue.put("radio", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.radio)));
-        tagMp_blue.put("television", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.tv)));
-        tagMp_blue.put("newspaper", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.newspaper)));
-        tagMp_blue.put("college", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.university)));
-        tagMp_blue.put("university", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.university)));
-        tagMp_blue.put("kindergarten", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.kindergarten)));
-        tagMp_blue.put("buddhist", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.buddhist)));
-
-        tagMp_blue.put("Buddhist Stupa/Monastery", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.buddhist)));
-
-
-        tagMp_blue.put("christian", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.christian)));
-        tagMp_blue.put("muslim", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.muslim)));
-        tagMp_blue.put("atm", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.atm)));
-        tagMp_blue.put("restaurant", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.resturant)));
-        tagMp_blue.put("museum", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.museum)));
-        tagMp_blue.put("park", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.museum)));
-        tagMp_blue.put("storage_tank", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.storage_tank)));
-        tagMp_blue.put("water_tap", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.public_tap)));
-        tagMp_blue.put("water_well", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.water_well)));
-        tagMp_blue.put("gas", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.map_marker_dark)));
-        tagMp_blue.put("cooperative", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.bank)));
-        tagMp_blue.put("hotel", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.hotel)));
-        tagMp_blue.put("kirat", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.map_marker_dark)));
-        tagMp_blue.put("sikh", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.map_marker_dark)));
-        tagMp_blue.put("judaism", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.map_marker_dark)));
-        tagMp_blue.put("other-religion", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.map_marker_dark)));
-
-
-        tagMp_orange = new HashMap<>();
-        tagMp_orange.put("Hindu Temples", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.orange_hindu)));
-        tagMp_orange.put("View Points/Towers", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.orange_view_point)));
-        tagMp_orange.put("Buddhist Stupa/Monastery", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.orange_buddhist)));
-
-
-        tagMp_orange.put("school", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.orange_school)));
-        tagMp_orange.put("hindu", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.orange_hindu)));
-        tagMp_orange.put("police", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.orange_police)));
-        tagMp_orange.put("hospital", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.orange_hospital)));
-        tagMp_orange.put("clinic", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.orange_clinic)));
-        tagMp_orange.put("health_post", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.orange_health_post)));
-        tagMp_orange.put("pharmacy", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.orange_pharmacy)));
-        tagMp_orange.put("dentist", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.orange_dentist)));
-        tagMp_orange.put("veterinarians", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.orange_veterinary)));
-        tagMp_orange.put("government", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.orange_government)));
-        tagMp_orange.put("ngo", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.orange_ngo)));
-        tagMp_orange.put("bank", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.orange_bank)));
-        tagMp_orange.put("fuel", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.orange_fuel)));
-        tagMp_orange.put("radio", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.orange_radio)));
-        tagMp_orange.put("television", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.orange_tv)));
-        tagMp_orange.put("newspaper", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.orange_newspaper)));
-        tagMp_orange.put("college", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.orange_university)));
-        tagMp_orange.put("university", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.orange_university)));
-        tagMp_orange.put("kindergarten", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.orange_kindergarten)));
-        tagMp_orange.put("buddhist", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.orange_buddhist)));
-        tagMp_orange.put("christian", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.orange_christian)));
-        tagMp_orange.put("muslim", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.orange_muslim)));
-        tagMp_orange.put("atm", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.orange_atm)));
-        tagMp_orange.put("restaurant", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.orange_resturant)));
-        tagMp_orange.put("museum", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.orange_museum)));
-        tagMp_orange.put("park", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.orange_museum)));
-        tagMp_orange.put("storage_tank", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.orange_storage_tank)));
-        tagMp_orange.put("water_tap", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.orange_public_tap)));
-        tagMp_orange.put("water_well", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.orange_water_well)));
-        tagMp_orange.put("gas", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.map_marker_light)));
-        tagMp_orange.put("cooperative", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.orange_bank)));
-        tagMp_orange.put("hotel", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.orange_hotel)));
-        tagMp_orange.put("kirat", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.map_marker_light)));
-        tagMp_orange.put("sikh", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.map_marker_light)));
-        tagMp_orange.put("judaism", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.map_marker_light)));
-        tagMp_orange.put("other-religion", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.map_marker_light)));
-//        Bitmap hos_icon = mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-//                getActivity().getResources(), R.drawable.hospital);
-//        Bitmap bnk_icon = mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-//                getActivity().getResources(), R.drawable.bank);
-//        Bitmap scol_icon = mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-//                getActivity().getResources(), R.drawable.school);
-//        hospital_icon = mIconFactory.fromBitmap(hos_icon);
-//        bank_icon = mIconFactory.fromBitmap(bnk_icon);
-//        school_icon = mIconFactory.fromBitmap(scol_icon);
-//        Bitmap hos_selected = mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-//                getActivity().getResources(), R.drawable.orange_hospital);
-//        Bitmap bnk_selected = mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-//                getActivity().getResources(), R.drawable.orange_bank);
-//        Bitmap scol_selected = mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-//                getActivity().getResources(), R.drawable.orange_school);
         navButton = v.findViewById(R.id.startButton);
 //        hospital_selected = mIconFactory.fromBitmap(hos_selected);
 //        bank_selected = mIconFactory.fromBitmap(bnk_selected);
@@ -616,42 +426,6 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
         }
 
 
-//        if (selectedType.equals("attractions")) {
-//            amenityInfo = inflate_info.inflate(R.layout.places_of_attraction, null);
-//            attraction_title = amenityInfo.findViewById(R.id.attraction_title);
-//            attraction_title_np = amenityInfo.findViewById(R.id.attraction_title_np);
-//            attraction_detail = amenityInfo.findViewById(R.id.attraction_detail);
-//            attraction_image = amenityInfo.findViewById(R.id.attraction_image);
-//            attraction_close = amenityInfo.findViewById(R.id.attraction_close);
-//            attraction_tags_container = amenityInfo.findViewById(R.id.contentOsm);
-//            attraction_swipe = amenityInfo.findViewById(R.id.swipe_container);
-//            detailbool = false;
-//
-//            attraction_close.setOnClickListener(new View.OnClickListener() {
-//                @Override
-//                public void onClick(View v) {
-//                    swipeValue = 0;
-//                    lm.setLayoutParams(lp_shrink);
-//                    small_info.setVisibility(View.VISIBLE);
-//                    ((AppCompatActivity) getActivity()).getSupportActionBar().show();
-//                    toggleTabVisibilityListener.showTabs();
-//                    lm.setVisibility(View.GONE);
-//                    if (navigationMapRoute != null) navigationMapRoute.removeRoute();
-//                    detail_screen.removeAllViews();
-//                }
-//            });
-//            attraction_swipe.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-//                @Override
-//                public void onRefresh() {
-//                    attraction_swipe.setRefreshing(false);
-//                    lm.setLayoutParams(lp_shrink);
-//                    small_info.setVisibility(View.VISIBLE);
-//                    detail_screen.removeView(amenityInfo);
-//                    iff_ondown = false;
-//                    iff_onswipe = false;
-//                }
-//            });
-//        } else {
             detailbool = true;
             amenityInfo = inflate_info.inflate(R.layout.detailview, null);
             containera = amenityInfo.findViewById(R.id.detailLayout);
@@ -1094,16 +868,16 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
                 }
             }
             previous_selected = marker;
-            for (Map.Entry<String,com.mapbox.mapboxsdk.annotations.Icon > entry : tagMp_orange.entrySet()) {
-                if(!selectedType.equals("attractions")) {
-                    if (entry.getKey().equals(selectedType)) {
-                        marker.setIcon(entry.getValue());
-                    }
-                }
-                else if(entry.getKey().equals(MainActivity.def_type_category)){
-                    marker.setIcon(entry.getValue());
-                }
-            }
+//            for (Map.Entry<String,com.mapbox.mapboxsdk.annotations.Icon > entry : tagMp_orange.entrySet()) {
+//                if(!selectedType.equals("attractions")) {
+//                    if (entry.getKey().equals(selectedType)) {
+//                        marker.setIcon(entry.getValue());
+//                    }
+//                }
+//                else if(entry.getKey().equals(MainActivity.def_type_category)){
+//                    marker.setIcon(entry.getValue());
+//                }
+//            }
             ((AppCompatActivity) getActivity()).getSupportActionBar().hide();
             toggleTabVisibilityListener.hideTabs();
             lm.setVisibility(View.VISIBLE);
@@ -1429,24 +1203,6 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
         return qe.endGroup();
     }
 
-//    public void doSomething(String myValue){
-//        if(myValue!=null){
-//            if (!selectedType.equals(myValue) || myValue.equals("first")){
-//             //   MainActivity.updateMapView = false;
-//                Log.d("inUpdate", "updateView: ");
-////                Fragment frg = null;
-////                String tagfeature = "android:switcher:" + R.id.viewpager + ":" + 0;
-////                frg = (MapFragment) getFragmentManager().findFragmentByTag(tagfeature);
-////                FragmentTransaction ft = getFragmentManager().beginTransaction();
-////                if(frg!=null) {
-////                    ft.detach(frg);
-////                    ft.attach(frg);
-////                    ft.commit();
-////                }
-//            }
-//        }
-//        // Do stuff in your fragment with myValue
-//    }
 
     @Override
     public void onPause() {
@@ -1472,14 +1228,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
         mapView.onLowMemory();
     }
 
-    //    @Override
-//    public void onDestroy() {
-//        super.onDestroy();
-//        mapView.onDestroy();
-//        if (locationEngine != null) {
-//            locationEngine.deactivate();
-//        }
-//    }
+
     @Override
     public void onDestroyView() {
         super.onDestroyView();
