@@ -99,7 +99,6 @@ public class MainActivity extends AppCompatActivity
     public interface OnTaskCompleted{
         void onTaskCompleted();
     }
-
     public static String def_type="public_hospitals";
     public static String def_type_category = "Public Hospitals";
     public static boolean infoScreen = false;
@@ -149,6 +148,16 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        TextView tv = findViewById(R.id.btn_login);
+
+        tv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                drawer.closeDrawers();
+                Intent intentabout = new Intent(getApplicationContext(), LoginActivity.class);
+                startActivity(intentabout);
+            }
+        });
         drawer = findViewById(R.id.drawer_layout);
         expandableList = findViewById(R.id.expand_nav);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(

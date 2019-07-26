@@ -26,12 +26,35 @@
         app:headerLayout="@layout/nav_header_main"
          >
         <!--app:menu="@menu/activity_main_drawer"-->
-    <ExpandableListView
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:paddingTop="@dimen/nav_header_height">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="@dimen/activity_horizontal_margin"
+            android:paddingLeft="@dimen/activity_horizontal_margin"
+            android:paddingStart="@dimen/activity_horizontal_margin"
+            android:gravity="start"
+            android:text="  Log in"
+            android:textColor="@color/white"
+            android:textStyle="bold"
+            android:textSize="17sp"
+            android:paddingBottom="13dp"
+            android:background="@color/mapbox_blue"
+            android:drawableStart="@drawable/ic_action_lock"
+            android:drawableLeft="@drawable/ic_action_lock"
+            android:clickable="true"
+            android:id="@+id/btn_login"
+            />
+        <ExpandableListView
         android:id="@+id/expand_nav"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingTop="160dp"
         />
+        </LinearLayout>
     </android.support.design.widget.NavigationView>
 
 </android.support.v4.widget.DrawerLayout>

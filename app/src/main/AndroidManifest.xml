@@ -47,6 +47,7 @@
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity android:name=".Activity.AboutActivity"></activity>
+        <activity android:name=".Activity.LoginActivity" />
         <!--<activity android:name=".Activity.Edit.EditDialogActivity"-->
             <!--android:windowSoftInputMode="adjustResize">-->
             <!--<intent-filter>-->
