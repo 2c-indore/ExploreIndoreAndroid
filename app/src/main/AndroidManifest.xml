@@ -37,17 +37,18 @@
                 android:name="android.app.searchable"
                 android:resource="@xml/searchable" />
         </activity>
-        <activity
-            android:name=".Activity.MapOffline"
-            android:hardwareAccelerated="true"
-            android:screenOrientation="portrait"
-            android:theme="@style/Theme.AppCompat" />
+        <!--<activity-->
+            <!--android:name=".Activity.MapOffline"-->
+            <!--android:hardwareAccelerated="true"-->
+            <!--android:screenOrientation="portrait"-->
+            <!--android:theme="@style/Theme.AppCompat" />-->
         <activity
             android:name=".Activity.Edit.EditDialogActivity"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity android:name=".Activity.AboutActivity"></activity>
         <activity android:name=".Activity.LoginActivity" />
+        <activity android:name=".Activity.ResetPasswordActivity" />
         <!--<activity android:name=".Activity.Edit.EditDialogActivity"-->
             <!--android:windowSoftInputMode="adjustResize">-->
             <!--<intent-filter>-->

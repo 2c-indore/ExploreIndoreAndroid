@@ -79,6 +79,7 @@ import com.mapbox.services.android.telemetry.location.LostLocationEngine;
 import com.mapbox.services.android.telemetry.permissions.PermissionsListener;
 import com.mapbox.services.android.telemetry.permissions.PermissionsManager;
 
+import org.kathmandulivinglabs.exploreindore.Activity.LoginActivity;
 import org.kathmandulivinglabs.exploreindore.Activity.MainActivity;
 import org.kathmandulivinglabs.exploreindore.Customclass.CustomClusterItem;
 import org.kathmandulivinglabs.exploreindore.Customclass.CustomClusterManagerPlugin;
@@ -436,8 +437,13 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
             detailWeb = amenityInfo.findViewById(R.id.txt_detail_web);
             detailMail = amenityInfo.findViewById(R.id.txt_detail_email);
             edit_btn = amenityInfo.findViewById(R.id.edit_btn);
-
-            edit_btn.setOnClickListener(new View.OnClickListener() {
+            boolean  Auth = MainActivity.mSharedPref.getBoolean(LoginActivity.AUTHENTICATED, false);
+        if (Auth) {
+            edit_btn.setVisibility(View.VISIBLE);
+        } else {
+            edit_btn.setVisibility(View.GONE);
+        }
+        edit_btn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     ((AppCompatActivity) getActivity()).getSupportActionBar().show();
@@ -823,11 +829,11 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
 
 
         List<LatLng> polygonbound = new ArrayList<>();
-        polygonbound.add(new LatLng(28.8711,85.5011));
-        polygonbound.add(new LatLng(27.3185,85.5011));
-        polygonbound.add(new LatLng(27.3185,82.8891));
-        polygonbound.add(new LatLng(28.8711, 82.8891));
-        polygonbound.add(new LatLng(28.8711,85.5011));
+        polygonbound.add(new LatLng(22.8202,76.0467));
+        polygonbound.add(new LatLng(22.6248,76.0467));
+        polygonbound.add(new LatLng(22.6248,75.7202));
+        polygonbound.add(new LatLng(22.8202, 75.7202));
+        polygonbound.add(new LatLng(22.8202,76.0467));
         mapboxMap.addPolygon(new PolygonOptions()
                 .addAll(polygonbound)
                 .addHole(polygon)

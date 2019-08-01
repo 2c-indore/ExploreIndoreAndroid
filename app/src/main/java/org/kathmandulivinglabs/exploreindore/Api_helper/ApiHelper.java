@@ -1,13 +1,15 @@
 package org.kathmandulivinglabs.exploreindore.Api_helper;
 
-import android.text.TextUtils;
+
 
 import java.util.concurrent.TimeUnit;
 
-import okhttp3.Credentials;
 import okhttp3.OkHttpClient;
+import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
+import retrofit2.converter.scalars.ScalarsConverterFactory;
+
 
 /**
  * Created by Bhawak on 3/11/2018.
@@ -25,12 +27,14 @@ public class ApiHelper {
     private static Retrofit retrofit = builder.build();
 
     public ApiInterface getApiInterface() {
-
+        HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
+        logging.setLevel(HttpLoggingInterceptor.Level.BODY);
         OkHttpClient.Builder httpClient = new OkHttpClient.Builder();
         httpClient.connectTimeout(100, TimeUnit.SECONDS);
-
+        httpClient.addInterceptor(logging);
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(ApiHelper.BASE_URL)
+                .addConverterFactory(ScalarsConverterFactory.create())
                 .addConverterFactory(GsonConverterFactory.create())
                 .client(httpClient.build())
                 .build();
@@ -38,5 +42,4 @@ public class ApiHelper {
 
         return api;
     }
-
 }

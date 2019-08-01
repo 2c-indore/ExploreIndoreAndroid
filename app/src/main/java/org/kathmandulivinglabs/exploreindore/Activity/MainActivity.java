@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -35,9 +36,6 @@ import android.widget.ExpandableListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.MapType;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.geometry.LatLngBounds;
@@ -94,7 +92,17 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, InsightFragment.onInsightSelected, ToggleTabVisibilityListener  {
+        implements NavigationView.OnNavigationItemSelectedListener, InsightFragment.onInsightSelected, ToggleTabVisibilityListener{
+
+    public String updateText() {
+        mSharedPref = getSharedPreferences(getString(R.string.prefrence_file_key), Context.MODE_PRIVATE);
+        String user = mSharedPref.getString(LoginActivity.AUTHEMAIL, "Explore Indore");
+        Auth = mSharedPref.getBoolean(LoginActivity.AUTHENTICATED, false);
+        Log.wtf(user, String.valueOf(Auth));
+        if(Auth)this.tv.setText(user);
+        return user;
+    }
+
 
     public interface OnTaskCompleted{
         void onTaskCompleted();
@@ -102,6 +110,7 @@ public class MainActivity extends AppCompatActivity
     public static String def_type="public_hospitals";
     public static String def_type_category = "Public Hospitals";
     public static boolean infoScreen = false;
+    public static SharedPreferences mSharedPref;
     private CustomViewPager viewPager;
     private boolean filter_applied = false, navClicked = false;
     private NavigationView navigationView;
@@ -131,7 +140,7 @@ public class MainActivity extends AppCompatActivity
     int PROGRESS_MAX = 100;
     int PROGRESS_CURRENT = 0;
     double progress = 0;
-
+    boolean Auth;
     private static final String ACTION_CUSTOM_BROADCAST =
             BuildConfig.APPLICATION_ID + ".ACTION_CUSTOM_BROADCAST";
 
@@ -139,7 +148,7 @@ public class MainActivity extends AppCompatActivity
     public void setMyClassListener(Backlistner listener) {
         this.mBack = listener;
     }
-
+    private TextView tv;
 
 
     @Override
@@ -148,14 +157,17 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        TextView tv = findViewById(R.id.btn_login);
-
+        tv = findViewById(R.id.btn_login);
+        String user = updateText();
         tv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 drawer.closeDrawers();
-                Intent intentabout = new Intent(getApplicationContext(), LoginActivity.class);
-                startActivity(intentabout);
+                if(!Auth) {
+                    Intent intentabout = new Intent(getApplicationContext(), LoginActivity.class);
+                    startActivity(intentabout);
+                }
+                else showAlertDialogButtonClicked(user);
             }
         });
         drawer = findViewById(R.id.drawer_layout);
@@ -238,8 +250,9 @@ public class MainActivity extends AppCompatActivity
                     }
                     else if(childValue.equals("Offline map")){
                         drawer.closeDrawers();
+                        getSupportActionBar().setTitle(def_type_category);
                         if(Connectivity.isConnected(Mapbox.getApplicationContext())) {
-                            downloadStarted();
+//                            downloadStarted();
                             downloadBaseMap();
                         }
                         else Snackbar.make(MainActivity.this.findViewById(android.R.id.content), "No internet connection", Snackbar.LENGTH_LONG).show();
@@ -330,6 +343,47 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
+    }
+    public void showAlertDialogButtonClicked(String user) {
+
+        // setup the alert builder
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Account Setting");
+        builder.setMessage("Setting for user: " + user);
+
+        // add the buttons
+        builder.setPositiveButton("Log out", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                SharedPreferences.Editor memory = mSharedPref.edit();
+                memory.remove(LoginActivity.TOKEN);
+                memory.remove(LoginActivity.AUTHEMAIL);
+                memory.putBoolean(LoginActivity.AUTHENTICATED,false);
+                Auth = false;
+                memory.apply();
+                tv.setText("  Log In");
+                expandableList.refreshDrawableState();
+                fragmentRefresh();
+            }
+        });
+        builder.setNeutralButton("Cancel", null);
+        builder.setNegativeButton("Reset Password", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                Intent intentabout = new Intent(getApplicationContext(), ResetPasswordActivity.class);
+                startActivity(intentabout);
+            }
+        });
+
+        // create and show the alert dialog
+        AlertDialog dialog = builder.create();
+        dialog.show();
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setAllCaps(false);
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.parseColor("#1bd393"));
+        dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setAllCaps(false);
+//        dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setTextColor(Color.parseColor("#"));
+        dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setAllCaps(false);
+        dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(Color.parseColor("#1bd393"));
     }
     private void setupDrawerContent(NavigationView navigationView){
         navigationView.setNavigationItemSelectedListener(
@@ -422,7 +476,6 @@ public class MainActivity extends AppCompatActivity
         hospitalslist.add("Public Hospitals");
         hospitalslist.add("Private Hospitals");
 
-
         clinicslist.add("Public Clinics and Government Centers");
         clinicslist.add("Private Clinics");
         clinicslist.add("Dentists");
@@ -433,8 +486,6 @@ public class MainActivity extends AppCompatActivity
         otherslist.add("Blood Banks");
         otherslist.add("Mental Health Centers");
         otherslist.add("Bus Stops");
-
-
 
         downloadlist.add("Update");
        // downloadlist.add("Download map data");
@@ -798,34 +849,14 @@ public class MainActivity extends AppCompatActivity
         else {
             String tagmap = "android:switcher:" + R.id.viewpager + ":" + 0;
             MapFragment mpfrag = (MapFragment) getSupportFragmentManager().findFragmentByTag(tagmap);
-
-            if (mpfrag == null || !((Backlistner) mpfrag).onBackPressed()) {
+            if(filter_applied){
+                filter_applied = false;
+                fragmentRefresh();
+            }
+            else if (mpfrag == null || !((Backlistner) mpfrag).onBackPressed()) {
                 super.onBackPressed();
             }
         }
-//        else {
-//
-//        }
-//        if(!infoScreen) {
-//            if (def_type.equals("attractions") && !def_type_category.equals("Buddhist Stupa/Monastery")) {
-//                getSupportActionBar().setTitle("Buddhist Stupa/Monastery");
-//
-//                //  navigationView.setCheckedItem(R.id.nav_hospital);
-//                def_type = "attractions";
-//                def_type_category = "Buddhist Stupa/Monastery";
-//
-//                fragmentRefresh();
-//                //super.onBackPressed();
-//            } else if (!def_type.equals("attractions")) {
-//                getSupportActionBar().setTitle("Buddhist Stupa/Monastery");
-//                def_type_category = "Buddhist Stupa/Monastery";
-//
-//                //  navigationView.setCheckedItem(R.id.nav_hospital);
-//                def_type = "attractions";
-//                fragmentRefresh();
-//                if (tabs.getTabAt(1) != null) tabs.removeTabAt(1);
-//            } else goBack();
-//        }
     }
     public interface Backlistner {
         // add whatever methods you need here
@@ -968,15 +999,15 @@ public class MainActivity extends AppCompatActivity
 
             // Create a bounding box for the offline region
             LatLngBounds latLngBounds = new LatLngBounds.Builder()
-                    .include(new LatLng(28.31285, 84.14949)) // Northeast
-                    .include(new LatLng(28.11532, 83.84905)) // Southwest
+                    .include(new LatLng(22.62, 75.99)) // Northeast
+                    .include(new LatLng(22.80, 75.70)) // Southwest
                     .build();
 
             // Define the offline region
             OfflineTilePyramidRegionDefinition definition = new OfflineTilePyramidRegionDefinition(
                     "mapbox://styles/mapbox/streets-v10",
                     latLngBounds,
-                    9,
+                    14,
                     16,
                     MainActivity.this.getResources().getDisplayMetrics().density);
 
@@ -984,7 +1015,7 @@ public class MainActivity extends AppCompatActivity
             byte[] metadata;
             try {
                 JSONObject jsonObject = new JSONObject();
-                jsonObject.put("Region Name", "Pokhara Basemap");
+                jsonObject.put("Region Name", "Indore Basemap");
                 String json = jsonObject.toString();
                 metadata = json.getBytes(StandardCharsets.UTF_8);
             } catch (Exception exception) {
@@ -1020,7 +1051,6 @@ public class MainActivity extends AppCompatActivity
                                                 .setContentText("Offline Map has been succesfully downloaded")
                                                 .setProgress(0, 0, false)
                                                 .setAutoCancel(true);
-
                                     } else if (status.isRequiredResourceCountPrecise()) {
                                         Log.d("Basemap Download", String.valueOf(percentage));
                                     }
