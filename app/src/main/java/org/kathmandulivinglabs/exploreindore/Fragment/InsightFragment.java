@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.TypedArray;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
@@ -30,6 +31,7 @@ import com.amazonaws.transform.MapEntry;
 import com.github.ybq.android.spinkit.style.Wave;
 
 import org.kathmandulivinglabs.exploreindore.Activity.MainActivity;
+import org.kathmandulivinglabs.exploreindore.Adapter.SpinnertwolineAdapter;
 import org.kathmandulivinglabs.exploreindore.FilterParcel;
 import org.kathmandulivinglabs.exploreindore.R;
 import org.kathmandulivinglabs.exploreindore.Realmstore.FilterSchema;
@@ -273,12 +275,16 @@ public class InsightFragment  extends Fragment {
         Realm realm = Realm.getDefaultInstance();
         final RealmResults<Ward> ward = realm.where(Ward.class).findAll().sort("number");
         List<String> wardArray =  new ArrayList<String>();
+        List<String> wardArray1 = new ArrayList<>();
         wardArray.add("All Wards");
+        wardArray1.add("In Indore");
         for(int i =0 ; i<ward.size();i++) {
             wardArray.add(ward.get(i).getName());
+            wardArray1.add("Ward Number: " + String.valueOf(ward.get(i).getNumber()));
         }
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(
-                getContext(), android.R.layout.simple_spinner_dropdown_item, wardArray);
+        SpinnertwolineAdapter adapter = new SpinnertwolineAdapter(getContext(), wardArray,wardArray1);
+//        ArrayAdapter<String> adapter = new ArrayAdapter<String>(
+//                getContext(), android.R.layout.simple_spinner_dropdown_item, wardArray);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
 

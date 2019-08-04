@@ -289,6 +289,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
                     for (Map.Entry<LatLng, String> aitem : uniList.entrySet()
                     ) {
                         if (aitem.getValue().toLowerCase().contains(newText)) {
+                            Log.wtf(aitem.getValue(),"Item");
                             Search hs = new Search(null, null);
                             hs.cord = aitem.getKey();
                             hs.name = aitem.getValue();

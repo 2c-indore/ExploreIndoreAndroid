@@ -176,16 +176,19 @@ public class MainActivity extends AppCompatActivity
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.setDrawerListener(toggle);
         toggle.syncState();
+        String channelId = "map_download";
 
         mNotificationManager = NotificationManagerCompat.from(this);
         mBuilder = new NotificationCompat.Builder(getApplicationContext(), "CHANNEL_ID")
                 .setSmallIcon(R.mipmap.ic_launcher)
-                .setContentTitle("Explore Indore")
-                .setContentText("Indore Map for Offline Use")
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                .setAutoCancel(true);
+                .setContentTitle("Downloading")
+                .setContentText("Data is being downloaded in background")
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setChannelId(channelId)
+                .setAutoCancel(true)
+        .setOnlyAlertOnce(true);
 
-        String channelId = "explore_download";
+//        String channelId = "explore_download";
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             CharSequence name = "Downloading";
@@ -242,32 +245,33 @@ public class MainActivity extends AppCompatActivity
                         Log.d(entry.getKey(), "child");
                     }
                 }
-                    if(childValue.equals("Update")){
+                switch (childValue) {
+                    case "Update":
                         drawer.closeDrawers();
                         updateRealm(oldtag);
-                        getSupportActionBar().setTitle(def_type_category);
+                        getSupportActionBar().setTitle(tagMp.get(def_type));
 //
-                    }
-                    else if(childValue.equals("Offline map")){
+                        break;
+                    case "Offline map":
                         drawer.closeDrawers();
-                        getSupportActionBar().setTitle(def_type_category);
-                        if(Connectivity.isConnected(Mapbox.getApplicationContext())) {
+                        getSupportActionBar().setTitle(tagMp.get(def_type));
+                        if (Connectivity.isConnected(Mapbox.getApplicationContext())) {
 //                            downloadStarted();
                             downloadBaseMap();
-                        }
-                        else Snackbar.make(MainActivity.this.findViewById(android.R.id.content), "No internet connection", Snackbar.LENGTH_LONG).show();
+                        } else
+                            Snackbar.make(MainActivity.this.findViewById(android.R.id.content), "No internet connection", Snackbar.LENGTH_LONG).show();
 //
-                    }
+                        break;
 //
-                    else if(childValue.equals("About Us")){
+                    case "About Us":
                         drawer.closeDrawers();
-                        Log.d("About Us","entry");
+                        Log.d("About Us", def_type);
                         Intent intentabout = new Intent(getApplicationContext(), AboutActivity.class);
-                        String[] abInfo = {def_type, def_type_category};
-                        intentabout.putExtra("amenityType",abInfo);
+                        intentabout.putExtra("amenityType", def_type);
                         startActivity(intentabout);
 
-                    }
+                        break;
+                }
 
 
                 return false;
@@ -302,10 +306,11 @@ public class MainActivity extends AppCompatActivity
         tabs.setupWithViewPager(viewPager);
         Intent  i = getIntent();
         String amenityedited;
-        String[] fromabout;
+        String fromabout;
         if(i!=null){
             amenityedited = i.getStringExtra("amenityedited");
-            fromabout = i.getStringArrayExtra("about");
+            fromabout = i.getStringExtra("about");
+            Log.wtf(fromabout,"ABout");
             if(fromabout==null) {
                 for (Map.Entry<String, String> entry : tagMp.entrySet()) {
                     if (entry.getKey().equals(amenityedited)) {
@@ -318,7 +323,7 @@ public class MainActivity extends AppCompatActivity
                     getSupportActionBar().setTitle("Public Hospitals");
 //                    tabs.removeTabAt(1);
                 }
-            }
+            } else getSupportActionBar().setTitle(tagMp.get(fromabout));
 
         }
         else  {
@@ -784,8 +789,8 @@ public class MainActivity extends AppCompatActivity
                         } finally {
                             realm.commitTransaction();
                             realm.close();
-                            if(!downloadalldata)
-                            fragmentRefresh();
+//                            if(!downloadalldata)
+//                            fragmentRefresh();
 //                            Log.d("realm closed", "onResponse: ");
                         }
 
@@ -823,12 +828,6 @@ public class MainActivity extends AppCompatActivity
         if (infrag != null) {
             infrag.setArguments(args);
         }
-//        if (filter_applied || navClicked) {
-//            viewPager.getAdapter().notifyDataSetChanged();
-//        }
-//        if(navClicked){
-//            mpfrag.doSomething(def_type);
-//        }
 
     if(viewPager.getAdapter()!=null)
         viewPager.getAdapter().notifyDataSetChanged();
@@ -993,21 +992,21 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void downloadBaseMap() {
-        if (mapsDownloading == false) {
+        if (!mapsDownloading) {
             Log.d("maps...", "downloadBaseMap: ");
             OfflineManager offlineManager = OfflineManager.getInstance(getApplicationContext());
-
+            offlineManager.setOfflineMapboxTileCountLimit(10000);
             // Create a bounding box for the offline region
             LatLngBounds latLngBounds = new LatLngBounds.Builder()
-                    .include(new LatLng(22.62, 75.99)) // Northeast
-                    .include(new LatLng(22.80, 75.70)) // Southwest
+                    .include(new LatLng(22.6276, 76.0276)) // Northeast
+                    .include(new LatLng(22.8252, 75.7565)) // Southwest
                     .build();
 
             // Define the offline region
             OfflineTilePyramidRegionDefinition definition = new OfflineTilePyramidRegionDefinition(
                     "mapbox://styles/mapbox/streets-v10",
                     latLngBounds,
-                    14,
+                    9,
                     16,
                     MainActivity.this.getResources().getDisplayMetrics().density);
 
@@ -1024,7 +1023,7 @@ public class MainActivity extends AppCompatActivity
             }
 
 
-            mNotificationManager.notify(1, mBuilder.build());
+            mNotificationManager.notify(0, mBuilder.build());
             // Create the region asynchronously
             offlineManager.createOfflineRegion(definition, metadata,
                     new OfflineManager.CreateOfflineRegionCallback() {
@@ -1037,41 +1036,65 @@ public class MainActivity extends AppCompatActivity
                                 @Override
                                 public void onStatusChanged(OfflineRegionStatus status) {
 
-                                    // Calculate the download percentage
-                                    double percentage = status.getRequiredResourceCount() >= 0
-                                            ? (100.0 * status.getCompletedResourceCount() / status.getRequiredResourceCount()) :
-                                            0.0;
-                                    mBuilder.setProgress(100, (int) percentage, false);
+
+                                        double percentage = status.getRequiredResourceCount() >= 0
+                                                ? (100.0 * status.getCompletedResourceCount() / status.getRequiredResourceCount()) :
+                                                0.0;
+                                    if(!status.isComplete()) {
+                                        mBuilder.setProgress(100, (int) percentage, false);
+                                        mBuilder.setContentTitle("Please wait...");
+                                        int per = (int) percentage;
+
+                                        mBuilder.setContentText(per + "% " + "downloaded").setStyle(new NotificationCompat.BigTextStyle()
+                                                .bigText(per + "% " + "downloaded"));
+
+                                    }
 
 
-                                    if (status.isComplete()) {
+                                    else {
+                                        status.isComplete();
                                         // Download complete
                                         Log.d("Basemap Download", "Region downloaded successfully.");
                                         mBuilder.setContentTitle("Download Successful")
                                                 .setContentText("Offline Map has been succesfully downloaded")
+                                                .setStyle(new NotificationCompat.BigTextStyle()
+                                                        .bigText("Download has been successfully completed."))
                                                 .setProgress(0, 0, false)
                                                 .setAutoCancel(true);
-                                    } else if (status.isRequiredResourceCountPrecise()) {
-                                        Log.d("Basemap Download", String.valueOf(percentage));
                                     }
-                                    mNotificationManager.notify(1, mBuilder.build());
+                                    mNotificationManager.notify(0, mBuilder.build());
                                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-                                        notificationManager.notify(1,mBuilder.build());
+                                        notificationManager.notify(0,mBuilder.build());
 
                                 }
 
                                 @Override
                                 public void onError(OfflineRegionError error) {
                                     // If an error occurs, print to logcat
-                                    //Log.e(TAG, "onError reason: " + error.getReason());
-                                    //Log.e(TAG, "onError message: " + error.getMessage());
+//                                    Log.e("onError reason: ", error.getReason());
+//                                    Log.e( "onError message: " , error.getMessage());
+                                    mBuilder.setContentTitle("Download canceled")
+                                            .setContentText("Offline map cannot be downloaded, please try again later.")
+                                            .setProgress(0, 0, false)
+                                            .setAutoCancel(true);
+                                    mNotificationManager.notify(0, mBuilder.build());
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+                                        notificationManager.notify(0,mBuilder.build());
                                 }
 
                                 @Override
                                 public void mapboxTileCountLimitExceeded(long limit) {
+                                    mBuilder.setContentTitle("Download canceled")
+                                            .setContentText("Offline map cannot be downloaded, please try again later.")
+                                            .setProgress(0, 0, false)
+                                            .setAutoCancel(true);
+                                    mNotificationManager.notify(0, mBuilder.build());
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+                                        notificationManager.notify(0,mBuilder.build());
                                     // Notify if offline region exceeds maximum tile count
-                                    //Log.e(TAG, "Mapbox tile count limit exceeded: " + limit);
+//                                    Log.e(String.valueOf(limit), "Mapbox tile count limit exceeded: " + limit);
                                 }
+
                             });
                         }
 
@@ -1111,7 +1134,7 @@ public class MainActivity extends AppCompatActivity
 
         mBuilder.setProgress(100, 0, false);
         Toast.makeText(getApplicationContext(),"Map is downloading",Toast.LENGTH_SHORT).show();
-        mNotificationManager.notify(1, mBuilder.build());
+        mNotificationManager.notify(0, mBuilder.build());
     }
 
     @Override
