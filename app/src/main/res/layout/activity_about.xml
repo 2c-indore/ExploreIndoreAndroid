@@ -63,18 +63,18 @@
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/nepal_government"/>
+                android:src="@drawable/acropolis"/>
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:paddingTop="5dp"
-                android:text="Pokhara Metropolitan Office"
+                android:text="Acropolis Institute of Technology and Research "
             android:textSize="12sp"/>
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:paddingTop="0dp"
-                android:text="New Road, Pokhara 9, Kaski"
+                android:text="Indore, Madhya Pradesh, India"
                 android:textSize="12sp"/>
         </LinearLayout>
         <LinearLayout
