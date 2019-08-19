@@ -1,68 +1,93 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:fancy="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
     android:background="@color/white"
-    android:paddingLeft="15dp"
-    android:paddingStart="15dp"
-    android:paddingTop="5dp">
-    <!--<ListView-->
+    android:paddingBottom="@dimen/small_margin">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@id/apply_edit"
+        android:layout_alignParentTop="true"
+        android:background="@color/white"
+        android:fitsSystemWindows="true"
+        android:orientation="vertical"
+        android:paddingStart="15dp"
+        android:paddingLeft="15dp"
+        android:paddingTop="5dp">
+        <!--<ListView-->
         <!--android:id="@+id/list_tag"-->
         <!--android:layout_width="match_parent"-->
         <!--android:layout_height="wrap_content"-->
         <!--android:scrollbars="vertical"/>-->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
-    <LinearLayout
-        android:id="@+id/editLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
-    </LinearLayout>
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Apply"
-        android:id="@+id/apply_edit"
-        android:layout_gravity="center_horizontal"/>
-    </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:id="@+id/editLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"></LinearLayout>
+
+        </LinearLayout>
         <!--&gt;-->
         <!--<TextView-->
-            <!--android:layout_width="match_parent"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:text="amenity" />-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:text="amenity" />-->
         <!--<android.support.v7.widget.AppCompatEditText-->
-            <!--android:id="@+id/amenityName"-->
-            <!--android:layout_width="match_parent"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:text="amenity"-->
-            <!--android:inputType="none"-->
-            <!--android:textColor="@color/secondaryText"-->
-            <!--app:backgroundTint="@color/secondaryText"/>-->
+        <!--android:id="@+id/amenityName"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:text="amenity"-->
+        <!--android:inputType="none"-->
+        <!--android:textColor="@color/secondaryText"-->
+        <!--app:backgroundTint="@color/secondaryText"/>-->
         <!--<TextView-->
-            <!--android:layout_width="match_parent"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:text="name" />-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:text="name" />-->
         <!--<android.support.v7.widget.AppCompatEditText-->
-            <!--android:id="@+id/edit_name"-->
-            <!--android:layout_width="match_parent"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:text="Name"-->
-            <!--android:inputType="text"-->
-            <!--app:backgroundTint="@color/secondaryText"/>-->
+        <!--android:id="@+id/edit_name"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:text="Name"-->
+        <!--android:inputType="text"-->
+        <!--app:backgroundTint="@color/secondaryText"/>-->
         <!--<TextView-->
-            <!--android:layout_width="match_parent"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:text="नाम" />-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:text="नाम" />-->
         <!--<android.support.v7.widget.AppCompatEditText-->
-            <!--android:id="@+id/edit_namene"-->
-            <!--android:layout_width="match_parent"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:text="नाम"-->
-            <!--android:inputType="text"-->
-            <!--app:backgroundTint="@color/secondaryText"/>-->
+        <!--android:id="@+id/edit_namene"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:text="नाम"-->
+        <!--android:inputType="text"-->
+        <!--app:backgroundTint="@color/secondaryText"/>-->
         <!--</LinearLayout>-->
-</ScrollView>
+    </ScrollView>
+
+    <mehdi.sakout.fancybuttons.FancyButton
+        android:id="@+id/apply_edit"
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_gravity="center_horizontal"
+        android:layout_margin="@dimen/small_margin"
+        android:minWidth="200dp"
+        android:padding="@dimen/normal_margin"
+        android:text="Apply"
+        fancy:fb_borderColor="#FFFFFF"
+        fancy:fb_borderWidth="1dp"
+        fancy:fb_defaultColor="@color/white"
+        fancy:fb_focusColor="@color/white"
+        fancy:fb_radius="@dimen/med_padding"
+        fancy:fb_text="APPLY"
+        fancy:fb_textColor="@color/colorPrimary" />
+</RelativeLayout>

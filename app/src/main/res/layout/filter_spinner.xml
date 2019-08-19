@@ -1,22 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingBottom="10dp"
-    >
-<FrameLayout
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="@color/infoBackground">
+    android:paddingBottom="10dp">
 
-    <android.support.v7.widget.AppCompatSpinner
-        android:id="@+id/spinner_content"
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="10dp"
-        android:saveEnabled="false"
-        android:layout_marginStart="10dp" />
-</FrameLayout>
+        android:background="@color/infoBackground"
+        android:paddingStart="@dimen/small_margin"
+        android:paddingEnd="@dimen/small_margin">
+
+        <android.support.v7.widget.AppCompatSpinner
+            android:id="@+id/spinner_content"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="0dp"
+            android:paddingEnd="0dp"
+            android:saveEnabled="false" />
+    </FrameLayout>
 
 </LinearLayout>

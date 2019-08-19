@@ -5,4 +5,18 @@
     <dimen name="nav_header_vertical_spacing">16dp</dimen>
     <dimen name="nav_header_height">170dp</dimen>
     <dimen name="fab_margin">16dp</dimen>
+    <dimen name="med_padding">12dp</dimen>
+
+    <dimen name="small_margin">5dp</dimen>
+    <dimen name="normal_margin">8dp</dimen>
+    <dimen name="normal_view_height">45dp</dimen>
+
+    <dimen name="login_logo_size">100dp</dimen>
+
+    <dimen name="extra_large_padding">32dp</dimen>
+    <dimen name="normal_editText_text_size">14sp</dimen>
+
+    //navigation drawer
+    <dimen name="list_header_text_size">16sp</dimen>
+    <dimen name="list_children_text_size">14sp</dimen>
 </resources>

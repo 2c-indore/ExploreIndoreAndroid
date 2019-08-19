@@ -2,16 +2,20 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical">
 
     <TextView
         android:id="@+id/submenu"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginLeft="60dp"
         android:padding="10dp"
-        android:textColor="@color/secondaryText"
-        android:textSize="16sp"/>
+        android:textColor="@color/tertiaryText"
+        android:textSize="@dimen/list_children_text_size"
+        android:drawableEnd="@drawable/ic_right_arrow_24dp"
+        app:tint="@color/secondaryText"
+        android:drawableRight="@drawable/ic_right_arrow_24dp"/>
 
 </LinearLayout>
 

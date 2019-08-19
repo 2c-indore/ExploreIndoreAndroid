@@ -1,4 +1,5 @@
 package org.kathmandulivinglabs.exploreindore.Activity;
+
 import android.app.ActivityManager;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -92,22 +93,25 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, InsightFragment.onInsightSelected, ToggleTabVisibilityListener{
+        implements NavigationView.OnNavigationItemSelectedListener, InsightFragment.onInsightSelected, ToggleTabVisibilityListener {
 
     public String updateText() {
         mSharedPref = getSharedPreferences(getString(R.string.prefrence_file_key), Context.MODE_PRIVATE);
-        String user = mSharedPref.getString(LoginActivity.AUTHEMAIL, "Explore Indore");
+        String user = mSharedPref.getString(LoginActivity.AUTHUSERNAME, "Explore Indore");
+        if (user.equals("Explore Indore"))
+            user = mSharedPref.getString(LoginActivity.AUTHEMAIL, "Explore Indore");
         Auth = mSharedPref.getBoolean(LoginActivity.AUTHENTICATED, false);
         Log.wtf(user, String.valueOf(Auth));
-        if(Auth)this.tv.setText(user);
+        if (Auth) this.tv.setText(user);
         return user;
     }
 
 
-    public interface OnTaskCompleted{
+    public interface OnTaskCompleted {
         void onTaskCompleted();
     }
-    public static String def_type="public_hospitals";
+
+    public static String def_type = "public_hospitals";
     public static String def_type_category = "Public Hospitals";
     public static boolean infoScreen = false;
     public static SharedPreferences mSharedPref;
@@ -124,9 +128,9 @@ public class MainActivity extends AppCompatActivity
     private ExpandableListView expandableList;
     private TabLayout tabs;
     List<ExpandedMenuModel> listDataHeader;
-    HashMap<ExpandedMenuModel,List<String>> listDataChild;
-    Map<String,String> tagMp;
-    Map<String,String> tagHospitals,tagClincs,tagOthers;
+    HashMap<ExpandedMenuModel, List<String>> listDataChild;
+    Map<String, String> tagMp;
+    Map<String, String> tagHospitals, tagClincs, tagOthers;
     private static String oldtag;
     public static Map<String, String> filter_param;
     private static boolean downloadalldata = false;
@@ -148,6 +152,7 @@ public class MainActivity extends AppCompatActivity
     public void setMyClassListener(Backlistner listener) {
         this.mBack = listener;
     }
+
     private TextView tv;
 
 
@@ -163,11 +168,10 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View view) {
                 drawer.closeDrawers();
-                if(!Auth) {
+                if (!Auth) {
                     Intent intentabout = new Intent(getApplicationContext(), LoginActivity.class);
                     startActivity(intentabout);
-                }
-                else showAlertDialogButtonClicked(user);
+                } else showAlertDialogButtonClicked(user);
             }
         });
         drawer = findViewById(R.id.drawer_layout);
@@ -186,7 +190,7 @@ public class MainActivity extends AppCompatActivity
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setChannelId(channelId)
                 .setAutoCancel(true)
-        .setOnlyAlertOnce(true);
+                .setOnlyAlertOnce(true);
 
 //        String channelId = "explore_download";
 
@@ -196,31 +200,31 @@ public class MainActivity extends AppCompatActivity
             int importance = NotificationManager.IMPORTANCE_HIGH;
             channel = new NotificationChannel(channelId, name, importance);
             channel.setDescription(description);
-            notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+            notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
             assert notificationManager != null;
             notificationManager.createNotificationChannel(channel);
         }
 
         navigationView = findViewById(R.id.nav_view);
-        if(navigationView!=null){
+        if (navigationView != null) {
             setupDrawerContent(navigationView);
         }
         prepareListData();
-        filter_param =new HashMap<>();
+        filter_param = new HashMap<>();
         oldtag = def_type;
 
         tagMp = new HashMap<>();
-        tagMp.put("public_hospitals","Public Hospitals");
-        tagMp.put("private_hospitals","Private Hospitals");
-        tagMp.put("public_clinics","Public Clinics and Government Centers");
-        tagMp.put("private_clinics","Private Clinics");
-        tagMp.put("dentists","Dentists");
-        tagMp.put("veterinaries","Veterinaries");
-        tagMp.put("patho_radio_labs","Pathology and Radiology Labs");
-        tagMp.put("anganwadi","Anganwadis");
-        tagMp.put("blood_banks","Blood Banks");
-        tagMp.put("mental_health_centers","Mental Health Centers");
-        tagMp.put("bus_stops","Bus Stops");
+        tagMp.put("public_hospitals", "Public Hospitals");
+        tagMp.put("private_hospitals", "Private Hospitals");
+        tagMp.put("public_clinics", "Public Clinics and Government Centers");
+        tagMp.put("private_clinics", "Private Clinics");
+        tagMp.put("dentists", "Dentists");
+        tagMp.put("veterinaries", "Veterinaries");
+        tagMp.put("patho_radio_labs", "Pathology and Radiology Labs");
+        tagMp.put("anganwadi", "Anganwadis");
+        tagMp.put("blood_banks", "Blood Banks");
+        tagMp.put("mental_health_centers", "Mental Health Centers");
+        tagMp.put("bus_stops", "Bus Stops");
 
 
         menuAdapter = new ExpandableMenuAdapter(this, listDataHeader, listDataChild, expandableList);
@@ -236,7 +240,7 @@ public class MainActivity extends AppCompatActivity
                 for (Map.Entry<String, String> entry : tagMp.entrySet()) {
                     if (entry.getValue().equals(childValue)) {
                         tabs.setupWithViewPager(viewPager);
-                        if(filter_param!=null) filter_param.clear();
+                        if (filter_param != null) filter_param.clear();
                         filter_param = new HashMap<>();
                         drawer.closeDrawers();
                         oldtag = entry.getKey();
@@ -304,14 +308,14 @@ public class MainActivity extends AppCompatActivity
         // Set Tabs inside Toolbar
         tabs = findViewById(R.id.result_tabs);
         tabs.setupWithViewPager(viewPager);
-        Intent  i = getIntent();
+        Intent i = getIntent();
         String amenityedited;
         String fromabout;
-        if(i!=null){
+        if (i != null) {
             amenityedited = i.getStringExtra("amenityedited");
             fromabout = i.getStringExtra("about");
-            Log.wtf(fromabout,"ABout");
-            if(fromabout==null) {
+            Log.wtf(fromabout, "ABout");
+            if (fromabout == null) {
                 for (Map.Entry<String, String> entry : tagMp.entrySet()) {
                     if (entry.getKey().equals(amenityedited)) {
                         amenityedited = entry.getValue();
@@ -325,8 +329,7 @@ public class MainActivity extends AppCompatActivity
                 }
             } else getSupportActionBar().setTitle(tagMp.get(fromabout));
 
-        }
-        else  {
+        } else {
             getSupportActionBar().setTitle("Public Hospitals");
 //            tabs.removeTabAt(1);
         }
@@ -349,6 +352,7 @@ public class MainActivity extends AppCompatActivity
         });
 
     }
+
     public void showAlertDialogButtonClicked(String user) {
 
         // setup the alert builder
@@ -363,7 +367,7 @@ public class MainActivity extends AppCompatActivity
                 SharedPreferences.Editor memory = mSharedPref.edit();
                 memory.remove(LoginActivity.TOKEN);
                 memory.remove(LoginActivity.AUTHEMAIL);
-                memory.putBoolean(LoginActivity.AUTHENTICATED,false);
+                memory.putBoolean(LoginActivity.AUTHENTICATED, false);
                 Auth = false;
                 memory.apply();
                 tv.setText("  Log In");
@@ -390,7 +394,8 @@ public class MainActivity extends AppCompatActivity
         dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setAllCaps(false);
         dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(Color.parseColor("#1bd393"));
     }
-    private void setupDrawerContent(NavigationView navigationView){
+
+    private void setupDrawerContent(NavigationView navigationView) {
         navigationView.setNavigationItemSelectedListener(
                 new NavigationView.OnNavigationItemSelectedListener() {
                     @Override
@@ -401,7 +406,8 @@ public class MainActivity extends AppCompatActivity
                     }
                 });
     }
-    private void downloadAll(){
+
+    private void downloadAll() {
 
         showProgressDialog();
         Thread thread = new Thread(new Runnable() {
@@ -421,31 +427,31 @@ public class MainActivity extends AppCompatActivity
         thread.start();
     }
 
-    private void makeMapData(String selectedkey){
+    private void makeMapData(String selectedkey) {
         Realm realm = Realm.getDefaultInstance();
         //TODO
-        final RealmResults<ExploreSchema> explore = realm.where(ExploreSchema.class).contains("tag",selectedkey).findAll();
+        final RealmResults<ExploreSchema> explore = realm.where(ExploreSchema.class).contains("tag", selectedkey).findAll();
         realm.close();
         def_type = selectedkey;
 
-        if(explore.size()==0)
-        {
+        if (explore.size() == 0) {
             showProgressDialog();
             saveDataFromV2Api(selectedkey);
-        }
-        else {
+        } else {
             updateMapView = true;
             fragmentRefresh();
         }
 
     }
-    private void updateRealm(String selectedkey){
+
+    private void updateRealm(String selectedkey) {
         showProgressDialog();
         removedata(selectedkey);
 //        saveward();
         savetag();
         saveDataFromV2Api(selectedkey);
     }
+
     private void prepareListData() {
         listDataHeader = new ArrayList<ExpandedMenuModel>();
         listDataChild = new HashMap<ExpandedMenuModel, List<String>>();
@@ -493,16 +499,16 @@ public class MainActivity extends AppCompatActivity
         otherslist.add("Bus Stops");
 
         downloadlist.add("Update");
-       // downloadlist.add("Download map data");
+        // downloadlist.add("Download map data");
         downloadlist.add("Offline map");
 
         aboutlist.add("About Us");
 
-        listDataChild.put(listDataHeader.get(0),hospitalslist);
-        listDataChild.put(listDataHeader.get(1),clinicslist);
-        listDataChild.put(listDataHeader.get(2),otherslist);
-        listDataChild.put(listDataHeader.get(3),downloadlist);
-        listDataChild.put(listDataHeader.get(4),aboutlist);
+        listDataChild.put(listDataHeader.get(0), hospitalslist);
+        listDataChild.put(listDataHeader.get(1), clinicslist);
+        listDataChild.put(listDataHeader.get(2), otherslist);
+        listDataChild.put(listDataHeader.get(3), downloadlist);
+        listDataChild.put(listDataHeader.get(4), aboutlist);
 
 
     }
@@ -528,10 +534,10 @@ public class MainActivity extends AppCompatActivity
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
-                final RealmResults<ExploreSchema> explore = realm.where(ExploreSchema.class).contains("tag",amenity_type).findAll();
-                if(explore.size()!=0) explore.deleteAllFromRealm();
-                final RealmResults<FilterSchema> filter = realm.where(FilterSchema.class).contains("amenity",amenity_type).findAll();
-                if(filter.size()!=0) filter.deleteAllFromRealm();
+                final RealmResults<ExploreSchema> explore = realm.where(ExploreSchema.class).contains("tag", amenity_type).findAll();
+                if (explore.size() != 0) explore.deleteAllFromRealm();
+                final RealmResults<FilterSchema> filter = realm.where(FilterSchema.class).contains("amenity", amenity_type).findAll();
+                if (filter.size() != 0) filter.deleteAllFromRealm();
                 realm.delete(Ward.class);
             }
         });
@@ -559,206 +565,206 @@ public class MainActivity extends AppCompatActivity
         progressDialogFragment.show(fm, "Progress Fragment");
     }
 
-    private void dismissProgressDialog(){
-        if(progressDialogFragment!=null)
-        progressDialogFragment.dismiss();
+    private void dismissProgressDialog() {
+        if (progressDialogFragment != null)
+            progressDialogFragment.dismiss();
     }
 
     private void saveDataFromV2Api(final String def_type) {
         ApiInterface apiInterface = new ApiHelper().getApiInterface();
 
-            Call<Features> call = apiInterface.getFeature(def_type, "mobile");
-          //  showProgressDialog();
-            call.enqueue(new Callback<Features>() {
-                @Override
-                public void onResponse(Call<Features> call, Response<Features> response) {
-                    if (response.body() != null) {
-                        if (response.body().getSuccess() == 1) {
-                            Realm realm = Realm.getDefaultInstance();
-                            try {
-                                realm.beginTransaction();
-                                List<Features.Geometries.Pois.Feature> features = response.body().getGeometries().getPois().getFeatures();
-                                for (Features.Geometries.Pois.Feature feature : features) {
+        Call<Features> call = apiInterface.getFeature(def_type, "mobile");
+        //  showProgressDialog();
+        call.enqueue(new Callback<Features>() {
+            @Override
+            public void onResponse(Call<Features> call, Response<Features> response) {
+                if (response.body() != null) {
+                    if (response.body().getSuccess() == 1) {
+                        Realm realm = Realm.getDefaultInstance();
+                        try {
+                            realm.beginTransaction();
+                            List<Features.Geometries.Pois.Feature> features = response.body().getGeometries().getPois().getFeatures();
+                            for (Features.Geometries.Pois.Feature feature : features) {
 //                                    org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.Tags tg = feature.getProperties().getTags();
-                                    List<Filter.Option> tg = feature.getProperties().getTags();
-                                    ExploreSchema realmObject = realm.createObject(ExploreSchema.class);
-                                    RealmList<String> a_tag = new RealmList<>();
-                                    RealmList<String> a_value = new RealmList<>();
-                                    if(tg.size()>0) {
-                                        for (Filter.Option op : tg
-                                        ) {
-                                            a_tag.add(op.getLabel());
-                                            a_value.add(op.getValue());
-                                            switch (op.getLabel()) {
-                                                case "name":
-                                                    realmObject.setName(op.getValue());
-                                                    break;
-                                                case "name_hindi":
-                                                    realmObject.setNamein(op.getValue());
-                                                    break;
-                                                case "phone":
-                                                    realmObject.setContact_phone(op.getValue());
-                                                    break;
-                                                case "email":
-                                                    realmObject.setContact_email(op.getValue());
-                                                    break;
-                                                case "website":
-                                                    realmObject.setWeb(op.getValue());
-                                                    break;
-                                                case "capacity_beds":
-                                                    if((op.getValue()!=null) && (op.getValue().matches("-?\\d+")))
+                                List<Filter.Option> tg = feature.getProperties().getTags();
+                                ExploreSchema realmObject = realm.createObject(ExploreSchema.class);
+                                RealmList<String> a_tag = new RealmList<>();
+                                RealmList<String> a_value = new RealmList<>();
+                                if (tg.size() > 0) {
+                                    for (Filter.Option op : tg
+                                    ) {
+                                        a_tag.add(op.getLabel());
+                                        a_value.add(op.getValue());
+                                        switch (op.getLabel()) {
+                                            case "name":
+                                                realmObject.setName(op.getValue());
+                                                break;
+                                            case "name_hindi":
+                                                realmObject.setNamein(op.getValue());
+                                                break;
+                                            case "phone":
+                                                realmObject.setContact_phone(op.getValue());
+                                                break;
+                                            case "email":
+                                                realmObject.setContact_email(op.getValue());
+                                                break;
+                                            case "website":
+                                                realmObject.setWeb(op.getValue());
+                                                break;
+                                            case "capacity_beds":
+                                                if ((op.getValue() != null) && (op.getValue().matches("-?\\d+")))
                                                     realmObject.setCapacity_beds(Integer.parseInt(op.getValue()));
-                                                    break;
-                                                case "personnel_count":
-                                                    if((op.getValue()!=null) && (op.getValue().matches("-?\\d+")))
-                                                        realmObject.setPersonnel_count(Integer.parseInt(op.getValue()));
-                                                    break;
-                                                case "ward_no":
-                                                    realmObject.setWard_id(op.getValue());
-                                                    break;
-                                                case "ward_name":
-                                                    realmObject.setWard_name(op.getValue());
-                                                    break;
+                                                break;
+                                            case "personnel_count":
+                                                if ((op.getValue() != null) && (op.getValue().matches("-?\\d+")))
+                                                    realmObject.setPersonnel_count(Integer.parseInt(op.getValue()));
+                                                break;
+                                            case "ward_no":
+                                                realmObject.setWard_id(op.getValue());
+                                                break;
+                                            case "ward_name":
+                                                realmObject.setWard_name(op.getValue());
+                                                break;
 
-                                                default:
-                                                    break;
-                                            }
+                                            default:
+                                                break;
                                         }
                                     }
+                                }
 
 //                                    if (tg.getCapacityBeds() != null && tg.getCapacityBeds().matches("-?\\d+"))
 //                                        realmObject.setCapacity_beds(Integer.parseInt(tg.getCapacityBeds()));
 //                                    else realmObject.setCapacity_beds(null);
 
 
-                                    realmObject.setTag(def_type);
+                                realmObject.setTag(def_type);
 
-                                    realmObject.setOsm_id(feature.getId());
+                                realmObject.setOsm_id(feature.getId());
 
-                                    realmObject.setId(feature.getProperties().getId());
-                                    realmObject.setTag_type(a_tag);
-                                    realmObject.setTag_lable(a_value);
-
-
-                                    realmObject.setCoordinateslat(feature.getGeometry().getCoordinates().get(0));
-                                    realmObject.setCoordinateslong(feature.getGeometry().getCoordinates().get(1));
-                                    realmObject.setType(feature.getGeometry().getType());
-                                }
-                                List<Filter> filters = response.body().getFilters();
-                       for (Filter filter : filters) {
-                                    FilterSchema filterObject = realm.createObject(FilterSchema.class);
-                                    filterObject.setAmenity(def_type);
-                                    filterObject.setType(filter.getType());
-                                    filterObject.setParameter_name(filter.parameterName);
-                                    filterObject.setLabel(filter.label);
-                                    filterObject.set_boolean(filter._boolean);
-                                    filterObject.setDbkey(filter.getDatabase_schema_key());
-                                    filterObject.setHigh(filter.getRange() == null ? null : filter.getRange().getHigh());
-                                    filterObject.setLow(filter.getRange() == null ? null : filter.getRange().getLow());
-                                    filterObject.setMax(filter.getRange() == null ? null : filter.getRange().getMax());
-                                    filterObject.setMin(filter.getRange() == null ? null : filter.getRange().getMin());
-                                    RealmList<String> option_label = new RealmList<>();
-                                    RealmList<String> option_value = new RealmList<>();
-                                    RealmList<String> option_dbkey = new RealmList<>();
-                                    if (filter.getOptions() != null) {
-                                        for (Filter.Option option : filter.getOptions()) {
-                                            option_label.add(option.label);
-                                            option_value.add(option.value);
-                                            option_dbkey.add(option.getDatabase_schema_key());
-                                        }
-                                        filterObject.setOption_lable(option_label);
-                                        filterObject.setOption_value(option_value);
-                                        filterObject.setOption_key(option_dbkey);
-                                    }
-
-                                }
-                                final RealmResults<Ward> ward = realm.where(Ward.class).findAll();
-                                if (ward.size() == 0) {
-                                    Wards.Boundary bound = response.body().getGeometries().getBoundary();
-                                    List <Wards.BoundaryWithWards.Feature> ward_bounds = response.body().getGeometries().getBoundaryWithWards().getFeatures();
-                                    saveward(realm,bound,ward_bounds);
-                                }
+                                realmObject.setId(feature.getProperties().getId());
+                                realmObject.setTag_type(a_tag);
+                                realmObject.setTag_lable(a_value);
 
 
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            } finally {
-                                realm.commitTransaction();
-                                realm.close();
-                                updateMapView = true;
-                                if(!downloadalldata)
-                                fragmentRefresh();
-                                Log.d("realm closed", "map data ");
+                                realmObject.setCoordinateslat(feature.getGeometry().getCoordinates().get(0));
+                                realmObject.setCoordinateslong(feature.getGeometry().getCoordinates().get(1));
+                                realmObject.setType(feature.getGeometry().getType());
                             }
+                            List<Filter> filters = response.body().getFilters();
+                            for (Filter filter : filters) {
+                                FilterSchema filterObject = realm.createObject(FilterSchema.class);
+                                filterObject.setAmenity(def_type);
+                                filterObject.setType(filter.getType());
+                                filterObject.setParameter_name(filter.parameterName);
+                                filterObject.setLabel(filter.label);
+                                filterObject.set_boolean(filter._boolean);
+                                filterObject.setDbkey(filter.getDatabase_schema_key());
+                                filterObject.setHigh(filter.getRange() == null ? null : filter.getRange().getHigh());
+                                filterObject.setLow(filter.getRange() == null ? null : filter.getRange().getLow());
+                                filterObject.setMax(filter.getRange() == null ? null : filter.getRange().getMax());
+                                filterObject.setMin(filter.getRange() == null ? null : filter.getRange().getMin());
+                                RealmList<String> option_label = new RealmList<>();
+                                RealmList<String> option_value = new RealmList<>();
+                                RealmList<String> option_dbkey = new RealmList<>();
+                                if (filter.getOptions() != null) {
+                                    for (Filter.Option option : filter.getOptions()) {
+                                        option_label.add(option.label);
+                                        option_value.add(option.value);
+                                        option_dbkey.add(option.getDatabase_schema_key());
+                                    }
+                                    filterObject.setOption_lable(option_label);
+                                    filterObject.setOption_value(option_value);
+                                    filterObject.setOption_key(option_dbkey);
+                                }
+
+                            }
+                            final RealmResults<Ward> ward = realm.where(Ward.class).findAll();
+                            if (ward.size() == 0) {
+                                Wards.Boundary bound = response.body().getGeometries().getBoundary();
+                                List<Wards.BoundaryWithWards.Feature> ward_bounds = response.body().getGeometries().getBoundaryWithWards().getFeatures();
+                                saveward(realm, bound, ward_bounds);
+                            }
+
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        } finally {
+                            realm.commitTransaction();
+                            realm.close();
+                            updateMapView = true;
+                            if (!downloadalldata)
+                                fragmentRefresh();
+                            Log.d("realm closed", "map data ");
                         }
                     }
-                    else {
-                        Toast.makeText(getApplicationContext(), "Server is not responding? Please try again later", Toast.LENGTH_LONG).show();
-                        updateMapView = true;
-                        if(!downloadalldata)
+                } else {
+                    Toast.makeText(getApplicationContext(), "Server is not responding? Please try again later", Toast.LENGTH_LONG).show();
+                    updateMapView = true;
+                    if (!downloadalldata)
                         fragmentRefresh();
-                    }
-                    if(!downloadalldata)
-                    dismissProgressDialog();
                 }
+                if (!downloadalldata)
+                    dismissProgressDialog();
+            }
 
-                @Override
-                public void onFailure(Call<Features> call, Throwable t) {
-                    t.printStackTrace();
+            @Override
+            public void onFailure(Call<Features> call, Throwable t) {
+                t.printStackTrace();
 //                    Toast.makeText(getApplicationContext(), "Are you connected to internet? If not, connect and update the data", Toast.LENGTH_LONG).show();
 //                    updateMapView = true;
-                    if(!downloadalldata) {
-                        setSnackbar("Could not update data. Please connect to the internet and hit 'Retry'");
-                        snackbar.show();
-                        dismissProgressDialog();
-                        fragmentRefresh();
-                    }
-
+                if (!downloadalldata) {
+                    setSnackbar("Could not update data. Please connect to the internet and hit 'Retry'");
+                    snackbar.show();
+                    dismissProgressDialog();
+                    fragmentRefresh();
                 }
-            });
+
+            }
+        });
 
     }
-    private void saveward(Realm realm,Wards.Boundary bound,List <Wards.BoundaryWithWards.Feature> ward_bounds) {
-                                for (List<List<Double>> bound_prop :bound.getFeatures().get(0).getGeometry().getCoordinates().get(0)){
-                                    for (List<Double> bound_coord : bound_prop
-                                            ) {
-                                        PokharaBoundary pb = realm.createObject(PokharaBoundary.class);
-                                        pb.setTag("all_boundary");
-                                        pb.setCoordinateslong(bound_coord.get(0));
-                                        pb.setCoordinateslat(bound_coord.get(1));
-                                    }
-                                }
-                            for (Wards.BoundaryWithWards.Feature ward_prop: ward_bounds
-                                 ) {
-                                Ward ward = realm.createObject(Ward.class);
-                                String wardname = ward_prop.getProperties().getWard_name();
-//
-                                String dbname = ward_prop.getProperties().getWard_no();
-                                int wardno = Integer.parseInt(dbname);
-                                Log.wtf(wardname,"ward");
-//
-                                ward.setName(wardname);
-                                ward.setNumber(wardno);
-                                ward.setOsmID(dbname);
-//
-                                Wards.BoundaryWithWards.Feature.Geometry_ geom = ward_prop.getGeometry();
-                                RealmList<PokharaBoundary> pbound;
-                                pbound = new RealmList<>();
 
-                                for (List<List<Double>> sds:geom.getCoordinates()
-                                     ) {
-                                    for (List<Double> coord : sds
-                                         ) {
-                                        PokharaBoundary pb = realm.createObject(PokharaBoundary.class);
-                                        pb.setTag("ward_boundary");
-                                        pb.setCoordinateslong(coord.get(0));
-                                        pb.setCoordinateslat(coord.get(1));
-                                        pbound.add(pb);
-                                    }
+    private void saveward(Realm realm, Wards.Boundary bound, List<Wards.BoundaryWithWards.Feature> ward_bounds) {
+        for (List<List<Double>> bound_prop : bound.getFeatures().get(0).getGeometry().getCoordinates().get(0)) {
+            for (List<Double> bound_coord : bound_prop
+            ) {
+                PokharaBoundary pb = realm.createObject(PokharaBoundary.class);
+                pb.setTag("all_boundary");
+                pb.setCoordinateslong(bound_coord.get(0));
+                pb.setCoordinateslat(bound_coord.get(1));
+            }
+        }
+        for (Wards.BoundaryWithWards.Feature ward_prop : ward_bounds
+        ) {
+            Ward ward = realm.createObject(Ward.class);
+            String wardname = ward_prop.getProperties().getWard_name();
+//
+            String dbname = ward_prop.getProperties().getWard_no();
+            int wardno = Integer.parseInt(dbname);
+            Log.wtf(wardname, "ward");
+//
+            ward.setName(wardname);
+            ward.setNumber(wardno);
+            ward.setOsmID(dbname);
+//
+            Wards.BoundaryWithWards.Feature.Geometry_ geom = ward_prop.getGeometry();
+            RealmList<PokharaBoundary> pbound;
+            pbound = new RealmList<>();
 
-                                }
-                                ward.setBoundry(pbound);
-                            }
+            for (List<List<Double>> sds : geom.getCoordinates()
+            ) {
+                for (List<Double> coord : sds
+                ) {
+                    PokharaBoundary pb = realm.createObject(PokharaBoundary.class);
+                    pb.setTag("ward_boundary");
+                    pb.setCoordinateslong(coord.get(0));
+                    pb.setCoordinateslat(coord.get(1));
+                    pbound.add(pb);
+                }
+
+            }
+            ward.setBoundry(pbound);
+        }
 
     }
 
@@ -766,7 +772,7 @@ public class MainActivity extends AppCompatActivity
         Log.d("onSave", "savefunc: ");
         ApiInterface api = new ApiHelper().getApiInterface();
         Call<Tags> call = api.getTag();
-       // showProgressDialog();
+        // showProgressDialog();
         call.enqueue(new Callback<Tags>() {
             @Override
             public void onResponse(Call<Tags> call, Response<Tags> response) {
@@ -777,7 +783,7 @@ public class MainActivity extends AppCompatActivity
                         realm.beginTransaction();
                         try {
                             for (Data ame : amenityTag
-                                    ) {
+                            ) {
                                 String amenity_name = ame.getAmenity();
                                 String[] amenity_tag = ame.getTags();
                                 RealmList<String> osm_tag = new RealmList<>();
@@ -796,13 +802,13 @@ public class MainActivity extends AppCompatActivity
 
                     }
                 }
-               // dismissProgressDialog();
+                // dismissProgressDialog();
             }
 
             @Override
             public void onFailure(Call<Tags> call, Throwable t) {
                 t.printStackTrace();
-               // dismissProgressDialog();
+                // dismissProgressDialog();
             }
         });
     }
@@ -829,8 +835,8 @@ public class MainActivity extends AppCompatActivity
             infrag.setArguments(args);
         }
 
-    if(viewPager.getAdapter()!=null)
-        viewPager.getAdapter().notifyDataSetChanged();
+        if (viewPager.getAdapter() != null)
+            viewPager.getAdapter().notifyDataSetChanged();
     }
 
     @Override
@@ -844,19 +850,18 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
-        }
-        else {
+        } else {
             String tagmap = "android:switcher:" + R.id.viewpager + ":" + 0;
             MapFragment mpfrag = (MapFragment) getSupportFragmentManager().findFragmentByTag(tagmap);
-            if(filter_applied){
+            if (filter_applied) {
                 filter_applied = false;
                 fragmentRefresh();
-            }
-            else if (mpfrag == null || !((Backlistner) mpfrag).onBackPressed()) {
+            } else if (mpfrag == null || !((Backlistner) mpfrag).onBackPressed()) {
                 super.onBackPressed();
             }
         }
     }
+
     public interface Backlistner {
         // add whatever methods you need here
         boolean onBackPressed();
@@ -938,8 +943,8 @@ public class MainActivity extends AppCompatActivity
             Log.d(def_type, "onResume: ");
             if (mpfrag != null) {
                 mpfrag.setArguments(bd);
-                if(viewPager.getAdapter()!=null)
-                viewPager.getAdapter().notifyDataSetChanged();
+                if (viewPager.getAdapter() != null)
+                    viewPager.getAdapter().notifyDataSetChanged();
             } else {
                 MapFragment newmpfrag = new MapFragment();
                 newmpfrag.setArguments(bd);
@@ -1037,10 +1042,10 @@ public class MainActivity extends AppCompatActivity
                                 public void onStatusChanged(OfflineRegionStatus status) {
 
 
-                                        double percentage = status.getRequiredResourceCount() >= 0
-                                                ? (100.0 * status.getCompletedResourceCount() / status.getRequiredResourceCount()) :
-                                                0.0;
-                                    if(!status.isComplete()) {
+                                    double percentage = status.getRequiredResourceCount() >= 0
+                                            ? (100.0 * status.getCompletedResourceCount() / status.getRequiredResourceCount()) :
+                                            0.0;
+                                    if (!status.isComplete()) {
                                         mBuilder.setProgress(100, (int) percentage, false);
                                         mBuilder.setContentTitle("Please wait...");
                                         int per = (int) percentage;
@@ -1048,10 +1053,7 @@ public class MainActivity extends AppCompatActivity
                                         mBuilder.setContentText(per + "% " + "downloaded").setStyle(new NotificationCompat.BigTextStyle()
                                                 .bigText(per + "% " + "downloaded"));
 
-                                    }
-
-
-                                    else {
+                                    } else {
                                         status.isComplete();
                                         // Download complete
                                         Log.d("Basemap Download", "Region downloaded successfully.");
@@ -1064,7 +1066,7 @@ public class MainActivity extends AppCompatActivity
                                     }
                                     mNotificationManager.notify(0, mBuilder.build());
                                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-                                        notificationManager.notify(0,mBuilder.build());
+                                        notificationManager.notify(0, mBuilder.build());
 
                                 }
 
@@ -1079,7 +1081,7 @@ public class MainActivity extends AppCompatActivity
                                             .setAutoCancel(true);
                                     mNotificationManager.notify(0, mBuilder.build());
                                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-                                        notificationManager.notify(0,mBuilder.build());
+                                        notificationManager.notify(0, mBuilder.build());
                                 }
 
                                 @Override
@@ -1090,7 +1092,7 @@ public class MainActivity extends AppCompatActivity
                                             .setAutoCancel(true);
                                     mNotificationManager.notify(0, mBuilder.build());
                                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-                                        notificationManager.notify(0,mBuilder.build());
+                                        notificationManager.notify(0, mBuilder.build());
                                     // Notify if offline region exceeds maximum tile count
 //                                    Log.e(String.valueOf(limit), "Mapbox tile count limit exceeded: " + limit);
                                 }
@@ -1133,7 +1135,7 @@ public class MainActivity extends AppCompatActivity
 
 
         mBuilder.setProgress(100, 0, false);
-        Toast.makeText(getApplicationContext(),"Map is downloading",Toast.LENGTH_SHORT).show();
+        Toast.makeText(getApplicationContext(), "Map is downloading", Toast.LENGTH_SHORT).show();
         mNotificationManager.notify(0, mBuilder.build());
     }
 
@@ -1147,6 +1149,7 @@ public class MainActivity extends AppCompatActivity
     public void showTabs() {
         tabs.setVisibility(View.VISIBLE);
     }
+
     public void doSomethingMemoryIntensive() {
 
         // Before doing something that requires a lot of memory,
@@ -1155,9 +1158,10 @@ public class MainActivity extends AppCompatActivity
 
         if (!memoryInfo.lowMemory) {
 
-            Log.d("onlow memory","doSomethingMemoryIntensive: ");
+            Log.d("onlow memory", "doSomethingMemoryIntensive: ");
         }
     }
+
     public void setSnackbar(String msg) {
         snackbar = Snackbar.make(this.findViewById(android.R.id.content), msg, Snackbar.LENGTH_INDEFINITE);
         View snackbarView = snackbar.getView();
@@ -1167,11 +1171,10 @@ public class MainActivity extends AppCompatActivity
         snackbar.setAction("Retry", new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(Connectivity.isConnected(MainActivity.this)) {
+                if (Connectivity.isConnected(MainActivity.this)) {
                     updateRealm(oldtag);
                     finalSnackbar.dismiss();
-                }
-                else {
+                } else {
                     setSnackbar("Could not update the data. Please connect to the internet and hit 'Retry'");
                     snackbar.show();
                 }
@@ -1189,7 +1192,7 @@ public class MainActivity extends AppCompatActivity
     }
 
 
-    public void downloaddataStarted(){
+    public void downloaddataStarted() {
         mBuilder.setContentTitle("Downloading")
                 .setContentText("Content is being downloaded in background")
                 .setStyle(new NotificationCompat.BigTextStyle()
@@ -1198,27 +1201,28 @@ public class MainActivity extends AppCompatActivity
                 .setAutoCancel(true);
         mNotificationManager.notify(0, mBuilder.build());
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-            notificationManager.notify(0,mBuilder.build());
+            notificationManager.notify(0, mBuilder.build());
     }
 
-    public void downloadProgress(){
+    public void downloadProgress() {
         PROGRESS_CURRENT = (int) progress;
         mBuilder.setProgress(PROGRESS_MAX, PROGRESS_CURRENT, false);
         mBuilder.setContentTitle("Please wait...");
 
-            if (PROGRESS_CURRENT < 100)
-                mBuilder.setContentText(PROGRESS_CURRENT + "% " + "downloaded").setStyle(new NotificationCompat.BigTextStyle()
-                        .bigText(PROGRESS_CURRENT + "% " + "downloaded"));
-            else mBuilder.setContentText("100% downloaded").setStyle(new NotificationCompat.BigTextStyle()
+        if (PROGRESS_CURRENT < 100)
+            mBuilder.setContentText(PROGRESS_CURRENT + "% " + "downloaded").setStyle(new NotificationCompat.BigTextStyle()
+                    .bigText(PROGRESS_CURRENT + "% " + "downloaded"));
+        else
+            mBuilder.setContentText("100% downloaded").setStyle(new NotificationCompat.BigTextStyle()
                     .bigText("100% downloaded"));
-
 
 
         mNotificationManager.notify(0, mBuilder.build());
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-            notificationManager.notify(0,mBuilder.build());
+            notificationManager.notify(0, mBuilder.build());
     }
-    public void partialDownloaded(){
+
+    public void partialDownloaded() {
         mBuilder.setContentTitle("Partially downloaded")
                 .setContentText("Please check your connection.")
                 .setStyle(new NotificationCompat.BigTextStyle()
@@ -1227,27 +1231,26 @@ public class MainActivity extends AppCompatActivity
                 .setAutoCancel(true);
         mNotificationManager.notify(0, mBuilder.build());
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-            notificationManager.notify(0,mBuilder.build());
+            notificationManager.notify(0, mBuilder.build());
     }
 
 
-
     public void downloadCompleted() {
-            mBuilder.setContentTitle("Download Complete")
-                    .setContentText("Download has been successfully completed.")
-                    .setStyle(new NotificationCompat.BigTextStyle()
-                            .bigText("Download has been successfully completed."))
-                    .setProgress(0, 0, false)
-                    .setAutoCancel(true);
+        mBuilder.setContentTitle("Download Complete")
+                .setContentText("Download has been successfully completed.")
+                .setStyle(new NotificationCompat.BigTextStyle()
+                        .bigText("Download has been successfully completed."))
+                .setProgress(0, 0, false)
+                .setAutoCancel(true);
 
         mNotificationManager.notify(0, mBuilder.build());
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-            notificationManager.notify(0,mBuilder.build());
+            notificationManager.notify(0, mBuilder.build());
 //        LocalBroadcastManager.getInstance(this)
 //                .unregisterReceiver(myReceiver);
     }
 
-    public void downloadInterrupted(){
+    public void downloadInterrupted() {
         mBuilder.setContentTitle("Error")
                 .setContentText("Please check your connection.")
                 .setProgress(PROGRESS_MAX, PROGRESS_CURRENT, false)
@@ -1257,12 +1260,13 @@ public class MainActivity extends AppCompatActivity
 
         mNotificationManager.notify(0, mBuilder.build());
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-            notificationManager.notify(0,mBuilder.build());
+            notificationManager.notify(0, mBuilder.build());
 
 //        LocalBroadcastManager.getInstance(this)
 //                .unregisterReceiver(myReceiver);
     }
-    public static class Download extends AsyncTask<String,Void,String>{
+
+    public static class Download extends AsyncTask<String, Void, String> {
 
         @Override
         protected String doInBackground(String... strings) {

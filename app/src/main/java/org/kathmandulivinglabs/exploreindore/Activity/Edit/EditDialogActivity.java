@@ -45,6 +45,7 @@ import io.realm.Realm;
 import io.realm.RealmList;
 import io.realm.RealmQuery;
 import io.realm.RealmResults;
+import mehdi.sakout.fancybuttons.FancyButton;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -58,12 +59,12 @@ public class EditDialogActivity extends AppCompatActivity implements MainActivit
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
-                final ExploreSchema explore = realm.where(ExploreSchema.class).contains("osm_id",osmId).findFirst();
-                for (Map.Entry<String,String> maps:realm_key_value.entrySet()
-                     ) {
+                final ExploreSchema explore = realm.where(ExploreSchema.class).contains("osm_id", osmId).findFirst();
+                for (Map.Entry<String, String> maps : realm_key_value.entrySet()
+                ) {
                     String vals = maps.getValue();
                     try {
-                        if(vals!=null){
+                        if (vals != null) {
 
                         }
                     } catch (Exception e) {
@@ -85,11 +86,10 @@ public class EditDialogActivity extends AppCompatActivity implements MainActivit
     String[] amenitySelected;
 
     public String osmId;
-    public static Map<String,String> edit_key_value = new HashMap<>();
-    public static Map<String,String> realm_key_value = new HashMap<>();
-    public  static String amenityTopass;
+    public static Map<String, String> edit_key_value = new HashMap<>();
+    public static Map<String, String> realm_key_value = new HashMap<>();
+    public static String amenityTopass;
     ProgressDialogFragment progressDialogFragment;
-
 
 
     SharedPreferences sharedPreferences;
@@ -107,11 +107,11 @@ public class EditDialogActivity extends AppCompatActivity implements MainActivit
         setTitle("Edit");
         LinearLayout container = findViewById(R.id.editLayout);
 
-        Button applybtn = findViewById(R.id.apply_edit);
+        FancyButton applybtn = findViewById(R.id.apply_edit);
         Realm realm = Realm.getDefaultInstance();
         if (amenitySelected != null) {
             amenityTopass = amenitySelected[0];
-            Log.wtf("aminitySelected",amenityTopass);
+            Log.wtf("aminitySelected", amenityTopass);
             int size = realm.where(Tag.class).equalTo("amenity", amenitySelected[0]).findFirst().getOsmtags().size();
             RealmResults<Tag> tag = realm.where(Tag.class).equalTo("amenity", amenitySelected[0]).findAll();
             RealmQuery<ExploreSchema> query = realm.where(ExploreSchema.class);
@@ -121,9 +121,9 @@ public class EditDialogActivity extends AppCompatActivity implements MainActivit
 //                dbvalue = query.equalTo("name", amenitySelected[1]).findFirst();
 //            }
 //            else {
-                double coordinateslat = Double.parseDouble(amenitySelected[2]);
-                double coordinateslong = Double.parseDouble(amenitySelected[3]);
-                dbvalue = query.equalTo("coordinateslong", coordinateslat).equalTo("coordinateslat", coordinateslong).findFirst();
+            double coordinateslat = Double.parseDouble(amenitySelected[2]);
+            double coordinateslong = Double.parseDouble(amenitySelected[3]);
+            dbvalue = query.equalTo("coordinateslong", coordinateslat).equalTo("coordinateslat", coordinateslong).findFirst();
 //            }
             if (dbvalue != null) {
 //                String allValue;
@@ -144,7 +144,7 @@ public class EditDialogActivity extends AppCompatActivity implements MainActivit
                 String[] editKey;
                 String[] dbKey;
                 editKey = new String[size];
-                dbKey = new  String[size];
+                dbKey = new String[size];
                 for (Tag tg : tag) {
 
                     int i = 0;
@@ -153,13 +153,13 @@ public class EditDialogActivity extends AppCompatActivity implements MainActivit
                         view[i] = getLayoutInflater().inflate(R.layout.edittextgenerator, container, false);
                         editTag[i] = view[i].findViewById(R.id.attribute_type);
                         editValue[i] = view[i].findViewById(R.id.attribute_value);
-                        editTag[i].setText(Utils.toTitleCase(lis.replace("_"," ")));
-                        dbKey[i]=lis;
+                        editTag[i].setText(Utils.toTitleCase(lis.replace("_", " ")));
+                        dbKey[i] = lis;
                         try {
                             if (tags.contains(keyValue)) {
                                 editKey[i] = tg.getOsmtags().get(i);
-                            int p = tags.indexOf(keyValue);
-                            editValue[i].setText(labels.get(p));
+                                int p = tags.indexOf(keyValue);
+                                editValue[i].setText(labels.get(p));
                             }
                         } catch (Exception exception) {
                             exception.printStackTrace();
@@ -176,37 +176,36 @@ public class EditDialogActivity extends AppCompatActivity implements MainActivit
                     JSONObject json = new JSONObject();
                     HashMap<String, String> updatedValue = new HashMap<>();
                     for (int a = 0; a < size; a++) {
-                        realm_key_value.put(dbKey[a],editValue[a].getText().toString());
+                        realm_key_value.put(dbKey[a], editValue[a].getText().toString());
                         if (!(editValue[a].getText() == null || editValue[a].getText().toString().equals(""))) {
 //                            edit_key_value.put(editKey[a], editValue[a].getText().toString());
 
-                                if(tags.indexOf(dbKey[a])>=0) {
-                                    if (!editValue[a].getText().toString().equals(labels.get(tags.indexOf(dbKey[a])))) {
-                                        updatedValue.put(dbKey[a], editValue[a].getText().toString());
-                                    }
-                                } else {
-//                                    Log.wtf("keys","keys");
-//                                    Log.wtf(dbKey[a],"Key");
+                            if (tags.indexOf(dbKey[a]) >= 0) {
+                                if (!editValue[a].getText().toString().equals(labels.get(tags.indexOf(dbKey[a])))) {
                                     updatedValue.put(dbKey[a], editValue[a].getText().toString());
                                 }
+                            } else {
+//                                    Log.wtf("keys","keys");
+//                                    Log.wtf(dbKey[a],"Key");
+                                updatedValue.put(dbKey[a], editValue[a].getText().toString());
+                            }
 //                            Log.wtf(labels.get(tags.indexOf(editKey[a])), editValue[a].getText().toString());
 //                            Log.wtf(tags.get(tags.indexOf(editKey[a])), editKey[a]);
                         }
                     }
-                    for (HashMap.Entry<String, String> h: updatedValue.entrySet()
-                         ) {
+                    for (HashMap.Entry<String, String> h : updatedValue.entrySet()
+                    ) {
                         try {
-                            json.put(h.getKey(),h.getValue());
+                            json.put(h.getKey(), h.getValue());
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
                     }
 
                     if (Connectivity.isConnected(this)) {
-                        if(json.length()==0){
+                        if (json.length() == 0) {
                             Toast.makeText(this, "Nothing edited", Toast.LENGTH_LONG).show();
-                        }
-                        else {
+                        } else {
                             showProgressDialog();
                             try {
                                 update(json, osmId);
@@ -230,14 +229,15 @@ public class EditDialogActivity extends AppCompatActivity implements MainActivit
         }
 
     }
+
     private void showProgressDialog() {
         FragmentManager fm = getSupportFragmentManager();
         progressDialogFragment = ProgressDialogFragment.newInstance();
         progressDialogFragment.show(fm, "Progress Fragment");
     }
 
-    private void dismissProgressDialog(){
-        if(progressDialogFragment!=null)
+    private void dismissProgressDialog() {
+        if (progressDialogFragment != null)
             progressDialogFragment.dismiss();
     }
 
@@ -250,26 +250,24 @@ public class EditDialogActivity extends AppCompatActivity implements MainActivit
         EditParam edits = new EditParam();
         edits.setData(String.valueOf(jsonObject));
         String token = MainActivity.mSharedPref.getString(LoginActivity.TOKEN, null);
-       if(token!=null) {
-           ApiInterface api = new ApiHelper().getApiInterface();
-           Call<AuthenticateModel> call = api.getSuccessResponse("Bearer "+token,osmId,edits);
-           call.enqueue(new Callback<AuthenticateModel>() {
+        if (token != null) {
+            ApiInterface api = new ApiHelper().getApiInterface();
+            Call<AuthenticateModel> call = api.getSuccessResponse("Bearer " + token, osmId, edits);
+            call.enqueue(new Callback<AuthenticateModel>() {
                 @Override
                 public void onResponse(Call<AuthenticateModel> call, Response<AuthenticateModel> response) {
-                   Log.wtf(String.valueOf(response.raw()),"Raw response");
-                   Log.wtf(String.valueOf(call.request()),"Call request");
-                    if(response.isSuccessful()){
+                    Log.wtf(String.valueOf(response.raw()), "Raw response");
+                    Log.wtf(String.valueOf(call.request()), "Call request");
+                    if (response.isSuccessful()) {
                         if (response.body() != null && response.body().getSuccess() == 1) {
                             updateDB();
                             dismissProgressDialog();
                             Toast.makeText(getApplicationContext(), "Sucessfully edited", Toast.LENGTH_LONG).show();
-                        }
-                        else{
+                        } else {
                             dismissProgressDialog();
-                            Toast.makeText(getApplicationContext(),"Unable to update",Toast.LENGTH_LONG).show();
+                            Toast.makeText(getApplicationContext(), "Unable to update", Toast.LENGTH_LONG).show();
                         }
-                    }
-                    else {
+                    } else {
                         dismissProgressDialog();
                         Toast.makeText(getApplicationContext(), "Unable to update", Toast.LENGTH_LONG).show();
                     }
@@ -281,70 +279,71 @@ public class EditDialogActivity extends AppCompatActivity implements MainActivit
                     Toast.makeText(getApplicationContext(), "Cannot connect to the server. Please try again later.", Toast.LENGTH_LONG).show();
                 }
             });
-       }
-    }
-private void updateDB(){
-
-    Realm realm = Realm.getDefaultInstance();
-    realm.executeTransaction(new Realm.Transaction() {
-        @Override
-        public void execute(Realm realm) {
-            ExploreSchema explore = realm.where(ExploreSchema.class).contains("osm_id",osmId).findFirst();
-            RealmList<String> tag = new RealmList<>();
-            RealmList<String> value = new RealmList<>();
-            int i = 0;
-            for (HashMap.Entry<String,String> hs : realm_key_value.entrySet()){
-                Log.wtf(hs.getKey(),hs.getValue());
-                tag.add(i, hs.getKey());
-                value.add(i, hs.getValue());
-                i++;
-            }
-            for (HashMap.Entry<String,String> hs : realm_key_value.entrySet()) {
-                Log.wtf(hs.getKey(),hs.getValue());
-                switch (hs.getKey()) {
-                    case "name":
-                        explore.setName(hs.getValue());
-                        break;
-                    case "name_hindi":
-                        explore.setNamein(hs.getValue());
-                        break;
-                    case "phone":
-                      explore.setContact_phone(hs.getValue());
-                        break;
-                    case "email":
-                        explore.setContact_email(hs.getValue());
-                        break;
-                    case "website":
-                       explore.setWeb(hs.getValue());
-                        break;
-                    case "capacity_beds":
-                        if ((hs.getValue() != null) && (hs.getValue().matches("-?\\d+")))
-                           explore.setCapacity_beds(Integer.parseInt(hs.getValue()));
-                        break;
-                    case "personnel_count":
-                        if ((hs.getValue() != null) && (hs.getValue().matches("-?\\d+")))
-                            explore.setPersonnel_count(Integer.parseInt(hs.getValue()));
-                        break;
-                    case "ward_no":
-                   explore.setWard_id(hs.getValue());
-                        break;
-                    case "ward_name":
-                     explore.setWard_name(hs.getValue());
-                        break;
-
-                    default:
-                        break;
-                }
-            }
-            explore.setTag_type(tag);
-            explore.setTag_lable(value);
-            realm.insertOrUpdate(explore);
         }
-    });
-    Intent i = new Intent(this, MainActivity.class);
-    i.putExtra("amenityedited",amenityTopass);
-    startActivity(i);
-}
+    }
+
+    private void updateDB() {
+
+        Realm realm = Realm.getDefaultInstance();
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                ExploreSchema explore = realm.where(ExploreSchema.class).contains("osm_id", osmId).findFirst();
+                RealmList<String> tag = new RealmList<>();
+                RealmList<String> value = new RealmList<>();
+                int i = 0;
+                for (HashMap.Entry<String, String> hs : realm_key_value.entrySet()) {
+                    Log.wtf(hs.getKey(), hs.getValue());
+                    tag.add(i, hs.getKey());
+                    value.add(i, hs.getValue());
+                    i++;
+                }
+                for (HashMap.Entry<String, String> hs : realm_key_value.entrySet()) {
+                    Log.wtf(hs.getKey(), hs.getValue());
+                    switch (hs.getKey()) {
+                        case "name":
+                            explore.setName(hs.getValue());
+                            break;
+                        case "name_hindi":
+                            explore.setNamein(hs.getValue());
+                            break;
+                        case "phone":
+                            explore.setContact_phone(hs.getValue());
+                            break;
+                        case "email":
+                            explore.setContact_email(hs.getValue());
+                            break;
+                        case "website":
+                            explore.setWeb(hs.getValue());
+                            break;
+                        case "capacity_beds":
+                            if ((hs.getValue() != null) && (hs.getValue().matches("-?\\d+")))
+                                explore.setCapacity_beds(Integer.parseInt(hs.getValue()));
+                            break;
+                        case "personnel_count":
+                            if ((hs.getValue() != null) && (hs.getValue().matches("-?\\d+")))
+                                explore.setPersonnel_count(Integer.parseInt(hs.getValue()));
+                            break;
+                        case "ward_no":
+                            explore.setWard_id(hs.getValue());
+                            break;
+                        case "ward_name":
+                            explore.setWard_name(hs.getValue());
+                            break;
+
+                        default:
+                            break;
+                    }
+                }
+                explore.setTag_type(tag);
+                explore.setTag_lable(value);
+                realm.insertOrUpdate(explore);
+            }
+        });
+        Intent i = new Intent(this, MainActivity.class);
+        i.putExtra("amenityedited", amenityTopass);
+        startActivity(i);
+    }
 
     @Override
     public void onBackPressed() {
