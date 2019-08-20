@@ -108,6 +108,7 @@
                         android:background="@color/horixontal_line_color" />
 
                     <LinearLayout
+                        android:id="@+id/callLayout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="@dimen/small_margin"
@@ -151,13 +152,15 @@
                         android:visibility="gone" />
 
                     <LinearLayout
+                        android:id="@+id/websiteLayout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="@dimen/small_margin"
                         android:layout_marginLeft="@dimen/small_margin"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
-                        android:padding="5dp">
+                        android:padding="5dp"
+                        android:visibility="gone">
 
                         <android.support.design.widget.FloatingActionButton
                             android:layout_width="0dp"
@@ -194,13 +197,15 @@
                         android:visibility="gone" />
 
                     <LinearLayout
+                        android:id="@+id/emailLayout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="@dimen/small_margin"
                         android:layout_marginLeft="@dimen/small_margin"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
-                        android:padding="5dp">
+                        android:padding="5dp"
+                        android:visibility="gone">
 
                         <android.support.design.widget.FloatingActionButton
                             android:layout_width="0dp"

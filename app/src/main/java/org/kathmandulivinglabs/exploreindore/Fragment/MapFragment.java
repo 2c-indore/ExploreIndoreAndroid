@@ -2,6 +2,7 @@ package org.kathmandulivinglabs.exploreindore.Fragment;
 
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -42,6 +43,7 @@ import android.view.animation.AnimationUtils;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -80,6 +82,7 @@ import com.mapbox.services.android.telemetry.permissions.PermissionsManager;
 
 import org.kathmandulivinglabs.exploreindore.Activity.LoginActivity;
 import org.kathmandulivinglabs.exploreindore.Activity.MainActivity;
+import org.kathmandulivinglabs.exploreindore.Adapter.SearchListAdapter;
 import org.kathmandulivinglabs.exploreindore.Customclass.CustomClusterItem;
 import org.kathmandulivinglabs.exploreindore.Customclass.CustomClusterManagerPlugin;
 import org.kathmandulivinglabs.exploreindore.FilterParcel;
@@ -132,7 +135,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
     private LinearLayout small_info;
     private TextView testText, detailNepaliTitle, detailEnglishTitle, detailPhone, detailWeb, detailMail;
     private ViewGroup mapScreen;
-    private LinearLayout detail_screen;
+    private LinearLayout detail_screen, websiteLayout, emailLayout;
     private View amenityInfo, touristInfo;
     private LinearLayout containera, attraction_tags_container;
     private SwipeRefreshLayout attraction_swipe;
@@ -178,6 +181,8 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
     private Map<LatLng, String> uniList;
     SearchView searchView;
     LinearLayout.LayoutParams llp;
+    private SearchListAdapter searchListAdapter;
+    MenuItem mSearchMenuItem;
 
     @Override
     public boolean onBackPressed() {
@@ -190,7 +195,10 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
             toggleTabVisibilityListener.showTabs();
             lm.setVisibility(View.GONE);
             if (navigationMapRoute != null) navigationMapRoute.removeRoute();
+            previous_selected.setIcon(getItemIcon()); //to change red icon to blue
             detail_screen.removeAllViews();
+            if (mSearchMenuItem != null)
+                mSearchMenuItem.collapseActionView(); //because search view still remains there of not collapsed
         } else {
             AlertDialog.Builder alertDialog = new AlertDialog.Builder(
                     getActivity());
@@ -236,7 +244,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
 
     }
 
-    ArrayAdapter<Search> adapter;
+    //    ArrayAdapter<Search> adapter;
     ArrayList<Search> searches;
     boolean filterflag = false;
     private TextView attraction_title, attraction_title_np, attraction_detail;
@@ -253,7 +261,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
 
     @Override
     public void onPrepareOptionsMenu(Menu menu) {
-        MenuItem mSearchMenuItem = menu.findItem(R.id.search);
+        mSearchMenuItem = menu.findItem(R.id.search);
 
         searchView = (SearchView) mSearchMenuItem.getActionView();
         searchView.setOnSearchClickListener(new View.OnClickListener() {
@@ -280,14 +288,15 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                String asgot = newText;
+                if (!newText.isEmpty()) {
+                    SearchListAdapter.searchText = newText;
+                } else SearchListAdapter.searchText = "";
                 newText = newText.toLowerCase();
                 ArrayList<Search> search = new ArrayList<>();
                 int flag = 0;
                 // List<String> searchString = new ArrayList<>();
                 if (uniList.size() > 0) {
-                    for (Map.Entry<LatLng, String> aitem : uniList.entrySet()
-                    ) {
+                    for (Map.Entry<LatLng, String> aitem : uniList.entrySet()) {
                         if (aitem.getValue().toLowerCase().contains(newText)) {
                             Log.wtf(aitem.getValue(), "Item");
                             Search hs = new Search(null, null);
@@ -304,7 +313,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
                     }
                     searches.clear();
                     searches.addAll(search);
-                    adapter.notifyDataSetChanged();
+                    searchListAdapter.notifyDataSetChanged();
                 }
                 return false;
             }
@@ -475,6 +484,8 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
 
         detailbool = true;
         amenityInfo = inflate_info.inflate(R.layout.detailview, null);
+        websiteLayout = amenityInfo.findViewById(R.id.websiteLayout);
+        emailLayout = amenityInfo.findViewById(R.id.emailLayout);
         containera = amenityInfo.findViewById(R.id.detailLayout);
         closebtn = amenityInfo.findViewById(R.id.btn_close);
         detailEnglishTitle = amenityInfo.findViewById(R.id.txt_detail_enname);
@@ -564,6 +575,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
             @Override
             public void onClick(View v) {
                 swipeValue = 0;
+                previous_selected.setIcon(getItemIcon()); //to change red icon to blue
                 lm.setLayoutParams(lp_shrink);
                 small_info.setVisibility(View.VISIBLE);
                 ((AppCompatActivity) getActivity()).getSupportActionBar().show();
@@ -640,7 +652,8 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
         listView = v.findViewById(R.id.listView);
         uniList = new HashMap<>();
         searches = new ArrayList<>();
-        adapter = new ArrayAdapter<Search>(this.getContext(), android.R.layout.simple_list_item_1, searches);
+        searchListAdapter = new SearchListAdapter(this.getContext(), searches);
+//        adapter = new ArrayAdapter<Search>(this.getContext(), android.R.layout.simple_list_item_1, searches);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -699,8 +712,8 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
 
             detailEnglishTitle.setText(dbvalue.getName());
             detailNepaliTitle.setText(dbvalue.getNamein());
-
-            if (dbvalue.getWeb() != null) {
+            if (dbvalue.getWeb() != null && !dbvalue.getWeb().isEmpty()) {
+                websiteLayout.setVisibility(View.VISIBLE);
                 detailWeb.setText(dbvalue.getWeb());
                 detailWeb.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -713,11 +726,14 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
                     }
                 });
             } else {
+                websiteLayout.setVisibility(View.GONE);
                 detailWeb.setText("-");
             }
-            if (dbvalue.getContact_email() != null) {
+            if (dbvalue.getContact_email() != null && !dbvalue.getContact_email().isEmpty()) {
+                emailLayout.setVisibility(View.VISIBLE);
                 detailMail.setText(dbvalue.getContact_email());
             } else {
+                emailLayout.setVisibility(View.GONE);
                 detailMail.setText("-");
             }
 
@@ -1054,7 +1070,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
         if (searches.size() > 0) {
             searches.clear();
             uniList.clear();
-            adapter.clear();
+//            adapter.clear();
         }
         for (int i = 0; i < results.size(); i++) {
             String title;
@@ -1076,8 +1092,8 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
         }
 //        listView.setAdapter(adapter);
 //        adapter.notifyDataSetChanged();
-        listView.setAdapter(adapter);
-        adapter.notifyDataSetChanged();
+        listView.setAdapter(searchListAdapter);
+        searchListAdapter.notifyDataSetChanged();
 
         //TODO check for applied filters
 

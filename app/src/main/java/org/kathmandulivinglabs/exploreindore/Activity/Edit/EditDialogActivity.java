@@ -14,6 +14,7 @@ import android.util.Log;
 
 import android.view.View;
 
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -98,6 +99,8 @@ public class EditDialogActivity extends AppCompatActivity implements MainActivit
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        //set to adjust screen height automatically, when soft keyboard appears on screen
+//        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
 //        getWindow().setLayout(WindowManager.LayoutParams.MATCH_PARENT,
 //                WindowManager.LayoutParams.MATCH_PARENT);
         sharedPreferences = this.getPreferences(Context.MODE_PRIVATE);
