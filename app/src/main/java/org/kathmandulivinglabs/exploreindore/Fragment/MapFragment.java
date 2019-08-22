@@ -2,12 +2,15 @@ package org.kathmandulivinglabs.exploreindore.Fragment;
 
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.ColorStateList;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
@@ -25,7 +28,7 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
-import android.util.EventLog;
+import android.text.Html;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
@@ -40,6 +43,7 @@ import android.view.animation.AnimationUtils;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -67,9 +71,6 @@ import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.mapboxsdk.plugins.cluster.clustering.Cluster;
 import com.mapbox.mapboxsdk.plugins.locationlayer.LocationLayerMode;
 import com.mapbox.mapboxsdk.plugins.locationlayer.LocationLayerPlugin;
-import com.mapbox.mapboxsdk.style.layers.LineLayer;
-import com.mapbox.mapboxsdk.style.layers.PropertyFactory;
-import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
 import com.mapbox.services.android.navigation.ui.v5.NavigationLauncher;
 import com.mapbox.services.android.navigation.ui.v5.NavigationLauncherOptions;
 import com.mapbox.services.android.navigation.v5.navigation.NavigationUnitType;
@@ -81,6 +82,7 @@ import com.mapbox.services.android.telemetry.permissions.PermissionsManager;
 
 import org.kathmandulivinglabs.exploreindore.Activity.LoginActivity;
 import org.kathmandulivinglabs.exploreindore.Activity.MainActivity;
+import org.kathmandulivinglabs.exploreindore.Adapter.SearchListAdapter;
 import org.kathmandulivinglabs.exploreindore.Customclass.CustomClusterItem;
 import org.kathmandulivinglabs.exploreindore.Customclass.CustomClusterManagerPlugin;
 import org.kathmandulivinglabs.exploreindore.FilterParcel;
@@ -101,6 +103,7 @@ import com.mapbox.api.directions.v5.models.DirectionsRoute;
 import com.squareup.picasso.Picasso;
 
 import java.io.InputStream;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -111,6 +114,7 @@ import java.util.Objects;
 
 import io.realm.RealmCollection;
 import io.realm.RealmList;
+import mehdi.sakout.fancybuttons.FancyButton;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -131,7 +135,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
     private LinearLayout small_info;
     private TextView testText, detailNepaliTitle, detailEnglishTitle, detailPhone, detailWeb, detailMail;
     private ViewGroup mapScreen;
-    private LinearLayout detail_screen;
+    private LinearLayout detail_screen, websiteLayout, emailLayout;
     private View amenityInfo, touristInfo;
     private LinearLayout containera, attraction_tags_container;
     private SwipeRefreshLayout attraction_swipe;
@@ -147,7 +151,6 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
     FilterParcel insightfilter;
     private static String selectedType = MainActivity.def_type;
     Marker previous_selected;
-
     private ToggleTabVisibilityListener toggleTabVisibilityListener;
 
 
@@ -169,7 +172,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
 
     private boolean iff_ondown = false, iff_onswipe = false;
 
-    private Button navButton;
+    private FancyButton navButton;
     NestedScrollView scroll;
     private String editName, editLat, editLong;
     private Map<String, com.mapbox.mapboxsdk.annotations.Icon> tagMp_blue;
@@ -178,6 +181,8 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
     private Map<LatLng, String> uniList;
     SearchView searchView;
     LinearLayout.LayoutParams llp;
+    private SearchListAdapter searchListAdapter;
+    MenuItem mSearchMenuItem;
 
     @Override
     public boolean onBackPressed() {
@@ -190,7 +195,10 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
             toggleTabVisibilityListener.showTabs();
             lm.setVisibility(View.GONE);
             if (navigationMapRoute != null) navigationMapRoute.removeRoute();
+            previous_selected.setIcon(getItemIcon()); //to change red icon to blue
             detail_screen.removeAllViews();
+            if (mSearchMenuItem != null)
+                mSearchMenuItem.collapseActionView(); //because search view still remains there of not collapsed
         } else {
             AlertDialog.Builder alertDialog = new AlertDialog.Builder(
                     getActivity());
@@ -236,7 +244,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
 
     }
 
-    ArrayAdapter<Search> adapter;
+    //    ArrayAdapter<Search> adapter;
     ArrayList<Search> searches;
     boolean filterflag = false;
     private TextView attraction_title, attraction_title_np, attraction_detail;
@@ -253,7 +261,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
 
     @Override
     public void onPrepareOptionsMenu(Menu menu) {
-        MenuItem mSearchMenuItem = menu.findItem(R.id.search);
+        mSearchMenuItem = menu.findItem(R.id.search);
 
         searchView = (SearchView) mSearchMenuItem.getActionView();
         searchView.setOnSearchClickListener(new View.OnClickListener() {
@@ -280,16 +288,17 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
 
             @Override
             public boolean onQueryTextChange(String newText) {
-
+                if (!newText.isEmpty()) {
+                    SearchListAdapter.searchText = newText;
+                } else SearchListAdapter.searchText = "";
                 newText = newText.toLowerCase();
                 ArrayList<Search> search = new ArrayList<>();
                 int flag = 0;
                 // List<String> searchString = new ArrayList<>();
                 if (uniList.size() > 0) {
-                    for (Map.Entry<LatLng, String> aitem : uniList.entrySet()
-                    ) {
+                    for (Map.Entry<LatLng, String> aitem : uniList.entrySet()) {
                         if (aitem.getValue().toLowerCase().contains(newText)) {
-                            Log.wtf(aitem.getValue(),"Item");
+                            Log.wtf(aitem.getValue(), "Item");
                             Search hs = new Search(null, null);
                             hs.cord = aitem.getKey();
                             hs.name = aitem.getValue();
@@ -304,7 +313,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
                     }
                     searches.clear();
                     searches.addAll(search);
-                    adapter.notifyDataSetChanged();
+                    searchListAdapter.notifyDataSetChanged();
                 }
                 return false;
             }
@@ -388,7 +397,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
         zoomtoextant.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(28.2380, 83.9956), 9.3), 500);
+                mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(22.7203851, 75.8682103), 9.3), 500);
             }
         });
         LayoutInflater inflate_info = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -411,7 +420,52 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
         insightfilter = new FilterParcel();
         IconFactory mIconFactory = IconFactory.getInstance(getActivity());
         tagMp_blue = new HashMap<>();
+        tagMp_blue.put("public_hospitals", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
+                getActivity().getResources(), R.drawable.blue_hospital)));
+        tagMp_blue.put("private_hospitals", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
+                getActivity().getResources(), R.drawable.blue_hospital)));
+        tagMp_blue.put("public_clinics", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
+                getActivity().getResources(), R.drawable.blue_clinic)));
+        tagMp_blue.put("private_clinics", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
+                getActivity().getResources(), R.drawable.blue_clinic)));
+        tagMp_blue.put("dentists", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
+                getActivity().getResources(), R.drawable.blue_dentist)));
+        tagMp_blue.put("veterinaries", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
+                getActivity().getResources(), R.drawable.blue_vet)));
+        tagMp_blue.put("patho_radio_labs", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
+                getActivity().getResources(), R.drawable.blue_laboratory)));
+        tagMp_blue.put("anganwadi", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
+                getActivity().getResources(), R.drawable.blue_aaganwadi)));
+        tagMp_blue.put("blood_banks", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
+                getActivity().getResources(), R.drawable.blue_bloodbank)));
+        tagMp_blue.put("mental_health_centers", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
+                getActivity().getResources(), R.drawable.blue_mental_health)));
+        tagMp_blue.put("bus_stops", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
+                getActivity().getResources(), R.drawable.blue_busstop)));
 
+        tagMp_orange = new HashMap<>();
+        tagMp_orange.put("public_hospitals", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
+                getActivity().getResources(), R.drawable.red_hospital)));
+        tagMp_orange.put("private_hospitals", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
+                getActivity().getResources(), R.drawable.red_hospital)));
+        tagMp_orange.put("public_clinics", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
+                getActivity().getResources(), R.drawable.red_clinic)));
+        tagMp_orange.put("private_clinics", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
+                getActivity().getResources(), R.drawable.red_clinic)));
+        tagMp_orange.put("dentists", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
+                getActivity().getResources(), R.drawable.red_dentist)));
+        tagMp_orange.put("veterinaries", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
+                getActivity().getResources(), R.drawable.red_vet)));
+        tagMp_orange.put("patho_radio_labs", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
+                getActivity().getResources(), R.drawable.red_laboratory)));
+        tagMp_orange.put("anganwadi", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
+                getActivity().getResources(), R.drawable.red_aaganwadi)));
+        tagMp_orange.put("blood_banks", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
+                getActivity().getResources(), R.drawable.red_bloodbank)));
+        tagMp_orange.put("mental_health_centers", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
+                getActivity().getResources(), R.drawable.red_mental_health)));
+        tagMp_orange.put("bus_stops", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
+                getActivity().getResources(), R.drawable.red_busstop)));
 
         navButton = v.findViewById(R.id.startButton);
 //        hospital_selected = mIconFactory.fromBitmap(hos_selected);
@@ -428,44 +482,46 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
         }
 
 
-            detailbool = true;
-            amenityInfo = inflate_info.inflate(R.layout.detailview, null);
-            containera = amenityInfo.findViewById(R.id.detailLayout);
-            closebtn = amenityInfo.findViewById(R.id.btn_close);
-            detailEnglishTitle = amenityInfo.findViewById(R.id.txt_detail_enname);
-            detailNepaliTitle = amenityInfo.findViewById(R.id.txt_detail_nename);
-            detailPhone = amenityInfo.findViewById(R.id.txt_detail_phone);
-            detailWeb = amenityInfo.findViewById(R.id.txt_detail_web);
-            detailMail = amenityInfo.findViewById(R.id.txt_detail_email);
-            edit_btn = amenityInfo.findViewById(R.id.edit_btn);
-            boolean  Auth = MainActivity.mSharedPref.getBoolean(LoginActivity.AUTHENTICATED, false);
+        detailbool = true;
+        amenityInfo = inflate_info.inflate(R.layout.detailview, null);
+        websiteLayout = amenityInfo.findViewById(R.id.websiteLayout);
+        emailLayout = amenityInfo.findViewById(R.id.emailLayout);
+        containera = amenityInfo.findViewById(R.id.detailLayout);
+        closebtn = amenityInfo.findViewById(R.id.btn_close);
+        detailEnglishTitle = amenityInfo.findViewById(R.id.txt_detail_enname);
+        detailNepaliTitle = amenityInfo.findViewById(R.id.txt_detail_nename);
+        detailPhone = amenityInfo.findViewById(R.id.txt_detail_phone);
+        detailWeb = amenityInfo.findViewById(R.id.txt_detail_web);
+        detailMail = amenityInfo.findViewById(R.id.txt_detail_email);
+        edit_btn = amenityInfo.findViewById(R.id.edit_btn);
+        boolean Auth = MainActivity.mSharedPref.getBoolean(LoginActivity.AUTHENTICATED, false);
         if (Auth) {
             edit_btn.setVisibility(View.VISIBLE);
         } else {
             edit_btn.setVisibility(View.GONE);
         }
         edit_btn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    ((AppCompatActivity) getActivity()).getSupportActionBar().show();
-                    toggleTabVisibilityListener.showTabs();
-                    editAmenity(selectedType);
-                }
-            });
-            closebtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    swipeValue = 0;
-                    lm.setLayoutParams(lp_shrink);
-                    small_info.setVisibility(View.VISIBLE);
-                    ((AppCompatActivity) getActivity()).getSupportActionBar().show();
-                    toggleTabVisibilityListener.showTabs();
-                    if (navigationMapRoute != null) navigationMapRoute.removeRoute();
-                    lm.setVisibility(View.GONE);
-                    detail_screen.removeAllViews();
-                    // mapView.refreshDrawableState();
-                }
-            });
+            @Override
+            public void onClick(View v) {
+                ((AppCompatActivity) getActivity()).getSupportActionBar().show();
+                toggleTabVisibilityListener.showTabs();
+                editAmenity(selectedType);
+            }
+        });
+        closebtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                swipeValue = 0;
+                lm.setLayoutParams(lp_shrink);
+                small_info.setVisibility(View.VISIBLE);
+                ((AppCompatActivity) getActivity()).getSupportActionBar().show();
+                toggleTabVisibilityListener.showTabs();
+                if (navigationMapRoute != null) navigationMapRoute.removeRoute();
+                lm.setVisibility(View.GONE);
+                detail_screen.removeAllViews();
+                // mapView.refreshDrawableState();
+            }
+        });
 //        }
 
         lm.setOnTouchListener(new View.OnTouchListener() {
@@ -519,6 +575,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
             @Override
             public void onClick(View v) {
                 swipeValue = 0;
+                previous_selected.setIcon(getItemIcon()); //to change red icon to blue
                 lm.setLayoutParams(lp_shrink);
                 small_info.setVisibility(View.VISIBLE);
                 ((AppCompatActivity) getActivity()).getSupportActionBar().show();
@@ -595,13 +652,13 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
         listView = v.findViewById(R.id.listView);
         uniList = new HashMap<>();
         searches = new ArrayList<>();
-        adapter = new ArrayAdapter<Search>(this.getContext(), android.R.layout.simple_list_item_1, searches);
+        searchListAdapter = new SearchListAdapter(this.getContext(), searches);
+//        adapter = new ArrayAdapter<Search>(this.getContext(), android.R.layout.simple_list_item_1, searches);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Search selected = (Search) listView.getItemAtPosition(position);
                 clickmarker(selected.cord, selected.name);
-
             }
         });
         return v;
@@ -655,8 +712,8 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
 
             detailEnglishTitle.setText(dbvalue.getName());
             detailNepaliTitle.setText(dbvalue.getNamein());
-
-            if (dbvalue.getWeb() != null) {
+            if (dbvalue.getWeb() != null && !dbvalue.getWeb().isEmpty()) {
+                websiteLayout.setVisibility(View.VISIBLE);
                 detailWeb.setText(dbvalue.getWeb());
                 detailWeb.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -669,11 +726,14 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
                     }
                 });
             } else {
+                websiteLayout.setVisibility(View.GONE);
                 detailWeb.setText("-");
             }
-            if (dbvalue.getContact_email() != null) {
+            if (dbvalue.getContact_email() != null && !dbvalue.getContact_email().isEmpty()) {
+                emailLayout.setVisibility(View.VISIBLE);
                 detailMail.setText(dbvalue.getContact_email());
             } else {
+                emailLayout.setVisibility(View.GONE);
                 detailMail.setText("-");
             }
 
@@ -692,8 +752,8 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
             String mob = null;
             for (String tg : dbvalue.getTag_type()) {
                 String label = Utils.toTitleCase(labels.get(i));
-                String key = Utils.toTitleCase(keys.get(i).replace("_"," "));
-                if(key.equals("Mobile")) mob = label;
+                String key = Utils.toTitleCase(keys.get(i).replace("_", " "));
+                if (key.equals("Mobile")) mob = label;
                 if (!key.equals("Name") && !key.equals("Name Hindi") && !key.equals("Phone Number") &&
                         !key.equals("Email Address") && !key.equals("Id") && !key.equals("Latitude") && !key.equals("Longitude")
                         && !key.equals("Precision") && !key.equals("Mobile")) {
@@ -706,10 +766,10 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
                 }
                 i++;
             }
-            if (dbvalue.getContact_phone() != null || mob!=null) {
+            if (dbvalue.getContact_phone() != null || mob != null) {
                 String pho = null;
-                if(dbvalue.getContact_phone() != null) pho = dbvalue.getContact_phone();
-                if(mob!=null) {
+                if (dbvalue.getContact_phone() != null) pho = dbvalue.getContact_phone();
+                if (mob != null) {
                     if (pho != null)
                         pho = pho + "," + mob;
                     else pho = mob;
@@ -733,19 +793,18 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
         LocationManager locationManager = (LocationManager) getActivity().getSystemService(LOCATION_SERVICE);
 
         if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            if(originLocation!=null) {
+            if (originLocation != null) {
 //                if ((originLocation.getLatitude() > 28.31285 || originLocation.getLatitude() < 28.11532
 //                        || originLocation.getLongitude() > 84.14949 || originLocation.getLongitude() < 83.84905)) {
 //                    Toast.makeText(getContext(), "You are not in Pokhara", Toast.LENGTH_SHORT).show();
 //                } else {
-                    gps.setImageResource(0);
-                    gps.setImageResource(R.drawable.ic_action_gps_searching);
-                    gps.setTag("gps_searching");
-                    Toast.makeText(getContext(), "GPS is locating you", Toast.LENGTH_SHORT).show();
+                gps.setImageResource(0);
+                gps.setImageResource(R.drawable.ic_action_gps_searching);
+                gps.setTag("gps_searching");
+                Toast.makeText(getContext(), "GPS is locating you", Toast.LENGTH_SHORT).show();
 
 //                }
-            }
-            else {
+            } else {
                 initializeLocationEngine();
             }
         } else {
@@ -796,13 +855,13 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
 //            mapboxMap.addLayerAt(boundaryLine, allLayer - 10);
             List<LatLng> polygon = new ArrayList<>();
             Realm realm = Realm.getDefaultInstance();
-            RealmResults<PokharaBoundary> wardResult = realm.where(PokharaBoundary.class).contains("tag","all_boundary").findAll();
+            RealmResults<PokharaBoundary> wardResult = realm.where(PokharaBoundary.class).contains("tag", "all_boundary").findAll();
             realm.close();
-            if(polygon.size()>0)polygon.clear();
+            if (polygon.size() > 0) polygon.clear();
             polygon = new ArrayList<>();
-            for (PokharaBoundary pbs:wardResult
-                    ) {
-                polygon.add( new LatLng(pbs.getCoordinateslat(), pbs.getCoordinateslong()));
+            for (PokharaBoundary pbs : wardResult
+            ) {
+                polygon.add(new LatLng(pbs.getCoordinateslat(), pbs.getCoordinateslong()));
             }
 
 //            wardBound(polygon);
@@ -814,34 +873,36 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
                 }
             });
 
-                clusterManagerPlugin.getRenderer().setOnClusterClickListener(new CustomClusterManagerPlugin.OnClusterClickListener<MyItem>() {
-                    @Override
-                    public boolean onClusterClick(Cluster<MyItem> cluster) {
-                        Log.d(String.valueOf(cluster.getSize()),"cluster icon id");
-                        return false;
-                    }
-                });
+            clusterManagerPlugin.getRenderer().setOnClusterClickListener(new CustomClusterManagerPlugin.OnClusterClickListener<MyItem>() {
+                @Override
+                public boolean onClusterClick(Cluster<MyItem> cluster) {
+                    Log.d(String.valueOf(cluster.getSize()), "cluster icon id");
+                    return false;
+                }
+            });
 
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-    private void wardBound(List<LatLng> polygon){
+
+    private void wardBound(List<LatLng> polygon) {
 
 
         List<LatLng> polygonbound = new ArrayList<>();
-        polygonbound.add(new LatLng(22.8202,76.0467));
-        polygonbound.add(new LatLng(22.6248,76.0467));
-        polygonbound.add(new LatLng(22.6248,75.7202));
+        polygonbound.add(new LatLng(22.8202, 76.0467));
+        polygonbound.add(new LatLng(22.6248, 76.0467));
+        polygonbound.add(new LatLng(22.6248, 75.7202));
         polygonbound.add(new LatLng(22.8202, 75.7202));
-        polygonbound.add(new LatLng(22.8202,76.0467));
+        polygonbound.add(new LatLng(22.8202, 76.0467));
         mapboxMap.addPolygon(new PolygonOptions()
                 .addAll(polygonbound)
                 .addHole(polygon)
                 .alpha(0.5f)
                 .fillColor(Color.parseColor("#000000")));
     }
-    private void markerclickAction(Marker marker){
+
+    private void markerclickAction(Marker marker) {
         String markerText = marker.getTitle();
         testText.setText(markerText);
         double zoom = mapboxMap.getCameraPosition().zoom;
@@ -858,16 +919,15 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
             destinationPosition = Point.fromLngLat(destinationCoord.getLongitude(), destinationCoord.getLatitude());
             if (previous_selected != null) {
                 if (previous_selected != marker) {
-                    for (Map.Entry<String,com.mapbox.mapboxsdk.annotations.Icon > entry : tagMp_blue.entrySet()) {
+                    for (Map.Entry<String, com.mapbox.mapboxsdk.annotations.Icon> entry : tagMp_blue.entrySet()) {
 //                        if (entry.getKey().equals(selectedType)) {
 //
 //                        }
-                        if(!selectedType.equals("attractions")) {
+                        if (!selectedType.equals("attractions")) {
                             if (entry.getKey().equals(selectedType)) {
                                 previous_selected.setIcon(entry.getValue());
                             }
-                        }
-                        else if(entry.getKey().equals(MainActivity.def_type_category)){
+                        } else if (entry.getKey().equals(MainActivity.def_type_category)) {
                             previous_selected.setIcon(entry.getValue());
                         }
                     }
@@ -875,16 +935,15 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
                 }
             }
             previous_selected = marker;
-//            for (Map.Entry<String,com.mapbox.mapboxsdk.annotations.Icon > entry : tagMp_orange.entrySet()) {
-//                if(!selectedType.equals("attractions")) {
-//                    if (entry.getKey().equals(selectedType)) {
-//                        marker.setIcon(entry.getValue());
-//                    }
-//                }
-//                else if(entry.getKey().equals(MainActivity.def_type_category)){
-//                    marker.setIcon(entry.getValue());
-//                }
-//            }
+            for (Map.Entry<String, com.mapbox.mapboxsdk.annotations.Icon> entry : tagMp_orange.entrySet()) {
+                if (!selectedType.equals("attractions")) {
+                    if (entry.getKey().equals(selectedType)) {
+                        marker.setIcon(entry.getValue());
+                    }
+                } else if (entry.getKey().equals(MainActivity.def_type_category)) {
+                    marker.setIcon(entry.getValue());
+                }
+            }
             ((AppCompatActivity) getActivity()).getSupportActionBar().hide();
             toggleTabVisibilityListener.hideTabs();
             lm.setVisibility(View.VISIBLE);
@@ -894,21 +953,21 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
             //swipeValue = 1;
             iff_ondown = false;
             iff_onswipe = false;
-            navButton.setBackgroundColor(getResources().getColor(R.color.tertiaryText));
+            //to keep teh color to blue/ colorPrimary
+//            navButton.setBackgroundColor(getResources().getColor(R.color.tertiaryText));
             navButton.setText("Route");
             if (navigationMapRoute != null) navigationMapRoute.removeRoute();
-            Log.d(String.valueOf(detail_screen.getLayoutParams().height),"Detail Screen Height");
-            Log.d(String.valueOf(detail_height),"Detail Screen Calculated");
-            if(swipeValue==1) {
-                if(detailPhone!=null)
-                detailPhone.setClickable(false);
+            Log.d(String.valueOf(detail_screen.getLayoutParams().height), "Detail Screen Height");
+            Log.d(String.valueOf(detail_height), "Detail Screen Calculated");
+            if (swipeValue == 1) {
+                if (detailPhone != null)
+                    detailPhone.setClickable(false);
                 detail_screen.removeAllViews();
                 detailView(detailbool);
                 detail_screen.addView(amenityInfo);
             }
         }
-        }
-
+    }
 
 
     private void addItemsToClusterPlugin() {
@@ -916,149 +975,144 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
     }
 
     private void populateMap(String amenity) {
-                com.mapbox.mapboxsdk.annotations.Icon icn = getItemIcon();
-                Realm realm = Realm.getDefaultInstance();
-                RealmQuery<ExploreSchema> query = realm.where(ExploreSchema.class).equalTo("tag", amenity);
-                RealmList<ExploreSchema> querycollection = new RealmList<>();
-                if (MainActivity.filter_param.size() > 0 && filterflag) {
-                    for (Map.Entry<String, String> filter_data : MainActivity.filter_param.entrySet()
-                            ) {
+        com.mapbox.mapboxsdk.annotations.Icon icn = getItemIcon();
+        Realm realm = Realm.getDefaultInstance();
+        RealmQuery<ExploreSchema> query = realm.where(ExploreSchema.class).equalTo("tag", amenity);
+        RealmList<ExploreSchema> querycollection = new RealmList<>();
+        if (MainActivity.filter_param.size() > 0 && filterflag) {
+            for (Map.Entry<String, String> filter_data : MainActivity.filter_param.entrySet()
+            ) {
 //                        Log.wtf(filter_data.getValue(), filter_data.getKey());
-                        try {
-                            if ((filter_data.getKey().equals("wardid") && !filter_data.getValue().equals("all"))) {
-                                RealmResults<Ward> wardR = realm.where(Ward.class).contains("osmID", filter_data.getValue()).findAll();
-                                RealmList<PokharaBoundary> pbound = wardR.get(0).getBoundry();
-                                polygon = new ArrayList<>();
-                                double bbboxlat1 = 0, bbboxlat2 = 22.7230, bbboxlong1 = 0, bbboxlong2 = 75.8572;
-                                for (int i = 0; i < pbound.size(); i++) {
-                                    bbboxlat1 = pbound.get(i).getCoordinateslat() > bbboxlat1 ? pbound.get(i).getCoordinateslat() : bbboxlat1;
-                                    bbboxlong1 = pbound.get(i).getCoordinateslong() > bbboxlong1 ? pbound.get(i).getCoordinateslong() : bbboxlong1;
-                                    bbboxlat2 = pbound.get(i).getCoordinateslat() < bbboxlat2 ? pbound.get(i).getCoordinateslat() : bbboxlat2;
-                                    bbboxlong2 = pbound.get(i).getCoordinateslong() < bbboxlong2 ? pbound.get(i).getCoordinateslong() : bbboxlong2;
-                                    polygon.add(new LatLng(pbound.get(i).getCoordinateslat(), pbound.get(i).getCoordinateslong()));
-                                    Log.wtf(String.valueOf(pbound.get(i).getCoordinateslat()), "Lat");
-                                }
-                                LatLngBounds latLngBounds = new LatLngBounds.Builder()
-                                        .include(new LatLng(bbboxlat1, bbboxlong1)) // Northeast
-                                        .include(new LatLng(bbboxlat2, bbboxlong2)) // Southwest
-                                        .build();
-                                mapboxMap.moveCamera(CameraUpdateFactory.newLatLngBounds(latLngBounds, 50));
-                                mapboxMap.setLatLngBoundsForCameraTarget(latLngBounds);
-                                wardBound(polygon);
-                                query.contains("ward_id", filter_data.getValue());
-                            }
-                            if (filter_data.getKey().endsWith("max")) {
-                                String rangeMax = filter_data.getKey().split("max")[0];
-                                int max = Integer.parseInt(filter_data.getValue());
-                                query.beginGroup().lessThanOrEqualTo(rangeMax, max).or().isNull(rangeMax).endGroup();
-                            } else if (filter_data.getKey().endsWith("min")) {
-                                String rangeMin = filter_data.getKey().split("min")[0];
-                                int min = Integer.parseInt(filter_data.getValue());
-                                if (min > 0) query.greaterThanOrEqualTo(rangeMin, min);
-                                else
-                                    query.beginGroup().greaterThanOrEqualTo(rangeMin, min).or().isNull(rangeMin).endGroup();
+                try {
+                    if ((filter_data.getKey().equals("wardid") && !filter_data.getValue().equals("all"))) {
+                        RealmResults<Ward> wardR = realm.where(Ward.class).contains("osmID", filter_data.getValue()).findAll();
+                        RealmList<PokharaBoundary> pbound = wardR.get(0).getBoundry();
+                        polygon = new ArrayList<>();
+                        double bbboxlat1 = 0, bbboxlat2 = 22.7230, bbboxlong1 = 0, bbboxlong2 = 75.8572;
+                        for (int i = 0; i < pbound.size(); i++) {
+                            bbboxlat1 = pbound.get(i).getCoordinateslat() > bbboxlat1 ? pbound.get(i).getCoordinateslat() : bbboxlat1;
+                            bbboxlong1 = pbound.get(i).getCoordinateslong() > bbboxlong1 ? pbound.get(i).getCoordinateslong() : bbboxlong1;
+                            bbboxlat2 = pbound.get(i).getCoordinateslat() < bbboxlat2 ? pbound.get(i).getCoordinateslat() : bbboxlat2;
+                            bbboxlong2 = pbound.get(i).getCoordinateslong() < bbboxlong2 ? pbound.get(i).getCoordinateslong() : bbboxlong2;
+                            polygon.add(new LatLng(pbound.get(i).getCoordinateslat(), pbound.get(i).getCoordinateslong()));
+                            Log.wtf(String.valueOf(pbound.get(i).getCoordinateslat()), "Lat");
+                        }
+                        LatLngBounds latLngBounds = new LatLngBounds.Builder()
+                                .include(new LatLng(bbboxlat1, bbboxlong1)) // Northeast
+                                .include(new LatLng(bbboxlat2, bbboxlong2)) // Southwest
+                                .build();
+                        mapboxMap.moveCamera(CameraUpdateFactory.newLatLngBounds(latLngBounds, 50));
+                        mapboxMap.setLatLngBoundsForCameraTarget(latLngBounds);
+                        wardBound(polygon);
+                        query.contains("ward_id", filter_data.getValue());
+                    }
+                    if (filter_data.getKey().endsWith("max")) {
+                        String rangeMax = filter_data.getKey().split("max")[0];
+                        int max = Integer.parseInt(filter_data.getValue());
+                        query.beginGroup().lessThanOrEqualTo(rangeMax, max).or().isNull(rangeMax).endGroup();
+                    } else if (filter_data.getKey().endsWith("min")) {
+                        String rangeMin = filter_data.getKey().split("min")[0];
+                        int min = Integer.parseInt(filter_data.getValue());
+                        if (min > 0) query.greaterThanOrEqualTo(rangeMin, min);
+                        else
+                            query.beginGroup().greaterThanOrEqualTo(rangeMin, min).or().isNull(rangeMin).endGroup();
 //                            Log.wtf(String.valueOf(query.findAll().size()),"Range size");
+                    }
+
+                } catch (Exception E) {
+                    E.printStackTrace();
+                }
+            }
+            querycollection.addAll(query.findAll());
+
+            for (Map.Entry<String, String> filter_data : MainActivity.filter_param.entrySet()
+            ) {
+//                            Log.wtf(filter_data.getValue(), filter_data.getKey());
+                try {
+                    if (!filter_data.getKey().equals("wardid") && !filter_data.getKey().endsWith("max") && !filter_data.getKey().endsWith("min")) {
+                        RealmList<ExploreSchema> qr = new RealmList<>();
+                        qr.addAll(querycollection);
+                        querycollection.clear();
+                        for (ExploreSchema ep : qr
+                        ) {
+                            RealmList<String> key = ep.getTag_type();
+                            RealmList<String> value = ep.getTag_lable();
+                            int i = 0;
+
+                            for (String str : key
+                            ) {
+                                if (str.equalsIgnoreCase("delivery_service")) {
+                                    if (!value.get(i).equalsIgnoreCase("no") && str.equalsIgnoreCase(filter_data.getKey())) {
+                                        querycollection.add(ep);
+                                    }
+                                } else if (value.get(i).equalsIgnoreCase(filter_data.getValue()) && str.equalsIgnoreCase(filter_data.getKey())) {
+                                    querycollection.add(ep);
+                                }
+                                i++;
                             }
 
-                        } catch (Exception E) {
-                            E.printStackTrace();
                         }
                     }
-                    querycollection.addAll(query.findAll());
-
-                        for (Map.Entry<String, String> filter_data : MainActivity.filter_param.entrySet()
-                        ) {
-//                            Log.wtf(filter_data.getValue(), filter_data.getKey());
-                            try {
-                                if (!filter_data.getKey().equals("wardid") && !filter_data.getKey().endsWith("max") && !filter_data.getKey().endsWith("min")) {
-                                        RealmList<ExploreSchema> qr = new RealmList<>();
-                                        qr.addAll(querycollection);
-                                        querycollection.clear();
-                                        for (ExploreSchema ep : qr
-                                        ) {
-                                            RealmList<String> key = ep.getTag_type();
-                                            RealmList<String> value = ep.getTag_lable();
-                                            int i = 0;
-
-                                            for (String str : key
-                                            ) {
-                                                if (str.equalsIgnoreCase("delivery_service")) {
-                                                    if (!value.get(i).equalsIgnoreCase("no") && str.equalsIgnoreCase(filter_data.getKey())) {
-                                                        querycollection.add(ep);
-                                                    }
-                                                } else if (value.get(i).equalsIgnoreCase(filter_data.getValue()) && str.equalsIgnoreCase(filter_data.getKey())) {
-                                                    querycollection.add(ep);
-                                                }
-                                                i++;
-                                            }
-
-                                        }
-                                    }
-                            }
-                                catch (Exception E) {
-                                    E.printStackTrace();
-                                }
-
-                    }
+                } catch (Exception E) {
+                    E.printStackTrace();
                 }
-                else {
-                    querycollection.addAll(query.findAll());
-                }
+
+            }
+        } else {
+            querycollection.addAll(query.findAll());
+        }
 //else querycollection.addAll(query.findAll());
-                MainActivity.filter_param.clear();
+        MainActivity.filter_param.clear();
 //                RealmResults<ExploreSchema> results = query.findAll();
         RealmList<ExploreSchema> results = querycollection;
         realm.close();
-                List<MyItem> items = new ArrayList<MyItem>();
-                if (searches.size() > 0) {
-                    searches.clear();
-                    uniList.clear();
-                    adapter.clear();
-                }
-                for (int i = 0; i < results.size(); i++) {
-                    String title;
-                    String snippet = "Swipe up for more detail";
-                    double lat = results.get(i).getCoordinateslong();
-                    double lng = results.get(i).getCoordinateslat();
-                    if (results.get(i).getName() != null) {
-                        title = results.get(i).getName();
-                        Search sh = new Search(null, null);
-                        sh.cord = new LatLng(lat, lng);
-                        sh.name = title;
-                        searches.add(sh);
+        List<MyItem> items = new ArrayList<MyItem>();
+        if (searches.size() > 0) {
+            searches.clear();
+            uniList.clear();
+//            adapter.clear();
+        }
+        for (int i = 0; i < results.size(); i++) {
+            String title;
+            String snippet = "Swipe up for more detail";
+            double lat = results.get(i).getCoordinateslong();
+            double lng = results.get(i).getCoordinateslat();
+            if (results.get(i).getName() != null) {
+                title = results.get(i).getName();
+                Search sh = new Search(null, null);
+                sh.cord = new LatLng(lat, lng);
+                sh.name = title;
+                searches.add(sh);
 //                HashMap<String,String> hsh = new HashMap<>();
 //                hsh.put(results.get(i).getOsm_id(), title);
 //                list.add(i,hsh);
-                        uniList.put(new LatLng(lat, lng), title);
-                    } else title = amenity;
-                    items.add(new MyItem(lat, lng, title, snippet, icn));
-                }
-                listView.setAdapter(adapter);
-                adapter.notifyDataSetChanged();
+                uniList.put(new LatLng(lat, lng), title);
+            } else title = amenity;
+            items.add(new MyItem(lat, lng, title, snippet, icn));
+        }
+//        listView.setAdapter(adapter);
+//        adapter.notifyDataSetChanged();
+        listView.setAdapter(searchListAdapter);
+        searchListAdapter.notifyDataSetChanged();
 
+        //TODO check for applied filters
 
-                //TODO check for applied filters
-
-                clusterManagerPlugin.addItems(items);
+        clusterManagerPlugin.addItems(items);
     }
 
     private Icon getItemIcon() {
-        for (Map.Entry<String,com.mapbox.mapboxsdk.annotations.Icon > entry : tagMp_blue.entrySet()) {
-            if(!selectedType.equals("attractions")) {
+        for (Map.Entry<String, com.mapbox.mapboxsdk.annotations.Icon> entry : tagMp_blue.entrySet()) {
+            if (!selectedType.equals("attractions")) {
                 if (entry.getKey().equals(selectedType)) {
                     return entry.getValue();
                 }
-            }
-            else if(entry.getKey().equals(MainActivity.def_type_category)){
+            } else if (entry.getKey().equals(MainActivity.def_type_category)) {
                 return entry.getValue();
             }
         }
         return IconFactory.getInstance(getActivity()).fromBitmap(BitmapFactory.decodeResource(
                 getActivity().getResources(), R.drawable.map_marker_dark));
     }
-
-
-
 
 
     //Location_code
@@ -1098,7 +1152,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
             }
         } else {
             LocationManager locationManager = (LocationManager) getActivity().getSystemService(LOCATION_SERVICE);
-            if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+            if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                 Log.d(String.valueOf(gps.getTag()), "At addLocationEngineListner");
                 gps.setImageResource(0);
                 gps.setImageResource(R.drawable.ic_action_gps_searching);
@@ -1108,7 +1162,6 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
             locationEngine.addLocationEngineListener(this);
         }
     }
-
 
 
     private void getRoute(Point origin, Point destination) {
@@ -1154,7 +1207,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
 
                     @Override
                     public void onFailure(Call<DirectionsResponse> call, Throwable throwable) {
-                    throwable.printStackTrace();
+                        throwable.printStackTrace();
                     }
                 });
     }
@@ -1162,7 +1215,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
     //edit
     private void editAmenity(String amenity) {
         Intent i = new Intent(getContext(), EditDialogActivity.class);
-        String[] editInfo = {amenity, editName,editLat,editLong};
+        String[] editInfo = {amenity, editName, editLat, editLong};
         i.putExtra("amenity", editInfo);
         startActivity(i);
     }
@@ -1199,6 +1252,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
             mapView.onResume();
         }
     }
+
     public RealmQuery<ExploreSchema> find(RealmQuery<ExploreSchema> qe, String fieldName, String[] values) {
         if (values == null || values.length == 0) {
             throw new IllegalArgumentException("EMPTY_VALUES");
@@ -1284,7 +1338,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
             originLocation = location;
             if (originLocation.getLatitude() > 28.31285 || originLocation.getLatitude() < 28.11532
                     || originLocation.getLongitude() > 84.14949 || originLocation.getLongitude() < 83.84905) {
-               // Toast.makeText(getContext(), "Out of Pokhara Bound", Toast.LENGTH_SHORT).show();
+                // Toast.makeText(getContext(), "Out of Pokhara Bound", Toast.LENGTH_SHORT).show();
             } else {
                 gps.setImageResource(0);
                 gps.setImageResource(R.drawable.ic_action_gps_fixed);

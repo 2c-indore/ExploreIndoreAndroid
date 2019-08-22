@@ -14,7 +14,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:id="@+id/filter_parent"
-            android:layout_marginTop="50dp"
+            android:layout_marginTop="20dp"
             android:padding="20dp">
         </LinearLayout>
 

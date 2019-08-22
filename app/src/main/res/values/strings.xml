@@ -5,7 +5,9 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
     <string name="action_settings">Settings</string>
-<string name="apply">Apply</string>
+    <string name="apply">Apply</string>
+    <string name="email_hint">Enter your email&#8230;</string>
+    <string name="password_hint">Enter your password&#8230;</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="prefrence_file_key">org.kathmandulivinglabs.exploreindore.keyvalues</string>

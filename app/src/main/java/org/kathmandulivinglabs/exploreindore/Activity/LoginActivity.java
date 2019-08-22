@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
+import android.util.Log;
 import android.util.Patterns;
 import android.view.View;
 import android.widget.Button;
@@ -19,20 +20,23 @@ import org.kathmandulivinglabs.exploreindore.Api_helper.ApiInterface;
 import org.kathmandulivinglabs.exploreindore.R;
 import org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.AuthenticateModel;
 import org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.LoginModel;
+import org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.ProfileResponseModel;
 import org.w3c.dom.Text;
 
+import mehdi.sakout.fancybuttons.FancyButton;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
 public class LoginActivity extends AppCompatActivity {
     private EditText mail, pass;
-    private Button login;
+    private FancyButton login;
     private ProgressDialog progressBar;
 
     public static final String TOKEN = "token";
     public static final String AUTHENTICATED = "authenticated";
     public static final String AUTHEMAIL = "authemail";
+    public static final String AUTHUSERNAME = "authusername";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,10 +56,12 @@ public class LoginActivity extends AppCompatActivity {
         setTitle("Log in");
         loginDialog();
     }
+
     @Override
     public void onBackPressed() {
         super.onBackPressed();
     }
+
     private void showInfoSnackbar(String msg) {
         final Snackbar snackbar = Snackbar.make(findViewById(android.R.id.content), msg, Snackbar.LENGTH_INDEFINITE);
         snackbar.setAction("Ok", new View.OnClickListener() {
@@ -67,30 +73,28 @@ public class LoginActivity extends AppCompatActivity {
         snackbar.show();
     }
 
-    private void calllogin(){
+    private void calllogin() {
         String email = mail.getText().toString();
         String password = pass.getText().toString();
-        if(email.isEmpty()){
+        if (email.isEmpty()) {
             showInfoSnackbar("Please enter the Username");
-        }
-        else if(!Patterns.EMAIL_ADDRESS.matcher(email).matches()){
+        } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             showInfoSnackbar("Please enter the registered email");
-        }
-        else if(password.isEmpty()){
+        } else if (password.isEmpty()) {
             showInfoSnackbar("Please enter the Password");
-        }
-        else {
+        } else {
             getToken(email, password);
         }
 
     }
-    public void loginDialog(){
+
+    public void loginDialog() {
         progressBar = new ProgressDialog(LoginActivity.this);
         progressBar.setTitle("Logging In");
         progressBar.setMessage("Please Wait");
     }
 
-    private void getToken(final String email, final String password){
+    private void getToken(final String email, final String password) {
         progressBar.show();
         ApiInterface api = new ApiHelper().getApiInterface();
         LoginModel lm = new LoginModel();
@@ -100,22 +104,20 @@ public class LoginActivity extends AppCompatActivity {
         call.enqueue(new Callback<AuthenticateModel>() {
             @Override
             public void onResponse(Call<AuthenticateModel> call, Response<AuthenticateModel> response) {
-                if(call.isExecuted()) progressBar.dismiss();
-                if(response.isSuccessful()){
-                    if(response.body().getSuccess()==1) {
-                        if(response.body().getToken()!=null) {
+                if (call.isExecuted()) progressBar.dismiss();
+                if (response.isSuccessful()) {
+                    if (response.body().getSuccess() == 1) {
+                        if (response.body().getToken() != null) {
                             showInfoSnackbar(response.body().getMessage());
                             SharedPreferences.Editor memory = MainActivity.mSharedPref.edit();
-                            memory.putString(TOKEN,response.body().getToken());
-                            memory.putBoolean(AUTHENTICATED,true);
-                            memory.putString(AUTHEMAIL,email);
+                            memory.putString(TOKEN, response.body().getToken());
+                            memory.putBoolean(AUTHENTICATED, true);
+                            memory.putString(AUTHEMAIL, email);
                             memory.apply();
-                            Intent intentabout = new Intent(getApplicationContext(), MainActivity.class);
-                            startActivity(intentabout);
+                            callProfileAPI();
 //                            onBackPressed();
                         }
-                    }
-                    else showInfoSnackbar(response.body().getMessage());
+                    } else showInfoSnackbar(response.body().getMessage());
                 } else {
                     try {
                         JSONObject jObjError = new JSONObject(response.errorBody().string());
@@ -127,8 +129,49 @@ public class LoginActivity extends AppCompatActivity {
                 }
 
             }
+
             @Override
             public void onFailure(Call<AuthenticateModel> call, Throwable t) {
+                progressBar.dismiss();
+                showInfoSnackbar("You are not connected to the internet. Please check your connection");
+            }
+        });
+    }
+
+    private void callProfileAPI() {
+        ApiInterface api = new ApiHelper().getApiInterface();
+        String token = MainActivity.mSharedPref.getString(LoginActivity.TOKEN, null);
+        Call<ProfileResponseModel> call = api.getProfileResponse("Bearer " + token);
+        call.enqueue(new Callback<ProfileResponseModel>() {
+            @Override
+            public void onResponse(Call<ProfileResponseModel> call, Response<ProfileResponseModel> response) {
+                if (call.isExecuted()) progressBar.dismiss();
+                if (response.isSuccessful() && response.body() != null) {
+                    if (response.body().success == 1) {
+                        if (null != response.body().data) {
+                            SharedPreferences.Editor memory = MainActivity.mSharedPref.edit();
+                            memory.putString(AUTHUSERNAME, response.body().data.name);
+                            memory.apply();
+                            Intent intentabout = new Intent(getApplicationContext(), MainActivity.class);
+                            startActivity(intentabout);
+                            finish();
+//                            onBackPressed();
+                        }
+                    } else showInfoSnackbar("there was some problem connecting to network. Please try again later!");
+                } else {
+                    try {
+                        JSONObject jObjError = new JSONObject(response.errorBody().string());
+                        showInfoSnackbar(jObjError.getString("message"));
+                    } catch (Exception e) {
+                        showInfoSnackbar(e.getMessage());
+                    }
+
+                }
+
+            }
+
+            @Override
+            public void onFailure(Call<ProfileResponseModel> call, Throwable t) {
                 progressBar.dismiss();
                 showInfoSnackbar("You are not connected to the internet. Please check your connection");
             }
