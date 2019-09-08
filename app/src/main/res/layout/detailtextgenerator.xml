@@ -30,15 +30,14 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:layout_weight="1"
-            android:drawableStart="@drawable/ic_right_arrow_24dp"
-            android:drawableLeft="@drawable/ic_right_arrow_24dp"
             android:drawablePadding="@dimen/small_margin"
             android:paddingStart="2dp"
             android:paddingLeft="2dp"
             android:textColor="@color/tertiaryText"
             android:textSize="15sp"
             android:textStyle="normal" />
-
+        <!--android:drawableStart="@drawable/ic_right_arrow_24dp"-->
+        <!--android:drawableLeft="@drawable/ic_right_arrow_24dp"-->
         <TextView
             android:id="@+id/detail_value"
             android:layout_width="0dp"

@@ -13,7 +13,9 @@
             android:layout_height="match_parent"
             android:orientation="vertical"
             android:gravity="center_vertical"
-            android:padding="5dp">
+            android:padding="5dp"
+            android:layout_marginLeft="5dp"
+            android:layout_marginStart="5dp">
 
             <TextView
                 android:id="@+id/spinnerText1"

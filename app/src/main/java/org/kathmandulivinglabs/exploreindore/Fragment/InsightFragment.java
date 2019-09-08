@@ -43,6 +43,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TreeMap;
 
 import io.apptik.widget.MultiSlider;
@@ -99,7 +100,6 @@ public class InsightFragment  extends Fragment {
         if (getArguments() != null) {
             selectedType=getArguments().getString("selectedType","public_hospitals");
         }
-
         Realm realm = Realm.getDefaultInstance();
         RealmQuery<FilterSchema> query = realm.where(FilterSchema.class).equalTo("amenity", selectedType);
         RealmResults<FilterSchema> results = query.findAll();
@@ -237,7 +237,7 @@ public class InsightFragment  extends Fragment {
                         filter_param.put(check_vals.getKey()+"check",check_vals.getValue());
                 }
 
-                Log.wtf(filter_param.toString(),"FilterParam");
+//                Log.wtf(filter_param.toString(),"FilterParam");
                 MainActivity.filter_param = filter_param;
                 mapfilter.setFilter_parameter(filter_param);
 

@@ -1,18 +1,23 @@
 package org.kathmandulivinglabs.exploreindore.Activity;
 
 import android.app.ActivityManager;
+import android.app.IntentService;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.PersistableBundle;
+import android.os.ResultReceiver;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
@@ -20,6 +25,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
@@ -129,7 +135,7 @@ public class MainActivity extends AppCompatActivity
     private TabLayout tabs;
     List<ExpandedMenuModel> listDataHeader;
     HashMap<ExpandedMenuModel, List<String>> listDataChild;
-    Map<String, String> tagMp;
+    static Map<String, String> tagMp;
     Map<String, String> tagHospitals, tagClincs, tagOthers;
     private static String oldtag;
     public static Map<String, String> filter_param;
@@ -250,13 +256,13 @@ public class MainActivity extends AppCompatActivity
                     }
                 }
                 switch (childValue) {
-                    case "Update":
+                    case "Update data":
                         drawer.closeDrawers();
                         updateRealm(oldtag);
                         getSupportActionBar().setTitle(tagMp.get(def_type));
 //
                         break;
-                    case "Offline map":
+                    case "Offline map layer":
                         drawer.closeDrawers();
                         getSupportActionBar().setTitle(tagMp.get(def_type));
                         if (Connectivity.isConnected(Mapbox.getApplicationContext())) {
@@ -267,6 +273,12 @@ public class MainActivity extends AppCompatActivity
 //
                         break;
 //
+                    case "Offline map data":
+                        drawer.closeDrawers();
+                        downloadAll();
+                        getSupportActionBar().setTitle(tagMp.get(def_type));
+                        break;
+
                     case "About Us":
                         drawer.closeDrawers();
                         Log.d("About Us", def_type);
@@ -408,23 +420,24 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void downloadAll() {
-
-        showProgressDialog();
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-//                saveward();
-                savetag();
-                for (Map.Entry<String, String> attribs : tagMp.entrySet()
-                ) {
-                    removedata(attribs.getKey());
-                    saveDataFromV2Api(attribs.getKey());
-                }
-//                downloadalldata=false;
-            }
-        });
-        downloadalldata = true;
-        thread.start();
+        Intent intent = new Intent(MainActivity.this, DataManager.class);
+        intent.putExtra("receiver", new DownReceiver(new Handler()));
+            startService(intent);
+        downloadStarted();
+//        showProgressDialog();
+//        Thread thread = new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                savetag();
+//                for (Map.Entry<String, String> attribs : tagMp.entrySet()
+//                ) {
+//                    removedata(attribs.getKey());
+//                    saveDataFromV2Api(attribs.getKey());
+//                }
+//            }
+//        });
+//        downloadalldata = true;
+//        thread.start();
     }
 
     private void makeMapData(String selectedkey) {
@@ -498,9 +511,10 @@ public class MainActivity extends AppCompatActivity
         otherslist.add("Mental Health Centers");
         otherslist.add("Bus Stops");
 
-        downloadlist.add("Update");
+        downloadlist.add("Update data");
         // downloadlist.add("Download map data");
-        downloadlist.add("Offline map");
+        downloadlist.add("Offline map layer");
+        downloadlist.add("Offline map data");
 
         aboutlist.add("About Us");
 
@@ -741,7 +755,7 @@ public class MainActivity extends AppCompatActivity
 //
             String dbname = ward_prop.getProperties().getWard_no();
             int wardno = Integer.parseInt(dbname);
-            Log.wtf(wardname, "ward");
+//            Log.wtf(wardname, "ward");
 //
             ward.setName(wardname);
             ward.setNumber(wardno);
@@ -953,6 +967,11 @@ public class MainActivity extends AppCompatActivity
             }
         }
 
+        // Register for the particular broadcast based on ACTION string
+        IntentFilter filter = new IntentFilter(DataManager.ACTION);
+        LocalBroadcastManager.getInstance(this).registerReceiver(dataReceiver, filter);
+        // or `registerReceiver(testReceiver, filter)` for a normal broadcast
+
     }
 
     @Override
@@ -1111,33 +1130,47 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void downloadStarted() {
-//        String channelId = "explore_download";
-//        mBuilder = new NotificationCompat.Builder(getApplicationContext(), "CHANNEL_ID")
-//                .setSmallIcon(R.mipmap.ic_launcher)
-//                .setContentTitle("Downloading")
-//                .setContentText("Data is being downloaded in background")
-//                .setPriority(NotificationCompat.PRIORITY_MAX)
-//                .setChannelId(channelId)
-//                .setAutoCancel(true)
-//                .setOnlyAlertOnce(true);
-//
-//
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-//            CharSequence name = "Downloading";
-//            String description = "Data is being downloaded in background";
-//            int importance = NotificationManager.IMPORTANCE_HIGH;
-//            channel = new NotificationChannel(channelId, name, importance);
-//            channel.setDescription(description);
-//            notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
-//            assert notificationManager != null;
-//            notificationManager.createNotificationChannel(channel);
-//        }
+        String channelId = "explore_download";
+        mBuilder = new NotificationCompat.Builder(getApplicationContext(), "CHANNEL_ID")
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentTitle("Downloading")
+                .setContentText("Data is being downloaded in background")
+                .setPriority(NotificationCompat.PRIORITY_MAX)
+                .setChannelId(channelId)
+                .setAutoCancel(true)
+                .setOnlyAlertOnce(true);
+
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            CharSequence name = "Downloading";
+            String description = "Data is being downloaded in background";
+            int importance = NotificationManager.IMPORTANCE_HIGH;
+            channel = new NotificationChannel(channelId, name, importance);
+            channel.setDescription(description);
+            notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+            assert notificationManager != null;
+            notificationManager.createNotificationChannel(channel);
+        }
 
 
         mBuilder.setProgress(100, 0, false);
         Toast.makeText(getApplicationContext(), "Map is downloading", Toast.LENGTH_SHORT).show();
         mNotificationManager.notify(0, mBuilder.build());
     }
+
+    private BroadcastReceiver dataReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            int resultCode = intent.getIntExtra("resultCode", RESULT_CANCELED);
+            if (resultCode == RESULT_OK) {
+                String resultValue = intent.getStringExtra("resultValue");
+                Log.wtf(resultValue,"From service");
+//                Toast.makeText(MainActivity.this, resultValue, Toast.LENGTH_SHORT).show();
+            }
+        }
+    };
+
+
 
     @Override
     public void hideTabs() {
@@ -1266,11 +1299,36 @@ public class MainActivity extends AppCompatActivity
 //                .unregisterReceiver(myReceiver);
     }
 
-    public static class Download extends AsyncTask<String, Void, String> {
+    private class DownReceiver extends ResultReceiver {
+
+        public DownReceiver(Handler handler) {
+            super(handler);
+        }
 
         @Override
-        protected String doInBackground(String... strings) {
-            return null;
+        protected void onReceiveResult(int resultCode, Bundle resultData) {
+            super.onReceiveResult(resultCode, resultData);
+            if (resultCode == 450) {
+                int progress1 = resultData.getInt("progress");
+                if(progress1 <11 ) {
+//                    Log.wtf("sdkrfjhglis", String.valueOf(progress1));
+                    progress = (double) progress1/11 *100;
+                    Log.wtf("per", String.valueOf(progress));
+                    downloadProgress();
+                }
+                else if (progress1 == 11){
+                    try {
+                        Thread.sleep(1000);
+                        downloadCompleted();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                        downloadInterrupted();
+                    }
+                } else {
+                    downloadInterrupted();
+                }
+
+            }
         }
     }
 

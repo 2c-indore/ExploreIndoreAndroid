@@ -30,6 +30,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.text.Html;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -49,6 +50,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -127,6 +129,7 @@ import io.realm.RealmResults;
 
 import static android.content.Context.LOCATION_SERVICE;
 
+
 public class MapFragment extends Fragment implements PermissionsListener, LocationEngineListener, MainActivity.Backlistner {
     private MapView mapView;
     private CustomClusterManagerPlugin<MyItem> clusterManagerPlugin;
@@ -153,7 +156,33 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
     Marker previous_selected;
     private ToggleTabVisibilityListener toggleTabVisibilityListener;
 
+    private class zoomobj {
+        private double lat, lng, zoom;
 
+        public double getLat() {
+            return lat;
+        }
+
+        public void setLat(double lat) {
+            this.lat = lat;
+        }
+
+        public double getLng() {
+            return lng;
+        }
+
+        public void setLng(double lng) {
+            this.lng = lng;
+        }
+
+        public double getZoom() {
+            return zoom;
+        }
+
+        public void setZoom(double zoom) {
+            this.zoom = zoom;
+        }
+    }
     //Location_plugin_variable
     private PermissionsManager permissionsManager;
     private LocationLayerPlugin locationPlugin;
@@ -183,6 +212,11 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
     LinearLayout.LayoutParams llp;
     private SearchListAdapter searchListAdapter;
     MenuItem mSearchMenuItem;
+    zoomobj zoomb = new zoomobj();
+    private int actionBarHeight = 0;
+    RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
+            ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT
+    );
 
     @Override
     public boolean onBackPressed() {
@@ -298,7 +332,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
                 if (uniList.size() > 0) {
                     for (Map.Entry<LatLng, String> aitem : uniList.entrySet()) {
                         if (aitem.getValue().toLowerCase().contains(newText)) {
-                            Log.wtf(aitem.getValue(), "Item");
+//                            Log.wtf(aitem.getValue(), "Item");
                             Search hs = new Search(null, null);
                             hs.cord = aitem.getKey();
                             hs.name = aitem.getValue();
@@ -353,6 +387,14 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
                 mapScreen.getViewTreeObserver().removeOnGlobalLayoutListener(this);
             }
         });
+        TypedValue tv = new TypedValue();
+
+        if (getActivity().getTheme().resolveAttribute(android.R.attr.actionBarSize, tv, true))
+        {
+            actionBarHeight = TypedValue.complexToDimensionPixelSize(tv.data,getResources().getDisplayMetrics())-5;
+//            Log.wtf("param", String.valueOf(actionBarHeight));
+        }
+        params.setMargins(0,actionBarHeight,0,0);
 
         detail_screen = v.findViewById(R.id.detailView);
         ImageButton close_btn = v.findViewById(R.id.close_btn);
@@ -393,17 +435,21 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
                 }
             }
         });
+        zoomb.setLat(22.7203851);
+        zoomb.setLng(75.8682103);
+        zoomb.setZoom(9.3);
         zoomtoextant.setEnabled(false);
         zoomtoextant.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(22.7203851, 75.8682103), 9.3), 500);
+                mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(zoomb.getLat(), zoomb.getLng()), zoomb.getZoom()), 500);
             }
         });
         LayoutInflater inflate_info = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
         Mapbox.getInstance(getContext(), "pk.eyJ1IjoiYmhhd2FrIiwiYSI6ImNpeHNrOHp4ODAwMDYzMW52cDM1a2xyd3MifQ.iQQzvoiIaVKbg8RRkvhvTA");
         mapView = v.findViewById(R.id.mapView);
+        mapView.setLayoutParams(params);
         lm = v.findViewById(R.id.container);
 
         final LinearLayout.LayoutParams lp_shrink = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 0, 2f);
@@ -505,6 +551,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
             public void onClick(View v) {
                 ((AppCompatActivity) getActivity()).getSupportActionBar().show();
                 toggleTabVisibilityListener.showTabs();
+                params.setMargins(0,actionBarHeight,0,0);
                 editAmenity(selectedType);
             }
         });
@@ -516,6 +563,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
                 small_info.setVisibility(View.VISIBLE);
                 ((AppCompatActivity) getActivity()).getSupportActionBar().show();
                 toggleTabVisibilityListener.showTabs();
+                params.setMargins(0,actionBarHeight,0,0);
                 if (navigationMapRoute != null) navigationMapRoute.removeRoute();
                 lm.setVisibility(View.GONE);
                 detail_screen.removeAllViews();
@@ -528,11 +576,12 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
                 mDetector.onTouchEvent(motionEvent);
-                Log.d(String.valueOf(swipeValue), "Swipe Value");
+//                Log.d(String.valueOf(swipeValue), "Swipe Value");
                 // if(swipeValue==1 || (iff_ondown && ! iff_onswipe))
                 if (swipeValue == 1 || (iff_ondown && !iff_onswipe)) {
                     ((AppCompatActivity) getActivity()).getSupportActionBar().hide();
                     toggleTabVisibilityListener.hideTabs();
+                    params.setMargins(0,0,0,0);
                     small_info.setVisibility(View.GONE);
                     lm.setLayoutParams(lp_expand);
                     detail_screen.removeAllViews();
@@ -543,6 +592,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
                     if (lm.getLayoutParams() == lp_shrink) {
                         ((AppCompatActivity) getActivity()).getSupportActionBar().show();
                         toggleTabVisibilityListener.showTabs();
+                        params.setMargins(0,actionBarHeight,0,0);
                         //if (navigationMapRoute != null) navigationMapRoute.removeRoute();
                         lm.setVisibility(View.GONE);
                         detail_screen.removeView(amenityInfo);
@@ -562,6 +612,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
             public void onClick(View view) {
                 ((AppCompatActivity) getActivity()).getSupportActionBar().hide();
                 toggleTabVisibilityListener.hideTabs();
+                params.setMargins(0,0,0,0);
                 small_info.setVisibility(View.GONE);
                 lm.setLayoutParams(lp_expand);
                 detail_screen.removeAllViews();
@@ -580,6 +631,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
                 small_info.setVisibility(View.VISIBLE);
                 ((AppCompatActivity) getActivity()).getSupportActionBar().show();
                 toggleTabVisibilityListener.showTabs();
+                params.setMargins(0,actionBarHeight,0,0);
                 lm.setVisibility(View.GONE);
                 if (navigationMapRoute != null) navigationMapRoute.removeRoute();
                 detail_screen.removeAllViews();
@@ -631,7 +683,6 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
                 .include(new LatLng(22.8202, 76.0467)) // Northeast
                 .include(new LatLng(22.6248, 75.7202)) // Southwest
                 .build();
-
         mapView.getMapAsync(new OnMapReadyCallback() {
             @Override
             public void onMapReady(MapboxMap mapboxMap) {
@@ -639,7 +690,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
                 mapboxMap.moveCamera(CameraUpdateFactory.newLatLngBounds(latLngBounds, 50));
                 mapboxMap.setLatLngBoundsForCameraTarget(latLngBounds);
                 mapboxMap.setMaxZoomPreference(18);
-                mapboxMap.setMinZoomPreference(9);
+                mapboxMap.setMinZoomPreference(zoomb.getZoom());
                 // mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(28.2380, 83.9956), 9.3), 500);
                 zoomtoextant.setEnabled(true);
                 clusterManagerPlugin = new CustomClusterManagerPlugin<MyItem>(getContext(), mapboxMap);
@@ -876,7 +927,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
             clusterManagerPlugin.getRenderer().setOnClusterClickListener(new CustomClusterManagerPlugin.OnClusterClickListener<MyItem>() {
                 @Override
                 public boolean onClusterClick(Cluster<MyItem> cluster) {
-                    Log.d(String.valueOf(cluster.getSize()), "cluster icon id");
+//                    Log.d(String.valueOf(cluster.getSize()), "cluster icon id");
                     return false;
                 }
             });
@@ -946,6 +997,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
             }
             ((AppCompatActivity) getActivity()).getSupportActionBar().hide();
             toggleTabVisibilityListener.hideTabs();
+            params.setMargins(0,0,0,0);
             lm.setVisibility(View.VISIBLE);
             editName = marker.getTitle();
             editLat = String.valueOf(marker.getPosition().getLatitude());
@@ -957,8 +1009,8 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
 //            navButton.setBackgroundColor(getResources().getColor(R.color.tertiaryText));
             navButton.setText("Route");
             if (navigationMapRoute != null) navigationMapRoute.removeRoute();
-            Log.d(String.valueOf(detail_screen.getLayoutParams().height), "Detail Screen Height");
-            Log.d(String.valueOf(detail_height), "Detail Screen Calculated");
+//            Log.d(String.valueOf(detail_screen.getLayoutParams().height), "Detail Screen Height");
+//            Log.d(String.valueOf(detail_height), "Detail Screen Calculated");
             if (swipeValue == 1) {
                 if (detailPhone != null)
                     detailPhone.setClickable(false);
@@ -995,14 +1047,18 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
                             bbboxlat2 = pbound.get(i).getCoordinateslat() < bbboxlat2 ? pbound.get(i).getCoordinateslat() : bbboxlat2;
                             bbboxlong2 = pbound.get(i).getCoordinateslong() < bbboxlong2 ? pbound.get(i).getCoordinateslong() : bbboxlong2;
                             polygon.add(new LatLng(pbound.get(i).getCoordinateslat(), pbound.get(i).getCoordinateslong()));
-                            Log.wtf(String.valueOf(pbound.get(i).getCoordinateslat()), "Lat");
+//                            Log.wtf(String.valueOf(pbound.get(i).getCoordinateslat()), "Lat");
                         }
                         LatLngBounds latLngBounds = new LatLngBounds.Builder()
                                 .include(new LatLng(bbboxlat1, bbboxlong1)) // Northeast
                                 .include(new LatLng(bbboxlat2, bbboxlong2)) // Southwest
                                 .build();
                         mapboxMap.moveCamera(CameraUpdateFactory.newLatLngBounds(latLngBounds, 50));
+                        zoomb.setLat((bbboxlat1+bbboxlat2)/2);
+                        zoomb.setLng((bbboxlong1+bbboxlong2)/2);
+                        zoomb.setZoom(13);
                         mapboxMap.setLatLngBoundsForCameraTarget(latLngBounds);
+                        mapboxMap.setMinZoomPreference(zoomb.getZoom());
                         wardBound(polygon);
                         query.contains("ward_id", filter_data.getValue());
                     }
