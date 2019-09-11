@@ -1,34 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:layout_margin="15dp"
+    xmlns:fancy="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:layout_margin="15dp"
+    android:orientation="vertical">
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="10dp"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:padding="10dp">
+
         <LinearLayout
+            android:id="@+id/filter_parent"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:id="@+id/filter_parent"
             android:layout_marginTop="20dp"
-            android:padding="20dp">
+            android:orientation="vertical"
+            android:padding="20dp"></LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp">
+
+            <mehdi.sakout.fancybuttons.FancyButton
+                android:id="@+id/reset_filter"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/normal_view_height"
+                android:layout_gravity="center"
+                android:layout_marginRight="2dp"
+                android:layout_weight="1"
+                android:background="@color/colorPrimary"
+                android:text="Reset"
+                android:textAllCaps="true"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                fancy:fb_borderColor="@color/colorPrimary"
+                fancy:fb_borderWidth="1dp"
+                fancy:fb_defaultColor="@color/white"
+                fancy:fb_focusColor="@color/colorPrimary"
+                fancy:fb_radius="4dp"
+                fancy:fb_text="Reset"
+                fancy:fb_textColor="@color/colorPrimary" />
+
+            <mehdi.sakout.fancybuttons.FancyButton
+                android:id="@+id/apply_filter"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/normal_view_height"
+                android:layout_gravity="center"
+                android:layout_marginLeft="2dp"
+                android:layout_weight="1"
+                android:background="@color/colorPrimary"
+                android:text="Apply"
+                android:textAllCaps="true"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                fancy:fb_defaultColor="@color/colorPrimary"
+                fancy:fb_focusColor="@color/white"
+                fancy:fb_radius="4dp"
+                fancy:fb_text="Apply"
+                fancy:fb_textColor="#FFFFFF" />
         </LinearLayout>
 
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/apply_filter"
-            android:text="Apply"
-            android:textAllCaps="true"
-            android:textColor="@color/white"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:background="@color/colorPrimary"
-            android:layout_gravity="center"
-            />
     </LinearLayout>
 </ScrollView>

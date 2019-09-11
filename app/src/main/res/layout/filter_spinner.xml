@@ -4,20 +4,29 @@
     android:layout_height="wrap_content"
     android:paddingBottom="10dp">
 
-    <FrameLayout
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/infoBackground"
-        android:paddingStart="@dimen/small_margin"
-        android:paddingEnd="@dimen/small_margin">
+        android:background="@color/infoBackground">
 
         <android.support.v7.widget.AppCompatSpinner
             android:id="@+id/spinner_content"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingStart="0dp"
-            android:paddingEnd="0dp"
+            android:background="@null"
+            android:dropDownWidth="match_parent"
             android:saveEnabled="false" />
-    </FrameLayout>
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignTop="@id/spinner_content"
+            android:layout_alignEnd="@+id/spinner_content"
+            android:layout_alignRight="@+id/spinner_content"
+            android:layout_alignBottom="@+id/spinner_content"
+            android:paddingRight="@dimen/small_margin"
+            android:src="@drawable/ic_arrow_drop_down_black_24dp"
+            android:tint="@color/colorPrimary" />
+    </RelativeLayout>
 
 </LinearLayout>

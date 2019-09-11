@@ -913,6 +913,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onInsight(Boolean vals) {
+        Log.d("hello", "onInsight: here");
         String tag = "android:switcher:" + R.id.viewpager + ":" + 0;
         filter_applied = vals;
         Log.d(String.valueOf(vals), "onInsight: ");
