@@ -157,7 +157,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
     private static final int SWIPE_MIN_DISTANCE = 80;
     private static final int SWIPE_MAX_OFF_PATH = 60;
     private static final int SWIPE_THRESHOLD_VELOCITY = 100;
-    private int swipeValue = 0;
+    private int swipeValue = 0, size = 0;
     private static Map<String, Boolean> filter = new HashMap<>();
     private static Boolean atm;
     FilterParcel insightfilter;
@@ -772,7 +772,9 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
 
             RealmQuery<ExploreSchema> query = realm.where(ExploreSchema.class);
             ExploreSchema dbvalue = query.equalTo("name", editName).findFirst();
-            int size = dbvalue.getTag_type().size();
+            if (dbvalue.getTag_type() != null) {
+                size = dbvalue.getTag_type().size();
+            }
             realm.close();
 
             detailEnglishTitle.setText(dbvalue.getName());

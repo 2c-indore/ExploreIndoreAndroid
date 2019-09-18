@@ -2,38 +2,41 @@ package org.kathmandulivinglabs.exploreindore.Activity.Edit;
 
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 
 import android.support.v4.app.FragmentManager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatEditText;
 
+import android.util.DisplayMetrics;
 import android.util.Log;
 
+import android.util.TypedValue;
 import android.view.View;
 
-import android.view.WindowManager;
+import android.view.ViewTreeObserver;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 
 import com.mapbox.mapboxsdk.annotations.Marker;
 
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.kathmandulivinglabs.exploreindore.Activity.LoginActivity;
 import org.kathmandulivinglabs.exploreindore.Activity.MainActivity;
+import org.kathmandulivinglabs.exploreindore.Activity.ResetPasswordActivity;
 import org.kathmandulivinglabs.exploreindore.Api_helper.ApiHelper;
 import org.kathmandulivinglabs.exploreindore.Api_helper.ApiInterface;
 import org.kathmandulivinglabs.exploreindore.Helper.Connectivity;
-import org.kathmandulivinglabs.exploreindore.Helper.EditAmenityEvent;
 import org.kathmandulivinglabs.exploreindore.Helper.Utils;
 import org.kathmandulivinglabs.exploreindore.R;
 import org.kathmandulivinglabs.exploreindore.Realmstore.ExploreSchema;
@@ -42,11 +45,9 @@ import org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.AuthenticateModel;
 import org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.EditParam;
 import org.kathmandulivinglabs.exploreindore.View.ProgressDialogFragment;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import io.realm.Realm;
 import io.realm.RealmList;
@@ -99,6 +100,15 @@ public class EditDialogActivity extends AppCompatActivity implements MainActivit
     ProgressDialogFragment progressDialogFragment;
     private Marker marker;
     SharedPreferences sharedPreferences;
+    private LinearLayout bottomLayout, container;
+    private RelativeLayout rootLayout;
+    private FancyButton btnApply, btnDiscard;
+    private String[] editKey, dbKey;
+    private List<String> tags, labels;
+    private View[] view;
+    private TextView[] editTag;
+    private AppCompatEditText[] editValue;
+    private int size = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -108,15 +118,18 @@ public class EditDialogActivity extends AppCompatActivity implements MainActivit
         amenitySelected = getIntent().getStringArrayExtra("amenity");
         previouslySelectedMarker = getIntent().getStringExtra("marker");
         setContentView(R.layout.edit_dialog);
+        bottomLayout = findViewById(R.id.bottomLayout);
+        rootLayout = findViewById(R.id.rootLayout);
+        container = findViewById(R.id.editLayout);
+        btnApply = findViewById(R.id.apply_edit);
+        btnDiscard = findViewById(R.id.btnDiscard);
+        setUpKeyboard();
         setTitle("Edit");
-        LinearLayout container = findViewById(R.id.editLayout);
-
-        FancyButton applyBtn = findViewById(R.id.apply_edit);
         Realm realm = Realm.getDefaultInstance();
         if (amenitySelected != null) {
             amenityTopass = amenitySelected[0];
             Log.wtf("aminitySelected", amenityTopass);
-            int size = realm.where(Tag.class).equalTo("amenity", amenitySelected[0]).findFirst().getOsmtags().size();
+            size = realm.where(Tag.class).equalTo("amenity", amenitySelected[0]).findFirst().getOsmtags().size();
             RealmResults<Tag> tag = realm.where(Tag.class).equalTo("amenity", amenitySelected[0]).findAll();
             RealmQuery<ExploreSchema> query = realm.where(ExploreSchema.class);
             realm.close();
@@ -132,21 +145,17 @@ public class EditDialogActivity extends AppCompatActivity implements MainActivit
             if (dbvalue != null) {
 //                String allValue;
 //                allValue = dbvalue.toString();
-                List<String> tags = dbvalue.getTag_type();
-                List<String> labels = dbvalue.getTag_lable();
+                tags = dbvalue.getTag_type();
+                labels = dbvalue.getTag_lable();
 
 //                Log.wtf(allValue,"vals");
                 osmId = dbvalue.getOsm_id();
-                View[] view;
-                TextView[] editTag;
-                AppCompatEditText[] editValue;
+
                 editTag = new TextView[size];
                 editValue = new AppCompatEditText[size];
                 view = new View[size];
-                EditPojo keyvalue = new EditPojo();
-                Map<String, String> edits = new HashMap<>();
-                String[] editKey;
-                String[] dbKey;
+
+
                 editKey = new String[size];
                 dbKey = new String[size];
                 for (Tag tg : tag) {
@@ -172,40 +181,10 @@ public class EditDialogActivity extends AppCompatActivity implements MainActivit
                         i++;
                     }
                 }
-                applyBtn.setOnClickListener(v -> {
 
-//                    edit_key_value.clear();
-//                    edit_key_value = new HashMap<>();
+                btnApply.setOnClickListener(v -> {
                     Log.wtf(String.valueOf(size), "size");
-                    JSONObject json = new JSONObject();
-                    HashMap<String, String> updatedValue = new HashMap<>();
-                    for (int a = 0; a < size; a++) {
-                        realm_key_value.put(dbKey[a], editValue[a].getText().toString());
-                        if (!(editValue[a].getText() == null || editValue[a].getText().toString().equals(""))) {
-//                            edit_key_value.put(editKey[a], editValue[a].getText().toString());
-
-                            if (tags.indexOf(dbKey[a]) >= 0) {
-                                if (!editValue[a].getText().toString().equals(labels.get(tags.indexOf(dbKey[a])))) {
-                                    updatedValue.put(dbKey[a], editValue[a].getText().toString());
-                                }
-                            } else {
-//                                    Log.wtf("keys","keys");
-//                                    Log.wtf(dbKey[a],"Key");
-                                updatedValue.put(dbKey[a], editValue[a].getText().toString());
-                            }
-//                            Log.wtf(labels.get(tags.indexOf(editKey[a])), editValue[a].getText().toString());
-//                            Log.wtf(tags.get(tags.indexOf(editKey[a])), editKey[a]);
-                        }
-                    }
-                    for (HashMap.Entry<String, String> h : updatedValue.entrySet()
-                    ) {
-                        try {
-                            json.put(h.getKey(), h.getValue());
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                    }
-
+                    JSONObject json = seeIfUserEditedAnything();
                     if (Connectivity.isConnected(this)) {
                         if (json.length() == 0) {
                             Toast.makeText(this, "Nothing edited", Toast.LENGTH_LONG).show();
@@ -220,18 +199,76 @@ public class EditDialogActivity extends AppCompatActivity implements MainActivit
                     } else {
                         Toast.makeText(this, "Please Connect to the internet", Toast.LENGTH_LONG).show();
                     }
-
-//            keyvalue.setEdits(edits);
-//            if (keyvalue.getEdits().size() > 0) {
-//                for (Map.Entry<String, String> entry : keyvalue.getEdits().entrySet()) {
-//                    Log.d(entry.getKey(), entry.getValue());
-//                }
-//            }
-                    //onBackPressed();
                 });
+                btnDiscard.setOnClickListener(View -> actionDiscard());
             }
         }
 
+    }
+
+    private void actionDiscard() {
+        JSONObject json = seeIfUserEditedAnything();
+        if (json.length() == 0) onBackPressed();
+        else {
+            // setup the alert builder
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("Discard");
+            builder.setMessage("Are you sure you want to discard the changes?");
+            builder.setNegativeButton("Yes", (dialog, which) -> {
+                dialog.dismiss();
+                onBackPressed();
+            });
+            builder.setPositiveButton("Cancel", (dialog, which) ->
+                    dialog.dismiss());
+
+            // create and show the alert dialog
+            AlertDialog dialog = builder.create();
+            dialog.show();
+            dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(Color.parseColor("#E64228"));
+        }
+    }
+
+    private JSONObject seeIfUserEditedAnything() {
+        JSONObject json = new JSONObject();
+        HashMap<String, String> updatedValue = new HashMap<>();
+        for (int a = 0; a < size; a++) {
+            realm_key_value.put(dbKey[a], editValue[a].getText().toString());
+            if (!(editValue[a].getText() == null || editValue[a].getText().toString().equals(""))) {
+                if (tags.indexOf(dbKey[a]) >= 0) {
+                    if (!editValue[a].getText().toString().equals(labels.get(tags.indexOf(dbKey[a])))) {
+                        updatedValue.put(dbKey[a], editValue[a].getText().toString());
+                    }
+                } else {
+                    updatedValue.put(dbKey[a], editValue[a].getText().toString());
+                }
+            }
+        }
+        for (HashMap.Entry<String, String> h : updatedValue.entrySet()
+        ) {
+            try {
+                json.put(h.getKey(), h.getValue());
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+        return json;
+    }
+
+    private void setUpKeyboard() {
+        rootLayout.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                int heightDiff = rootLayout.getRootView().getHeight() - rootLayout.getHeight();
+                if (heightDiff > dpToPx(EditDialogActivity.this, 200)) {
+                    bottomLayout.setVisibility(View.GONE);
+                } else bottomLayout.setVisibility(View.VISIBLE);
+            }
+        });
+    }
+
+    public static float dpToPx(Context context, float valueInDp) {
+        DisplayMetrics metrics = context.getResources().getDisplayMetrics();
+        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, valueInDp, metrics);
     }
 
     private void showProgressDialog() {
@@ -247,10 +284,6 @@ public class EditDialogActivity extends AppCompatActivity implements MainActivit
 
     private void update(JSONObject jsonObject, String osmId) throws JSONException {
         Log.wtf("json object", String.valueOf(jsonObject));
-//        JSONObject body = new JSONObject();
-//        body.put("data",jsonObject);
-//        Log.wtf("body",body.toString());
-//            String body = "{\"data\":" + jsonObject.toString() + "}";
         EditParam edits = new EditParam();
         edits.setData(String.valueOf(jsonObject));
         String token = MainActivity.mSharedPref.getString(LoginActivity.TOKEN, null);

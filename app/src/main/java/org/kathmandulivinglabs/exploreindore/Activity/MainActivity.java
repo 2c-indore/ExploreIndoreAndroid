@@ -323,23 +323,7 @@ public class MainActivity extends AppCompatActivity
         // Set Tabs inside Toolbar
         tabs = findViewById(R.id.result_tabs);
         tabs.setupWithViewPager(viewPager);
-//        viewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
-//            @Override
-//            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-//
-//            }
-//
-//            @Override
-//            public void onPageSelected(int position) {
-//                tabSelected = position;
-//                Log.d("nancy", "onPageSelected: " + position);
-//            }
-//
-//            @Override
-//            public void onPageScrollStateChanged(int state) {
-//
-//            }
-//        });
+
         Intent i = getIntent();
         String marker[];
         String amenityedited;
@@ -376,24 +360,6 @@ public class MainActivity extends AppCompatActivity
             getSupportActionBar().setTitle("Public Hospitals");
 //            tabs.removeTabAt(1);
         }
-        viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
-            @Override
-            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-
-            }
-
-            @Override
-            public void onPageSelected(int position) {
-                Log.d("hello", "onPageSelected: " + String.valueOf(position));
-                SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
-            }
-
-            @Override
-            public void onPageScrollStateChanged(int state) {
-
-            }
-        });
-
     }
 
     public void showAlertDialogButtonClicked(String user) {
