@@ -79,7 +79,6 @@ public class InsightFragment extends Fragment {
         setRetainInstance(false);
     }
 
-
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);

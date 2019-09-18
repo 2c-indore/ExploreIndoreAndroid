@@ -21,6 +21,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 
+import com.mapbox.mapboxsdk.annotations.Marker;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.kathmandulivinglabs.exploreindore.Activity.LoginActivity;
@@ -28,6 +33,7 @@ import org.kathmandulivinglabs.exploreindore.Activity.MainActivity;
 import org.kathmandulivinglabs.exploreindore.Api_helper.ApiHelper;
 import org.kathmandulivinglabs.exploreindore.Api_helper.ApiInterface;
 import org.kathmandulivinglabs.exploreindore.Helper.Connectivity;
+import org.kathmandulivinglabs.exploreindore.Helper.EditAmenityEvent;
 import org.kathmandulivinglabs.exploreindore.Helper.Utils;
 import org.kathmandulivinglabs.exploreindore.R;
 import org.kathmandulivinglabs.exploreindore.Realmstore.ExploreSchema;
@@ -86,31 +92,26 @@ public class EditDialogActivity extends AppCompatActivity implements MainActivit
 
     String[] amenitySelected;
 
-    public String osmId;
+    public String osmId, previouslySelectedMarker;
     public static Map<String, String> edit_key_value = new HashMap<>();
     public static Map<String, String> realm_key_value = new HashMap<>();
     public static String amenityTopass;
     ProgressDialogFragment progressDialogFragment;
-
-
+    private Marker marker;
     SharedPreferences sharedPreferences;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //set to adjust screen height automatically, when soft keyboard appears on screen
-//        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
-//        getWindow().setLayout(WindowManager.LayoutParams.MATCH_PARENT,
-//                WindowManager.LayoutParams.MATCH_PARENT);
         sharedPreferences = this.getPreferences(Context.MODE_PRIVATE);
 
         amenitySelected = getIntent().getStringArrayExtra("amenity");
+        previouslySelectedMarker = getIntent().getStringExtra("marker");
         setContentView(R.layout.edit_dialog);
         setTitle("Edit");
         LinearLayout container = findViewById(R.id.editLayout);
 
-        FancyButton applybtn = findViewById(R.id.apply_edit);
+        FancyButton applyBtn = findViewById(R.id.apply_edit);
         Realm realm = Realm.getDefaultInstance();
         if (amenitySelected != null) {
             amenityTopass = amenitySelected[0];
@@ -171,7 +172,7 @@ public class EditDialogActivity extends AppCompatActivity implements MainActivit
                         i++;
                     }
                 }
-                applybtn.setOnClickListener(v -> {
+                applyBtn.setOnClickListener(v -> {
 
 //                    edit_key_value.clear();
 //                    edit_key_value = new HashMap<>();
@@ -345,6 +346,8 @@ public class EditDialogActivity extends AppCompatActivity implements MainActivit
         });
         Intent i = new Intent(this, MainActivity.class);
         i.putExtra("amenityedited", amenityTopass);
+        String[] editInfo = {amenitySelected[2], amenitySelected[3], amenitySelected[1],};
+        i.putExtra("marker", editInfo);
         startActivity(i);
     }
 

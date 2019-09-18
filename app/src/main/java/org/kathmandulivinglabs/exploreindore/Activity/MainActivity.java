@@ -52,12 +52,14 @@ import com.mapbox.mapboxsdk.offline.OfflineRegionError;
 import com.mapbox.mapboxsdk.offline.OfflineRegionStatus;
 import com.mapbox.mapboxsdk.offline.OfflineTilePyramidRegionDefinition;
 
+import org.greenrobot.eventbus.EventBus;
 import org.json.JSONObject;
 import org.kathmandulivinglabs.exploreindore.Adapter.ExpandableMenuAdapter;
 import org.kathmandulivinglabs.exploreindore.Adapter.ExpandedMenuModel;
 import org.kathmandulivinglabs.exploreindore.Adapter.FragmentAdapter;
 import org.kathmandulivinglabs.exploreindore.Api_helper.ApiHelper;
 import org.kathmandulivinglabs.exploreindore.Api_helper.ApiInterface;
+import org.kathmandulivinglabs.exploreindore.Helper.EditAmenityEvent;
 import org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.Data;
 import org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.Tags;
 import org.kathmandulivinglabs.exploreindore.Api_helper.Wards;
@@ -160,6 +162,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private TextView tv;
+    private int tabSelected = 0;
 
 
     @Override
@@ -320,11 +323,39 @@ public class MainActivity extends AppCompatActivity
         // Set Tabs inside Toolbar
         tabs = findViewById(R.id.result_tabs);
         tabs.setupWithViewPager(viewPager);
+//        viewPager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+//            @Override
+//            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+//
+//            }
+//
+//            @Override
+//            public void onPageSelected(int position) {
+//                tabSelected = position;
+//                Log.d("nancy", "onPageSelected: " + position);
+//            }
+//
+//            @Override
+//            public void onPageScrollStateChanged(int state) {
+//
+//            }
+//        });
         Intent i = getIntent();
+        String marker[];
         String amenityedited;
         String fromabout;
         if (i != null) {
             amenityedited = i.getStringExtra("amenityedited");
+            marker = i.getStringArrayExtra("marker");
+            if (amenityedited != null && marker != null) {
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        EventBus.getDefault().post(new EditAmenityEvent(marker[0], marker[1], marker[2]));
+                        Log.d("hello", "onCreate: " + marker[0] + " " + marker[1] + " " + marker[2]);
+                    }
+                }, 1000);
+            }
             fromabout = i.getStringExtra("about");
             Log.wtf(fromabout, "ABout");
             if (fromabout == null) {
@@ -353,7 +384,7 @@ public class MainActivity extends AppCompatActivity
 
             @Override
             public void onPageSelected(int position) {
-                Log.d(String.valueOf(position), "onPageSelected: ");
+                Log.d("hello", "onPageSelected: " + String.valueOf(position));
                 SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
             }
 
@@ -422,7 +453,7 @@ public class MainActivity extends AppCompatActivity
     private void downloadAll() {
         Intent intent = new Intent(MainActivity.this, DataManager.class);
         intent.putExtra("receiver", new DownReceiver(new Handler()));
-            startService(intent);
+        startService(intent);
         downloadStarted();
 //        showProgressDialog();
 //        Thread thread = new Thread(new Runnable() {
@@ -888,6 +919,14 @@ public class MainActivity extends AppCompatActivity
         return super.onCreateOptionsMenu(menu);
     }
 
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        MenuItem searchMenu = menu.findItem(R.id.search);
+        if (viewPager.getCurrentItem() == 0)
+            searchMenu.setVisible(true);
+        else searchMenu.setVisible(false);
+        return super.onPrepareOptionsMenu(menu);
+    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -1148,7 +1187,7 @@ public class MainActivity extends AppCompatActivity
             int importance = NotificationManager.IMPORTANCE_HIGH;
             channel = new NotificationChannel(channelId, name, importance);
             channel.setDescription(description);
-            notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+            notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
             assert notificationManager != null;
             notificationManager.createNotificationChannel(channel);
         }
@@ -1165,12 +1204,11 @@ public class MainActivity extends AppCompatActivity
             int resultCode = intent.getIntExtra("resultCode", RESULT_CANCELED);
             if (resultCode == RESULT_OK) {
                 String resultValue = intent.getStringExtra("resultValue");
-                Log.wtf(resultValue,"From service");
+                Log.wtf(resultValue, "From service");
 //                Toast.makeText(MainActivity.this, resultValue, Toast.LENGTH_SHORT).show();
             }
         }
     };
-
 
 
     @Override
@@ -1311,13 +1349,12 @@ public class MainActivity extends AppCompatActivity
             super.onReceiveResult(resultCode, resultData);
             if (resultCode == 450) {
                 int progress1 = resultData.getInt("progress");
-                if(progress1 <11 ) {
+                if (progress1 < 11) {
 //                    Log.wtf("sdkrfjhglis", String.valueOf(progress1));
-                    progress = (double) progress1/11 *100;
+                    progress = (double) progress1 / 11 * 100;
                     Log.wtf("per", String.valueOf(progress));
                     downloadProgress();
-                }
-                else if (progress1 == 11){
+                } else if (progress1 == 11) {
                     try {
                         Thread.sleep(1000);
                         downloadCompleted();

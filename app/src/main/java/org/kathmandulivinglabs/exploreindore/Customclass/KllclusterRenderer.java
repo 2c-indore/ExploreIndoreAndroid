@@ -89,7 +89,7 @@ public class KllclusterRenderer<T extends CustomClusterItem> implements ClusterR
     /**
      * If cluster size is less than this size, display individual markers.
      */
-    private int mMinClusterSize = 4;
+    private int mMinClusterSize = 2;
 
     /**
      * The currently displayed set of clusters.

@@ -54,6 +54,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
 import com.mapbox.geojson.Point;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.annotations.Icon;
@@ -86,6 +87,9 @@ import com.mapbox.services.android.telemetry.location.LostLocationEngine;
 import com.mapbox.services.android.telemetry.permissions.PermissionsListener;
 import com.mapbox.services.android.telemetry.permissions.PermissionsManager;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 import org.kathmandulivinglabs.exploreindore.Activity.LoginActivity;
 import org.kathmandulivinglabs.exploreindore.Activity.MainActivity;
 import org.kathmandulivinglabs.exploreindore.Adapter.SearchListAdapter;
@@ -93,6 +97,7 @@ import org.kathmandulivinglabs.exploreindore.Customclass.CustomClusterItem;
 import org.kathmandulivinglabs.exploreindore.Customclass.CustomClusterManagerPlugin;
 import org.kathmandulivinglabs.exploreindore.FilterParcel;
 import org.kathmandulivinglabs.exploreindore.Activity.Edit.EditDialogActivity;
+import org.kathmandulivinglabs.exploreindore.Helper.EditAmenityEvent;
 import org.kathmandulivinglabs.exploreindore.Helper.Utils;
 
 import org.kathmandulivinglabs.exploreindore.Interface.ToggleTabVisibilityListener;
@@ -382,6 +387,8 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
                              Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.map_fragment, container, false);
         mapScreen = v.findViewById(R.id.mapScreen);
+
+        Log.d("hello", "onCreateView: map fragmnet here");
 
         ViewTreeObserver vto = mapScreen.getViewTreeObserver();
         vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -692,7 +699,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
             @Override
             public void onMapReady(MapboxMap mapboxMap) {
                 MapFragment.this.mapboxMap = mapboxMap;
-                mapboxMap.getUiSettings().setCompassMargins(0, actionBarHeight, 0, 0);
+                mapboxMap.getUiSettings().setCompassMargins(0, actionBarHeight, 2, 0);
                 mapboxMap.moveCamera(CameraUpdateFactory.newLatLngBounds(latLngBounds, 50));
                 mapboxMap.setLatLngBoundsForCameraTarget(latLngBounds);
                 mapboxMap.setMaxZoomPreference(18);
@@ -700,7 +707,8 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
                 // mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(28.2380, 83.9956), 9.3), 500);
                 zoomtoextant.setEnabled(true);
                 clusterManagerPlugin = new CustomClusterManagerPlugin<MyItem>(getContext(), mapboxMap);
-
+                Log.d("hello", "onMapReady: " + previous_selected);
+//                mapboxMap.selectMarker(previous_selected);
                 //addmarkeronTouch();
                 initCameraListener();
                 enableLocationPlugin();
@@ -903,21 +911,13 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
         try {
             addItemsToClusterPlugin();
             mapboxMap.addOnCameraIdleListener(clusterManagerPlugin);
-            GeoJsonSource boundary = new GeoJsonSource("boundary", loadGeoJsonFromAsset(getContext(), "indore_geojson.json"));
 
+            GeoJsonSource boundary = new GeoJsonSource("boundary", loadGeoJsonFromAsset(getContext(), "ward_boundaries.json"));
             mapboxMap.addSource(boundary);
             LineLayer boundaryLine = new LineLayer("boundaryLayer", "boundary");
             boundaryLine.setProperties(PropertyFactory.lineWidth(1f), PropertyFactory.lineColor(Color.parseColor("#753b3b")));
             int allLayer = mapboxMap.getLayers().size();
             mapboxMap.addLayerAt(boundaryLine, allLayer - 10);
-
-            GeoJsonSource boundary1 = new GeoJsonSource("wardBoundary", loadGeoJsonFromAsset(getContext(), "ward_boundaries.json"));
-
-            mapboxMap.addSource(boundary1);
-            LineLayer boundaryLine1 = new LineLayer("wardLayer", "wardBoundary");
-            boundaryLine.setProperties(PropertyFactory.lineWidth(1f), PropertyFactory.lineColor(Color.parseColor("#753b3b")));
-            mapboxMap.addLayerBelow(boundaryLine1, "boundaryLayer");
-
 
             List<LatLng> polygon = new ArrayList<>();
             Realm realm = Realm.getDefaultInstance();
@@ -1313,6 +1313,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
             locationPlugin.onStart();
         }
         mapView.onStart();
+        EventBus.getDefault().register(this);
     }
 
     @Override
@@ -1351,6 +1352,13 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
             locationPlugin.onStop();
         }
         mapView.onStop();
+        EventBus.getDefault().unregister(this);
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(EditAmenityEvent event) {
+        Log.d("hello", "onMessageEvent: " + event.name);
+        clickmarker(new LatLng(Double.parseDouble(event.lat), Double.parseDouble(event.longitude)), event.name);
     }
 
     @Override
@@ -1380,6 +1388,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
         super.onSaveInstanceState(outState);
         mapView.onSaveInstanceState(outState);
     }
+
 
     @Override
     public void onExplanationNeeded(List<String> permissionsToExplain) {
