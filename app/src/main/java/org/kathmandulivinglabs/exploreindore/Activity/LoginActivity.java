@@ -17,6 +17,8 @@ import android.widget.TextView;
 import org.json.JSONObject;
 import org.kathmandulivinglabs.exploreindore.Api_helper.ApiHelper;
 import org.kathmandulivinglabs.exploreindore.Api_helper.ApiInterface;
+import org.kathmandulivinglabs.exploreindore.Fragment.MapFragment;
+import org.kathmandulivinglabs.exploreindore.Helper.Keys;
 import org.kathmandulivinglabs.exploreindore.R;
 import org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.AuthenticateModel;
 import org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.LoginModel;
@@ -153,11 +155,13 @@ public class LoginActivity extends AppCompatActivity {
                             memory.putString(AUTHUSERNAME, response.body().data.name);
                             memory.apply();
                             Intent intentabout = new Intent(getApplicationContext(), MainActivity.class);
+                            intentabout.putExtra(Keys.AMENITY_SELECTED, MapFragment.selectedType);
                             startActivity(intentabout);
                             finish();
 //                            onBackPressed();
                         }
-                    } else showInfoSnackbar("there was some problem connecting to network. Please try again later!");
+                    } else
+                        showInfoSnackbar("there was some problem connecting to network. Please try again later!");
                 } else {
                     try {
                         JSONObject jObjError = new JSONObject(response.errorBody().string());

@@ -1,7 +1,6 @@
 package org.kathmandulivinglabs.exploreindore.Activity;
 
 import android.app.ActivityManager;
-import android.app.IntentService;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
@@ -12,7 +11,6 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -27,7 +25,6 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.GravityCompat;
-import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
@@ -54,12 +51,14 @@ import com.mapbox.mapboxsdk.offline.OfflineTilePyramidRegionDefinition;
 
 import org.greenrobot.eventbus.EventBus;
 import org.json.JSONObject;
+import org.kathmandulivinglabs.exploreindore.Activity.Edit.EditDialogActivity;
 import org.kathmandulivinglabs.exploreindore.Adapter.ExpandableMenuAdapter;
 import org.kathmandulivinglabs.exploreindore.Adapter.ExpandedMenuModel;
 import org.kathmandulivinglabs.exploreindore.Adapter.FragmentAdapter;
 import org.kathmandulivinglabs.exploreindore.Api_helper.ApiHelper;
 import org.kathmandulivinglabs.exploreindore.Api_helper.ApiInterface;
 import org.kathmandulivinglabs.exploreindore.Helper.EditAmenityEvent;
+import org.kathmandulivinglabs.exploreindore.Helper.Keys;
 import org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.Data;
 import org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.Tags;
 import org.kathmandulivinglabs.exploreindore.Api_helper.Wards;
@@ -109,8 +108,11 @@ public class MainActivity extends AppCompatActivity
         if (user.equals("Explore Indore"))
             user = mSharedPref.getString(LoginActivity.AUTHEMAIL, "Explore Indore");
         Auth = mSharedPref.getBoolean(LoginActivity.AUTHENTICATED, false);
-        Log.wtf(user, String.valueOf(Auth));
-        if (Auth) this.tv.setText(user);
+        if (Auth) {
+            this.loginText.setText(user);
+            loginText.setCompoundDrawablePadding(16);
+            loginText.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_user_24, 0, 0, 0);
+        }
         return user;
     }
 
@@ -138,7 +140,6 @@ public class MainActivity extends AppCompatActivity
     List<ExpandedMenuModel> listDataHeader;
     HashMap<ExpandedMenuModel, List<String>> listDataChild;
     static Map<String, String> tagMp;
-    Map<String, String> tagHospitals, tagClincs, tagOthers;
     private static String oldtag;
     public static Map<String, String> filter_param;
     private static boolean downloadalldata = false;
@@ -161,9 +162,7 @@ public class MainActivity extends AppCompatActivity
         this.mBack = listener;
     }
 
-    private TextView tv;
-    private int tabSelected = 0;
-
+    private TextView loginText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -171,9 +170,9 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        tv = findViewById(R.id.btn_login);
+        loginText = findViewById(R.id.btn_login);
         String user = updateText();
-        tv.setOnClickListener(new View.OnClickListener() {
+        loginText.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 drawer.closeDrawers();
@@ -270,16 +269,22 @@ public class MainActivity extends AppCompatActivity
                         getSupportActionBar().setTitle(tagMp.get(def_type));
                         if (Connectivity.isConnected(Mapbox.getApplicationContext())) {
 //                            downloadStarted();
-                            downloadBaseMap();
+//                            downloadBaseMap();
+                            if (!mapsDownloading)
+                                checkDownloadedRegionList();
+                            else
+                                Toast.makeText(MainActivity.this, "Map is already downloading ", Toast.LENGTH_SHORT).show();
                         } else
                             Snackbar.make(MainActivity.this.findViewById(android.R.id.content), "No internet connection", Snackbar.LENGTH_LONG).show();
-//
                         break;
 //
                     case "Offline map data":
                         drawer.closeDrawers();
-                        downloadAll();
                         getSupportActionBar().setTitle(tagMp.get(def_type));
+                        if (Connectivity.isConnected(Mapbox.getApplicationContext())) {
+                            downloadAll();
+                        } else
+                            Snackbar.make(MainActivity.this.findViewById(android.R.id.content), "No internet connection", Snackbar.LENGTH_LONG).show();
                         break;
 
                     case "About Us":
@@ -308,13 +313,12 @@ public class MainActivity extends AppCompatActivity
 
         final RealmResults<Tag> tag = realm.where(Tag.class).findAll();
         final RealmResults<ExploreSchema> explore_data = realm.where(ExploreSchema.class).findAll();
-        List<String> amenity_tag = new ArrayList<>();
+
         if (tag.size() == 0)
             savetag();
 
         if (explore_data.size() == 0) {
             showProgressDialog();
-//            downloadAll();
             saveDataFromV2Api(def_type);
         }
         viewPager = findViewById(R.id.viewpager);
@@ -327,8 +331,9 @@ public class MainActivity extends AppCompatActivity
         Intent i = getIntent();
         String marker[];
         String amenityedited;
-        String fromabout;
+        String fromabout, fromLogin = "";
         if (i != null) {
+            fromLogin = i.getStringExtra(Keys.AMENITY_SELECTED);
             amenityedited = i.getStringExtra("amenityedited");
             marker = i.getStringArrayExtra("marker");
             if (amenityedited != null && marker != null) {
@@ -336,12 +341,10 @@ public class MainActivity extends AppCompatActivity
                     @Override
                     public void run() {
                         EventBus.getDefault().post(new EditAmenityEvent(marker[0], marker[1], marker[2]));
-                        Log.d("hello", "onCreate: " + marker[0] + " " + marker[1] + " " + marker[2]);
                     }
                 }, 1000);
             }
             fromabout = i.getStringExtra("about");
-            Log.wtf(fromabout, "ABout");
             if (fromabout == null) {
                 for (Map.Entry<String, String> entry : tagMp.entrySet()) {
                     if (entry.getKey().equals(amenityedited)) {
@@ -351,15 +354,51 @@ public class MainActivity extends AppCompatActivity
                 if (amenityedited != null) {
                     getSupportActionBar().setTitle(amenityedited);
                 } else {
-                    getSupportActionBar().setTitle("Public Hospitals");
-//                    tabs.removeTabAt(1);
+                    if (fromLogin != null) getSupportActionBar().setTitle(tagMp.get(fromLogin));
+                    else getSupportActionBar().setTitle("Public Hospitals");
                 }
             } else getSupportActionBar().setTitle(tagMp.get(fromabout));
-
         } else {
             getSupportActionBar().setTitle("Public Hospitals");
-//            tabs.removeTabAt(1);
         }
+    }
+
+    private void checkDownloadedRegionList() {
+        // Query the DB asynchronously
+        OfflineManager offlineManager = OfflineManager.getInstance(getApplicationContext());
+        offlineManager.listOfflineRegions(new OfflineManager.ListOfflineRegionsCallback() {
+            @Override
+            public void onList(final OfflineRegion[] offlineRegions) {
+                // Check result. If no regions have been downloaded yet, notify user and return
+                if (offlineRegions == null || offlineRegions.length == 0) {
+                    downloadBaseMap();
+                    return;
+                } else showMapAlreadyDownloadedAlertDialog();
+//                    Toast.makeText(MainActivity.this, "Offline Maps has already been downloaded.", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onError(String error) {
+                Log.d("Error: %s", error);
+            }
+        });
+    }
+
+    private void showMapAlreadyDownloadedAlertDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this)
+                .setTitle("Info")
+                .setMessage("Offline map has already been downloaded. Do you want to download it again?")
+                .setNegativeButton("Yes", (dialogInterface, i) -> {
+                    dialogInterface.dismiss();
+                    downloadBaseMap();
+                })
+                .setPositiveButton("Cancel", (dialogInterface, i) -> {
+                    dialogInterface.dismiss();
+                });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+        dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(Color.parseColor("#E64228"));
     }
 
     public void showAlertDialogButtonClicked(String user) {
@@ -379,7 +418,8 @@ public class MainActivity extends AppCompatActivity
                 memory.putBoolean(LoginActivity.AUTHENTICATED, false);
                 Auth = false;
                 memory.apply();
-                tv.setText("  Log In");
+                loginText.setText("  Log In");
+                loginText.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_action_lock, 0, 0, 0);
                 expandableList.refreshDrawableState();
                 fragmentRefresh();
             }
@@ -399,7 +439,6 @@ public class MainActivity extends AppCompatActivity
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setAllCaps(false);
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.parseColor("#1bd393"));
         dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setAllCaps(false);
-//        dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setTextColor(Color.parseColor("#"));
         dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setAllCaps(false);
         dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(Color.parseColor("#1bd393"));
     }
@@ -918,7 +957,6 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onInsight(Boolean vals) {
-        Log.d("hello", "onInsight: here");
         String tag = "android:switcher:" + R.id.viewpager + ":" + 0;
         filter_applied = vals;
         Log.d(String.valueOf(vals), "onInsight: ");
@@ -1060,17 +1098,15 @@ public class MainActivity extends AppCompatActivity
                         @Override
                         public void onCreate(OfflineRegion offlineRegion) {
                             offlineRegion.setDownloadState(OfflineRegion.STATE_ACTIVE);
-
                             // Monitor the download progress using setObserver
                             offlineRegion.setObserver(new OfflineRegion.OfflineRegionObserver() {
                                 @Override
                                 public void onStatusChanged(OfflineRegionStatus status) {
-
-
                                     double percentage = status.getRequiredResourceCount() >= 0
                                             ? (100.0 * status.getCompletedResourceCount() / status.getRequiredResourceCount()) :
                                             0.0;
                                     if (!status.isComplete()) {
+                                        mapsDownloading = true;
                                         mBuilder.setProgress(100, (int) percentage, false);
                                         mBuilder.setContentTitle("Please wait...");
                                         int per = (int) percentage;
@@ -1080,6 +1116,7 @@ public class MainActivity extends AppCompatActivity
 
                                     } else {
                                         status.isComplete();
+                                        mapsDownloading = false;
                                         // Download complete
                                         Log.d("Basemap Download", "Region downloaded successfully.");
                                         mBuilder.setContentTitle("Download Successful")
@@ -1100,6 +1137,7 @@ public class MainActivity extends AppCompatActivity
                                     // If an error occurs, print to logcat
 //                                    Log.e("onError reason: ", error.getReason());
 //                                    Log.e( "onError message: " , error.getMessage());
+                                    mapsDownloading = false;
                                     mBuilder.setContentTitle("Download canceled")
                                             .setContentText("Offline map cannot be downloaded, please try again later.")
                                             .setProgress(0, 0, false)
@@ -1111,6 +1149,7 @@ public class MainActivity extends AppCompatActivity
 
                                 @Override
                                 public void mapboxTileCountLimitExceeded(long limit) {
+                                    mapsDownloading = false;
                                     mBuilder.setContentTitle("Download canceled")
                                             .setContentText("Offline map cannot be downloaded, please try again later.")
                                             .setProgress(0, 0, false)

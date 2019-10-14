@@ -83,6 +83,7 @@ import com.mapbox.services.android.navigation.ui.v5.NavigationLauncherOptions;
 import com.mapbox.services.android.navigation.v5.navigation.NavigationUnitType;
 import com.mapbox.services.android.telemetry.location.LocationEngine;
 import com.mapbox.services.android.telemetry.location.LocationEngineListener;
+import com.mapbox.services.android.telemetry.location.LocationEnginePriority;
 import com.mapbox.services.android.telemetry.location.LostLocationEngine;
 import com.mapbox.services.android.telemetry.permissions.PermissionsListener;
 import com.mapbox.services.android.telemetry.permissions.PermissionsManager;
@@ -148,20 +149,19 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
     private TextView testText, detailNepaliTitle, detailEnglishTitle, detailPhone, detailWeb, detailMail;
     private ViewGroup mapScreen;
     private LinearLayout detail_screen, websiteLayout, emailLayout;
-    private View amenityInfo, touristInfo;
-    private LinearLayout containera, attraction_tags_container;
-    private SwipeRefreshLayout attraction_swipe;
+    private View amenityInfo;
+    private LinearLayout containera;
     int screenHeight = 0;
     private GestureDetectorCompat mDetector;
     Animation slideUpAnimation, slideDownAnimation;
     private static final int SWIPE_MIN_DISTANCE = 80;
     private static final int SWIPE_MAX_OFF_PATH = 60;
     private static final int SWIPE_THRESHOLD_VELOCITY = 100;
+    private static final int LOCATION_REQUEST_CODE = 101;
     private int swipeValue = 0, size = 0;
     private static Map<String, Boolean> filter = new HashMap<>();
-    private static Boolean atm;
     FilterParcel insightfilter;
-    private static String selectedType = MainActivity.def_type;
+    public static String selectedType = MainActivity.def_type;
     Marker previous_selected;
     private ToggleTabVisibilityListener toggleTabVisibilityListener;
 
@@ -308,12 +308,8 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
         mSearchMenuItem = menu.findItem(R.id.search);
 
         searchView = (SearchView) mSearchMenuItem.getActionView();
-        searchView.setOnSearchClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                listView.setVisibility(View.VISIBLE);
-            }
-        });
+        searchView.setOnSearchClickListener(View ->
+                listView.setVisibility(View.VISIBLE));
         searchView.setOnQueryTextFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
@@ -388,8 +384,6 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
         View v = inflater.inflate(R.layout.map_fragment, container, false);
         mapScreen = v.findViewById(R.id.mapScreen);
 
-        Log.d("hello", "onCreateView: map fragmnet here");
-
         ViewTreeObserver vto = mapScreen.getViewTreeObserver();
         vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN)
@@ -403,10 +397,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
 
         if (getActivity().getTheme().resolveAttribute(android.R.attr.actionBarSize, tv, true)) {
             actionBarHeight = TypedValue.complexToDimensionPixelSize(tv.data, getResources().getDisplayMetrics()) - 5;
-//            Log.wtf("param", String.valueOf(actionBarHeight));
         }
-//        params.setMargins(0, actionBarHeight, 0, 0);
-
         detail_screen = v.findViewById(R.id.detailView);
         ImageButton close_btn = v.findViewById(R.id.close_btn);
         gps = v.findViewById(R.id.gps_btn);
@@ -414,13 +405,11 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
         gps.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //Log.d(String.valueOf(gps.getTag()),"Gps Button Clicked");
                 if (gps.getTag().equals("gps_off")) {
-                    gps_checker();
+                    gps_checker(false);
                 } else if (gps.getTag().equals("gps_searching")) {
-                    //  Log.d("gps_searching","gps_searching");
                     if (locationEngine != null) {
-                        gps_checker();
+                        gps_checker(false);
                         if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                             // TODO: Consider calling
                             //    ActivityCompat#requestPermissions
@@ -450,12 +439,8 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
         zoomb.setLng(75.8682103);
         zoomb.setZoom(9.3);
         zoomtoextant.setEnabled(false);
-        zoomtoextant.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(zoomb.getLat(), zoomb.getLng()), zoomb.getZoom()), 500);
-            }
-        });
+        zoomtoextant.setOnClickListener(View ->
+                mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(zoomb.getLat(), zoomb.getLng()), zoomb.getZoom()), 500));
         LayoutInflater inflate_info = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
         Mapbox.getInstance(getContext(), "pk.eyJ1IjoiYmhhd2FrIiwiYSI6ImNpeHNrOHp4ODAwMDYzMW52cDM1a2xyd3MifQ.iQQzvoiIaVKbg8RRkvhvTA");
@@ -525,17 +510,9 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
                 getActivity().getResources(), R.drawable.red_busstop)));
 
         navButton = v.findViewById(R.id.startButton);
-//        hospital_selected = mIconFactory.fromBitmap(hos_selected);
-//        bank_selected = mIconFactory.fromBitmap(bnk_selected);
-//        school_selected = mIconFactory.fromBitmap(scol_selected);
         if (getArguments() != null) {
             FilterParcel filterdata = getArguments().getParcelable("FilterValue");
             selectedType = getArguments().getString("selectedType", "attractions");
-            if (filterdata != null) {
-                for (Map.Entry<String, String> filter_data : filterdata.getFilter_parameter().entrySet()
-                ) {
-                }
-            }
         }
 
 
@@ -562,7 +539,6 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
             public void onClick(View v) {
                 ((AppCompatActivity) getActivity()).getSupportActionBar().show();
                 toggleTabVisibilityListener.showTabs();
-//                params.setMargins(0, actionBarHeight, 0, 0);
                 editAmenity(selectedType);
             }
         });
@@ -575,7 +551,6 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
                 small_info.setVisibility(View.VISIBLE);
                 ((AppCompatActivity) getActivity()).getSupportActionBar().show();
                 toggleTabVisibilityListener.showTabs();
-//                params.setMargins(0, actionBarHeight, 0, 0);
                 if (navigationMapRoute != null) navigationMapRoute.removeRoute();
                 lm.setVisibility(View.GONE);
                 detail_screen.removeAllViews();
@@ -588,12 +563,9 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
                 mDetector.onTouchEvent(motionEvent);
-//                Log.d(String.valueOf(swipeValue), "Swipe Value");
-                // if(swipeValue==1 || (iff_ondown && ! iff_onswipe))
                 if (swipeValue == 1 || (iff_ondown && !iff_onswipe)) {
                     ((AppCompatActivity) getActivity()).getSupportActionBar().hide();
                     toggleTabVisibilityListener.hideTabs();
-//                    params.setMargins(0, 0, 0, 0);
                     small_info.setVisibility(View.GONE);
                     lm.setLayoutParams(lp_expand);
                     detail_screen.removeAllViews();
@@ -652,17 +624,15 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
         navButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (navButton.getText().toString().equals("Route")) {
-
+                if (navButton.getText().toString().equalsIgnoreCase("Route")) {
                     if (originLocation != null) {
-//                        Log.wtf(String.valueOf(originLocation),"Origin Location");
                         Toast.makeText(getContext(), "Please wait the gps is locating you", Toast.LENGTH_LONG).show();
                         originCoord = new LatLng(originLocation.getLatitude(), originLocation.getLongitude());
                         originPosition = Point.fromLngLat(originCoord.getLongitude(), originCoord.getLatitude());
                         getRoute(originPosition, destinationPosition);
                     } else {
                         if (gps.getTag().equals("gps_off")) {
-                            gps_checker();
+                            gps_checker(true);
                             Toast.makeText(getContext(), "Please wait the gps is locating you", Toast.LENGTH_LONG).show();
                         } else
                             Toast.makeText(getContext(), "Could not find you", Toast.LENGTH_SHORT).show();
@@ -707,7 +677,6 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
                 // mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(28.2380, 83.9956), 9.3), 500);
                 zoomtoextant.setEnabled(true);
                 clusterManagerPlugin = new CustomClusterManagerPlugin<MyItem>(getContext(), mapboxMap);
-                Log.d("hello", "onMapReady: " + previous_selected);
 //                mapboxMap.selectMarker(previous_selected);
                 //addmarkeronTouch();
                 initCameraListener();
@@ -856,21 +825,17 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
 
     }
 
-    public void gps_checker() {
+    public void gps_checker(boolean fromRoute) {
         LocationManager locationManager = (LocationManager) getActivity().getSystemService(LOCATION_SERVICE);
 
         if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             if (originLocation != null) {
-//                if ((originLocation.getLatitude() > 28.31285 || originLocation.getLatitude() < 28.11532
-//                        || originLocation.getLongitude() > 84.14949 || originLocation.getLongitude() < 83.84905)) {
-//                    Toast.makeText(getContext(), "You are not in Pokhara", Toast.LENGTH_SHORT).show();
-//                } else {
                 gps.setImageResource(0);
                 gps.setImageResource(R.drawable.ic_action_gps_searching);
                 gps.setTag("gps_searching");
                 Toast.makeText(getContext(), "GPS is locating you", Toast.LENGTH_SHORT).show();
-
-//                }
+//                if (!fromRoute) //to take you to your location on clicking gps location
+//                    setCameraPosition(originLocation);
             } else {
                 initializeLocationEngine();
             }
@@ -943,7 +908,6 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
             clusterManagerPlugin.getRenderer().setOnClusterClickListener(new CustomClusterManagerPlugin.OnClusterClickListener<MyItem>() {
                 @Override
                 public boolean onClusterClick(Cluster<MyItem> cluster) {
-//                    Log.d(String.valueOf(cluster.getSize()), "cluster icon id");
                     return false;
                 }
             });
@@ -954,8 +918,6 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
     }
 
     private void wardBound(List<LatLng> polygon) {
-
-
         List<LatLng> polygonbound = new ArrayList<>();
         polygonbound.add(new LatLng(22.8202, 76.0467));
         polygonbound.add(new LatLng(22.6248, 76.0467));
@@ -987,9 +949,6 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
             if (previous_selected != null) {
                 if (previous_selected != marker) {
                     for (Map.Entry<String, com.mapbox.mapboxsdk.annotations.Icon> entry : tagMp_blue.entrySet()) {
-//                        if (entry.getKey().equals(selectedType)) {
-//
-//                        }
                         if (!selectedType.equals("attractions")) {
                             if (entry.getKey().equals(selectedType)) {
                                 previous_selected.setIcon(entry.getValue());
@@ -1013,7 +972,6 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
             }
             ((AppCompatActivity) getActivity()).getSupportActionBar().hide();
             toggleTabVisibilityListener.hideTabs();
-//            params.setMargins(0, 0, 0, 0);
             lm.setVisibility(View.VISIBLE);
             editName = marker.getTitle();
             editLat = String.valueOf(marker.getPosition().getLatitude());
@@ -1025,8 +983,6 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
 //            navButton.setBackgroundColor(getResources().getColor(R.color.tertiaryText));
             navButton.setText("Route");
             if (navigationMapRoute != null) navigationMapRoute.removeRoute();
-//            Log.d(String.valueOf(detail_screen.getLayoutParams().height), "Detail Screen Height");
-//            Log.d(String.valueOf(detail_height), "Detail Screen Calculated");
             if (swipeValue == 1) {
                 if (detailPhone != null)
                     detailPhone.setClickable(false);
@@ -1050,7 +1006,6 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
         if (MainActivity.filter_param.size() > 0 && filterflag) {
             for (Map.Entry<String, String> filter_data : MainActivity.filter_param.entrySet()
             ) {
-//                        Log.wtf(filter_data.getValue(), filter_data.getKey());
                 try {
                     if ((filter_data.getKey().equals("wardid") && !filter_data.getValue().equals("all"))) {
                         RealmResults<Ward> wardR = realm.where(Ward.class).contains("osmID", filter_data.getValue()).findAll();
@@ -1063,7 +1018,6 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
                             bbboxlat2 = pbound.get(i).getCoordinateslat() < bbboxlat2 ? pbound.get(i).getCoordinateslat() : bbboxlat2;
                             bbboxlong2 = pbound.get(i).getCoordinateslong() < bbboxlong2 ? pbound.get(i).getCoordinateslong() : bbboxlong2;
                             polygon.add(new LatLng(pbound.get(i).getCoordinateslat(), pbound.get(i).getCoordinateslong()));
-//                            Log.wtf(String.valueOf(pbound.get(i).getCoordinateslat()), "Lat");
                         }
                         LatLngBounds latLngBounds = new LatLngBounds.Builder()
                                 .include(new LatLng(bbboxlat1, bbboxlong1)) // Northeast
@@ -1076,6 +1030,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
                         mapboxMap.setLatLngBoundsForCameraTarget(latLngBounds);
                         mapboxMap.setMinZoomPreference(zoomb.getZoom());
                         wardBound(polygon);
+                        Log.d(TAG, "populateMap: ");
                         query.contains("ward_id", filter_data.getValue());
                     }
                     if (filter_data.getKey().endsWith("max")) {
@@ -1088,7 +1043,6 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
                         if (min > 0) query.greaterThanOrEqualTo(rangeMin, min);
                         else
                             query.beginGroup().greaterThanOrEqualTo(rangeMin, min).or().isNull(rangeMin).endGroup();
-//                            Log.wtf(String.valueOf(query.findAll().size()),"Range size");
                     }
 
                 } catch (Exception E) {
@@ -1099,7 +1053,6 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
 
             for (Map.Entry<String, String> filter_data : MainActivity.filter_param.entrySet()
             ) {
-//                            Log.wtf(filter_data.getValue(), filter_data.getKey());
                 try {
                     if (!filter_data.getKey().equals("wardid") && !filter_data.getKey().endsWith("max") && !filter_data.getKey().endsWith("min")) {
                         RealmList<ExploreSchema> qr = new RealmList<>();
@@ -1133,16 +1086,13 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
         } else {
             querycollection.addAll(query.findAll());
         }
-//else querycollection.addAll(query.findAll());
         MainActivity.filter_param.clear();
-//                RealmResults<ExploreSchema> results = query.findAll();
         RealmList<ExploreSchema> results = querycollection;
         realm.close();
         List<MyItem> items = new ArrayList<MyItem>();
         if (searches.size() > 0) {
             searches.clear();
             uniList.clear();
-//            adapter.clear();
         }
         for (int i = 0; i < results.size(); i++) {
             String title;
@@ -1155,19 +1105,12 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
                 sh.cord = new LatLng(lat, lng);
                 sh.name = title;
                 searches.add(sh);
-//                HashMap<String,String> hsh = new HashMap<>();
-//                hsh.put(results.get(i).getOsm_id(), title);
-//                list.add(i,hsh);
                 uniList.put(new LatLng(lat, lng), title);
             } else title = amenity;
             items.add(new MyItem(lat, lng, title, snippet, icn));
         }
-//        listView.setAdapter(adapter);
-//        adapter.notifyDataSetChanged();
         listView.setAdapter(searchListAdapter);
         searchListAdapter.notifyDataSetChanged();
-
-        //TODO check for applied filters
 
         clusterManagerPlugin.addItems(items);
     }
@@ -1194,7 +1137,6 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
         if (PermissionsManager.areLocationPermissionsGranted(getContext())) {
             // Create an instance of LOST location engine
             initializeLocationEngine();
-
             locationPlugin = new LocationLayerPlugin(mapView, mapboxMap, locationEngine);
             locationPlugin.setLocationLayerEnabled(LocationLayerMode.TRACKING);
         } else {
@@ -1206,7 +1148,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
     @SuppressWarnings({"MissingPermission"})
     private void initializeLocationEngine() {
         locationEngine = new LostLocationEngine(getContext());
-        //locationEngine.setPriority(LocationEnginePriority.HIGH_ACCURACY);
+        locationEngine.setPriority(LocationEnginePriority.HIGH_ACCURACY);
         locationEngine.activate();
 
         Location lastLocation = locationEngine.getLastLocation();
@@ -1214,8 +1156,9 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
             originLocation = lastLocation;
             if (originLocation.getLatitude() > 28.31285 || originLocation.getLatitude() < 28.11532
                     || originLocation.getLongitude() > 84.14949 || originLocation.getLongitude() < 83.84905) {
-                // Toast.makeText(getContext(), "You are not in Pokhara", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(getContext(), "You are not in Indore", Toast.LENGTH_SHORT).show();
             } else {
+                Log.d("gps_searching", "initializeLocationEngine: ");
                 gps.setImageResource(0);
                 gps.setImageResource(R.drawable.ic_action_gps_searching);
                 gps.setTag("gps_searching");
@@ -1248,10 +1191,10 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
                         // You can get the generic HTTP info about the response
                         //Log.d(TAG, "Response code: " + response.code());
                         if (response.body() == null) {
-                            //Log.e(TAG, "No routes found, make sure you set the right user and access token.");
+                            Log.d("gps_searching", "No routes found, make sure you set the right user and access token.");
                             return;
                         } else if (response.body().routes().size() < 1) {
-                            //Log.e(TAG, "No routes found");
+                            Log.d("gps_searching", "No routes found");
                             return;
                         }
 
@@ -1294,6 +1237,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
 
 
     private void setCameraPosition(Location location) {
+        Log.d("gps_searching", "setCameraPosition: " + location.getLatitude() + "longitude" + location.getLongitude());
         mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
                 new LatLng(location.getLatitude(), location.getLongitude()), 13));
     }
@@ -1359,7 +1303,6 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(EditAmenityEvent event) {
-        Log.d("hello", "onMessageEvent: " + event.name);
         clickmarker(new LatLng(Double.parseDouble(event.lat), Double.parseDouble(event.longitude)), event.name);
     }
 
@@ -1410,6 +1353,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
     @Override
     @SuppressWarnings({"MissingPermission"})
     public void onConnected() {
+        Log.d("gps_searching", "onConnected: " + locationEngine.isConnected() + "location" + locationEngine.getLastLocation().getLatitude());
         locationEngine.requestLocationUpdates();
     }
 
@@ -1424,6 +1368,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
                 gps.setImageResource(0);
                 gps.setImageResource(R.drawable.ic_action_gps_fixed);
                 gps.setTag("gps_fixed");
+                Log.d("gps_searching", "onLocationChanged:1 ");
                 setCameraPosition(location);
             }
             locationEngine.removeLocationEngineListener(this);
@@ -1510,15 +1455,6 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
             return false;
         }
     }
-//    private final void focusOnView(){
-//        scroll.post(new Runnable() {
-//            @Override
-//            public void run() {
-//                scroll.scrollTo(0, scroll.getBottom()-150);
-//            }
-//        });
-//    }
-
 }
 
 

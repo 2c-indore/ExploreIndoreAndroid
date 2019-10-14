@@ -143,8 +143,6 @@ public class EditDialogActivity extends AppCompatActivity implements MainActivit
             dbvalue = query.equalTo("coordinateslong", coordinateslat).equalTo("coordinateslat", coordinateslong).findFirst();
 //            }
             if (dbvalue != null) {
-//                String allValue;
-//                allValue = dbvalue.toString();
                 tags = dbvalue.getTag_type();
                 labels = dbvalue.getTag_lable();
 
