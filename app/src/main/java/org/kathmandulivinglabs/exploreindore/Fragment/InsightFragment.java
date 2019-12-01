@@ -53,6 +53,8 @@ import io.realm.RealmQuery;
 import io.realm.RealmResults;
 import mehdi.sakout.fancybuttons.FancyButton;
 
+import static android.content.ContentValues.TAG;
+
 /**
  * Created by Bhawak on 3/11/2018.
  */
@@ -121,6 +123,7 @@ public class InsightFragment extends Fragment {
         spinner_view = new View[spinner_size];
         spinner_spinner = new AppCompatSpinner[spinner_size];
 
+        Log.d(TAG, "onCreateView: " + range_size);
         range_view = new View[range_size];
         range_bar = new RangeWidget[range_size];
         int i = 0, j = 0, k = 0;
@@ -226,10 +229,13 @@ public class InsightFragment extends Fragment {
         applyFilter.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                Log.d(TAG, "onClick: " + range_bar + " ward id " + wardid);
                 filter_param.put("wardid", wardid);
                 for (int i = 0; i < range_size; i++) {
-                    filter_param.put(range[i] + "max", String.valueOf(range_bar[i].getMaxValue().intValue()));
-                    filter_param.put(range[i] + "min", String.valueOf(range_bar[i].getMinValue().intValue()));
+                    if (null != range[i] && null != range_bar[i]) {
+                        filter_param.put(range[i] + "max", String.valueOf(range_bar[i].getMaxValue().intValue()));
+                        filter_param.put(range[i] + "min", String.valueOf(range_bar[i].getMinValue().intValue()));
+                    }
                 }
                 for (Map.Entry<String, String> switch_vals : switch_selected.entrySet()) {
                     filter_param.put(switch_vals.getKey(), switch_vals.getValue());
@@ -243,12 +249,10 @@ public class InsightFragment extends Fragment {
                 mapfilter.setFilter_parameter(filter_param);
 
                 ags = true;
-                MapFragment mp = new MapFragment();
 
                 Intent i = new Intent(getActivity().getBaseContext(), MainActivity.class);
                 i.putExtra("FilterValue", mapfilter);
                 mCallback.onInsight(ags);
-//                getActivity().startActivity(i);
             }
         });
 

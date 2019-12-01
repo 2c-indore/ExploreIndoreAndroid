@@ -1,8 +1,8 @@
 <component name="libraryTable">
   <library name="Gradle: com.appyvet:materialrangebar:1.4.2@aar">
     <CLASSES>
-      <root url="jar://$USER_HOME$/.gradle/caches/transforms-1/files-1.1/materialrangebar-1.4.2.aar/78345372f2be993f058b2e2af466a1ff/jars/classes.jar!/" />
-      <root url="file://$USER_HOME$/.gradle/caches/transforms-1/files-1.1/materialrangebar-1.4.2.aar/78345372f2be993f058b2e2af466a1ff/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-1/files-1.1/materialrangebar-1.4.2.aar/78430ff479de8bcdf29f90a736a1d554/res" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-1/files-1.1/materialrangebar-1.4.2.aar/78430ff479de8bcdf29f90a736a1d554/jars/classes.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>

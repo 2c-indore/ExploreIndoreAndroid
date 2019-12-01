@@ -504,17 +504,17 @@ public class MainActivity extends AppCompatActivity
     private void prepareListData() {
         listDataHeader = new ArrayList<ExpandedMenuModel>();
         listDataChild = new HashMap<ExpandedMenuModel, List<String>>();
-        ExpandedMenuModel hospitals = new ExpandedMenuModel();
-        hospitals.setIconName("Hospitals");
-        listDataHeader.add(hospitals);
+        ExpandedMenuModel healthFacilities = new ExpandedMenuModel();
+        healthFacilities.setIconName("Health Facilities");
+        listDataHeader.add(healthFacilities);
 
-        ExpandedMenuModel clinics = new ExpandedMenuModel();
-        clinics.setIconName("Clinics");
-        listDataHeader.add(clinics);
+        ExpandedMenuModel publicFacilities = new ExpandedMenuModel();
+        publicFacilities.setIconName("Public Facilities");
+        listDataHeader.add(publicFacilities);
 
-        ExpandedMenuModel others = new ExpandedMenuModel();
-        others.setIconName("Others");
-        listDataHeader.add(others);
+//        ExpandedMenuModel others = new ExpandedMenuModel();
+//        others.setIconName("Others");
+//        listDataHeader.add(others);
 
 
         ExpandedMenuModel download = new ExpandedMenuModel();
@@ -527,25 +527,28 @@ public class MainActivity extends AppCompatActivity
         listDataHeader.add(about);
 
         // Adding child data
-        List<String> hospitalslist = new ArrayList<>();
-        List<String> clinicslist = new ArrayList<String>();
+        List<String> healthFacilitiesList = new ArrayList<>();
+        List<String> publicFacilitiesList = new ArrayList<String>();
         List<String> otherslist = new ArrayList<String>();
         List<String> downloadlist = new ArrayList<String>();
         List<String> aboutlist = new ArrayList<String>();
 
-        hospitalslist.add("Public Hospitals");
-        hospitalslist.add("Private Hospitals");
+        healthFacilitiesList.add("Public Hospitals");
+        healthFacilitiesList.add("Private Hospitals");
+        healthFacilitiesList.add("Private Clinics");
+        healthFacilitiesList.add("Dental Clinics");
+        healthFacilitiesList.add("Veterinary Hospitals");
+        healthFacilitiesList.add("Pharmacies");
+        healthFacilitiesList.add("Laboratories");
+        healthFacilitiesList.add("Anganwadis");
+        healthFacilitiesList.add("AYUSH Centres");
 
-        clinicslist.add("Public Clinics and Government Centers");
-        clinicslist.add("Private Clinics");
-        clinicslist.add("Dentists");
-        clinicslist.add("Veterinaries");
-        clinicslist.add("Pathology and Radiology Labs");
-
-        otherslist.add("Anganwadis");
-        otherslist.add("Blood Banks");
-        otherslist.add("Mental Health Centers");
-        otherslist.add("Bus Stops");
+        publicFacilitiesList.add("Public Schools");
+        publicFacilitiesList.add("Private Schools");
+        publicFacilitiesList.add("Public Washrooms");
+        publicFacilitiesList.add("Public Wastebins");
+        publicFacilitiesList.add("ATMs");
+        publicFacilitiesList.add("Fuel Stations");
 
         downloadlist.add("Update data");
         // downloadlist.add("Download map data");
@@ -554,13 +557,10 @@ public class MainActivity extends AppCompatActivity
 
         aboutlist.add("About Us");
 
-        listDataChild.put(listDataHeader.get(0), hospitalslist);
-        listDataChild.put(listDataHeader.get(1), clinicslist);
-        listDataChild.put(listDataHeader.get(2), otherslist);
-        listDataChild.put(listDataHeader.get(3), downloadlist);
-        listDataChild.put(listDataHeader.get(4), aboutlist);
-
-
+        listDataChild.put(listDataHeader.get(0), healthFacilitiesList);
+        listDataChild.put(listDataHeader.get(1), publicFacilitiesList);
+        listDataChild.put(listDataHeader.get(2), downloadlist);
+        listDataChild.put(listDataHeader.get(3), aboutlist);
     }
 
 

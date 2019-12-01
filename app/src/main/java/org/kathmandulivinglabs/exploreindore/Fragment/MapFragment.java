@@ -77,6 +77,7 @@ import com.mapbox.mapboxsdk.plugins.locationlayer.LocationLayerPlugin;
 import com.mapbox.mapboxsdk.style.layers.CircleLayer;
 import com.mapbox.mapboxsdk.style.layers.LineLayer;
 import com.mapbox.mapboxsdk.style.layers.PropertyFactory;
+import com.mapbox.mapboxsdk.style.layers.TransitionOptions;
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
 import com.mapbox.services.android.navigation.ui.v5.NavigationLauncher;
 import com.mapbox.services.android.navigation.ui.v5.NavigationLauncherOptions;
@@ -138,6 +139,10 @@ import io.realm.RealmQuery;
 import io.realm.RealmResults;
 
 import static android.content.Context.LOCATION_SERVICE;
+import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineColor;
+import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineDasharray;
+import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineTranslate;
+import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineWidth;
 
 
 public class MapFragment extends Fragment implements PermissionsListener, LocationEngineListener, MainActivity.Backlistner {
@@ -881,8 +886,12 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
 
             GeoJsonSource boundary = new GeoJsonSource("boundary", loadGeoJsonFromAsset(getContext(), "ward_boundaries.json"));
             mapboxMap.addSource(boundary);
-            LineLayer boundaryLine = new LineLayer("boundaryLayer", "boundary");
-            boundaryLine.setProperties(PropertyFactory.lineWidth(1f), PropertyFactory.lineColor(Color.parseColor("#753b3b")));
+            LineLayer boundaryLine = new LineLayer("boundaryLayer", "boundary")
+                    .withProperties(lineWidth(1f),
+                            lineColor(Color.GRAY));
+//                            lineTranslate(new Float[]{0f, 5f}),
+//                            lineDasharray(new Float[]{10f, 5f}));
+//            boundaryLine.setProperties(lineTranslate(new Float[] {0f, 4f}), lineWidth(1f), lineColor(Color.parseColor("#757575")));
             int allLayer = mapboxMap.getLayers().size();
             mapboxMap.addLayerAt(boundaryLine, allLayer - 10);
 

@@ -6,6 +6,7 @@
 
     <string name="action_settings">Settings</string>
     <string name="apply">Apply</string>
+    <string name="acropolis_address">Indore, Madhya Pradesh, India\ninfo@acropolis.in</string>
     <string name="email_hint">Enter your email&#8230;</string>
     <string name="password_hint">Enter your password&#8230;</string>
     <!-- TODO: Remove or change this placeholder text -->
