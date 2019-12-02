@@ -218,7 +218,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
 
     private FancyButton navButton;
     NestedScrollView scroll;
-    private String editName, editLat, editLong;
+    private String editName, editLat, editLong, editSnippet;
     private Map<String, com.mapbox.mapboxsdk.annotations.Icon> tagMp_blue;
     private Map<String, com.mapbox.mapboxsdk.annotations.Icon> tagMp_orange;
     ListView listView;
@@ -468,11 +468,11 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
         IconFactory mIconFactory = IconFactory.getInstance(getActivity());
         tagMp_blue = new HashMap<>();
         tagMp_blue.put("public_hospitals", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.blue_hospital)));
+                getActivity().getResources(), R.drawable.ic_hospital_blue)));
         tagMp_blue.put("private_hospitals", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.blue_hospital)));
+                getActivity().getResources(), R.drawable.ic_hospital_blue)));
         tagMp_blue.put("public_clinics", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.blue_clinic)));
+                getActivity().getResources(), R.drawable.ic_ayush_blue)));
         tagMp_blue.put("private_clinics", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
                 getActivity().getResources(), R.drawable.blue_clinic)));
         tagMp_blue.put("dentists", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
@@ -480,7 +480,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
         tagMp_blue.put("veterinaries", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
                 getActivity().getResources(), R.drawable.blue_vet)));
         tagMp_blue.put("patho_radio_labs", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.blue_laboratory)));
+                getActivity().getResources(), R.drawable.ic_labs_blue)));
         tagMp_blue.put("anganwadi", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
                 getActivity().getResources(), R.drawable.blue_aaganwadi)));
         tagMp_blue.put("blood_banks", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
@@ -489,12 +489,28 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
                 getActivity().getResources(), R.drawable.blue_mental_health)));
         tagMp_blue.put("bus_stops", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
                 getActivity().getResources(), R.drawable.blue_busstop)));
+        tagMp_blue.put("atms", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
+                getActivity().getResources(), R.drawable.ic_atm_blue)));
+        tagMp_blue.put("public_washrooms", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
+                getActivity().getResources(), R.drawable.ic_washroom_blue)));
+        tagMp_blue.put("public_waste_bins", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
+                getActivity().getResources(), R.drawable.ic_wastebasket_blue)));
+        tagMp_blue.put("fuel_stations", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
+                getActivity().getResources(), R.drawable.ic_fuel_blue)));
+        tagMp_blue.put("public_schools", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
+                getActivity().getResources(), R.drawable.ic_public_school_blue)));
+        tagMp_blue.put("private_schools", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
+                getActivity().getResources(), R.drawable.ic_privateschool_blue)));
+        tagMp_blue.put("parks_playgrounds", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
+                getActivity().getResources(), R.drawable.ic_playground_blue)));
+        tagMp_blue.put("pharmacies", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
+                getActivity().getResources(), R.drawable.ic_pharmacy_blue)));
 
         tagMp_orange = new HashMap<>();
         tagMp_orange.put("public_hospitals", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.red_hospital)));
+                getActivity().getResources(), R.drawable.ic_hospital_red)));
         tagMp_orange.put("private_hospitals", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.red_hospital)));
+                getActivity().getResources(), R.drawable.ic_hospital_red)));
         tagMp_orange.put("public_clinics", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
                 getActivity().getResources(), R.drawable.red_clinic)));
         tagMp_orange.put("private_clinics", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
@@ -504,7 +520,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
         tagMp_orange.put("veterinaries", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
                 getActivity().getResources(), R.drawable.red_vet)));
         tagMp_orange.put("patho_radio_labs", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.red_laboratory)));
+                getActivity().getResources(), R.drawable.ic_labs_red)));
         tagMp_orange.put("anganwadi", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
                 getActivity().getResources(), R.drawable.red_aaganwadi)));
         tagMp_orange.put("blood_banks", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
@@ -513,6 +529,22 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
                 getActivity().getResources(), R.drawable.red_mental_health)));
         tagMp_orange.put("bus_stops", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
                 getActivity().getResources(), R.drawable.red_busstop)));
+        tagMp_orange.put("atms", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
+                getActivity().getResources(), R.drawable.ic_atm_red)));
+        tagMp_orange.put("public_washrooms", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
+                getActivity().getResources(), R.drawable.ic_washroom_red)));
+        tagMp_orange.put("public_waste_bins", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
+                getActivity().getResources(), R.drawable.ic_wastebasket_red)));
+        tagMp_orange.put("fuel_stations", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
+                getActivity().getResources(), R.drawable.ic_fuel_red)));
+        tagMp_orange.put("public_schools", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
+                getActivity().getResources(), R.drawable.ic_public_school_red)));
+        tagMp_orange.put("private_schools", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
+                getActivity().getResources(), R.drawable.ic_privateschool_red)));
+        tagMp_orange.put("parks_playgrounds", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
+                getActivity().getResources(), R.drawable.ic_playground_red)));
+        tagMp_orange.put("pharmacies", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
+                getActivity().getResources(), R.drawable.ic_pharmacy_red)));
 
         navButton = v.findViewById(R.id.startButton);
         if (getArguments() != null) {
@@ -746,85 +778,92 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
 
             RealmQuery<ExploreSchema> query = realm.where(ExploreSchema.class);
             ExploreSchema dbvalue = query.equalTo("name", editName).findFirst();
-            if (dbvalue.getTag_type() != null) {
+            Log.d(TAG, "detailView: " + dbvalue);
+            if (dbvalue == null)
+                dbvalue = query.equalTo("coordinateslong", editLat).equalTo("coordinateslat", editLong).findFirst();
+
+            Log.d(TAG, "detailView: " + dbvalue + " snippet " + editLat + " long " + editLong);
+            if (dbvalue != null && dbvalue.getTag_type() != null) {
                 size = dbvalue.getTag_type().size();
             }
             realm.close();
-
-            detailEnglishTitle.setText(dbvalue.getName());
-            detailNepaliTitle.setText(dbvalue.getNamein());
-            if (dbvalue.getWeb() != null && !dbvalue.getWeb().isEmpty()) {
-                websiteLayout.setVisibility(View.VISIBLE);
-                detailWeb.setText(dbvalue.getWeb());
-                detailWeb.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        String url = dbvalue.getWeb();
-                        if (!url.startsWith("http://") && !url.startsWith("https://"))
-                            url = "http://" + url;
-                        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                        startActivity(intent);
-                    }
-                });
-            } else {
-                websiteLayout.setVisibility(View.GONE);
-                detailWeb.setText("-");
-            }
-            if (dbvalue.getContact_email() != null && !dbvalue.getContact_email().isEmpty()) {
-                emailLayout.setVisibility(View.VISIBLE);
-                detailMail.setText(dbvalue.getContact_email());
-            } else {
-                emailLayout.setVisibility(View.GONE);
-                detailMail.setText("-");
-            }
-
-            View[] view;
-            TextView[] detailTag;
-            TextView[] detailValue;
-            detailTag = new TextView[size];
-            detailValue = new TextView[size];
-            view = new View[size];
-            if (containera != null) {
-                containera.removeAllViews();
-            }
-            RealmList<String> keys = dbvalue.getTag_type();
-            RealmList<String> labels = dbvalue.getTag_lable();
-            int i = 0;
-            String mob = null;
-            for (String tg : dbvalue.getTag_type()) {
-                String label = Utils.toTitleCase(labels.get(i));
-                String key = Utils.toTitleCase(keys.get(i).replace("_", " "));
-                if (key.equals("Mobile")) mob = label;
-                if (!key.equals("Name") && !key.equals("Name Hindi") && !key.equals("Phone Number") &&
-                        !key.equals("Email Address") && !key.equals("Id") && !key.equals("Latitude") && !key.equals("Longitude")
-                        && !key.equals("Precision") && !key.equals("Mobile")) {
-                    view[i] = getLayoutInflater().inflate(R.layout.detailtextgenerator, containera, false);
-                    detailTag[i] = view[i].findViewById(R.id.detail_type);
-                    detailValue[i] = view[i].findViewById(R.id.detail_value);
-                    detailTag[i].setText(key);
-                    detailValue[i].setText(label);
-                    containera.addView(view[i]);
+            if (dbvalue != null) {
+                detailEnglishTitle.setText(dbvalue.getName());
+                detailNepaliTitle.setText(dbvalue.getNamein());
+                if (dbvalue.getWeb() != null && !dbvalue.getWeb().isEmpty()) {
+                    websiteLayout.setVisibility(View.VISIBLE);
+                    detailWeb.setText(dbvalue.getWeb());
+                    ExploreSchema finalDbvalue = dbvalue;
+                    detailWeb.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            String url = finalDbvalue.getWeb();
+                            if (!url.startsWith("http://") && !url.startsWith("https://"))
+                                url = "http://" + url;
+                            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                            startActivity(intent);
+                        }
+                    });
+                } else {
+                    websiteLayout.setVisibility(View.GONE);
+                    detailWeb.setText("-");
                 }
-                i++;
-            }
-            if (dbvalue.getContact_phone() != null || mob != null) {
-                String pho = null;
-                if (dbvalue.getContact_phone() != null) pho = dbvalue.getContact_phone();
-                if (mob != null) {
-                    if (pho != null)
-                        pho = pho + "," + mob;
-                    else pho = mob;
+                if (dbvalue.getContact_email() != null && !dbvalue.getContact_email().isEmpty()) {
+                    emailLayout.setVisibility(View.VISIBLE);
+                    detailMail.setText(dbvalue.getContact_email());
+                } else {
+                    emailLayout.setVisibility(View.GONE);
+                    detailMail.setText("-");
                 }
-                detailPhone.setText(pho);
-                detailPhone.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        Intent intent = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + detailPhone.getText().toString().split(",")[0]));
-                        startActivity(intent);
+
+                View[] view;
+                TextView[] detailTag;
+                TextView[] detailValue;
+                detailTag = new TextView[size];
+                detailValue = new TextView[size];
+                view = new View[size];
+                if (containera != null) {
+                    containera.removeAllViews();
+                }
+                RealmList<String> keys = dbvalue.getTag_type();
+                RealmList<String> labels = dbvalue.getTag_lable();
+                int i = 0;
+                String mob = null;
+                for (String tg : dbvalue.getTag_type()) {
+                    String label = Utils.toTitleCase(labels.get(i));
+                    String key = Utils.toTitleCase(keys.get(i).replace("_", " "));
+                    if (key.equals("Mobile")) mob = label;
+                    if (!key.equals("Name") && !key.equals("Name Hindi") && !key.equals("Phone Number") &&
+                            !key.equals("Email Address") && !key.equals("Id") && !key.equals("Latitude") && !key.equals("Longitude")
+                            && !key.equals("Precision") && !key.equals("Mobile")) {
+                        view[i] = getLayoutInflater().inflate(R.layout.detailtextgenerator, containera, false);
+                        detailTag[i] = view[i].findViewById(R.id.detail_type);
+                        detailValue[i] = view[i].findViewById(R.id.detail_value);
+                        detailTag[i].setText(key);
+                        detailValue[i].setText(label);
+                        containera.addView(view[i]);
                     }
-                });
-            } else {
-                detailPhone.setText("-");
+                    i++;
+                }
+                if (dbvalue.getContact_phone() != null || mob != null) {
+                    String pho = null;
+                    if (dbvalue.getContact_phone() != null) pho = dbvalue.getContact_phone();
+                    if (mob != null) {
+                        if (pho != null)
+                            pho = pho + "," + mob;
+                        else pho = mob;
+                    }
+                    detailPhone.setText(pho);
+                    detailPhone.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            Intent intent = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + detailPhone.getText().toString().split(",")[0]));
+                            startActivity(intent);
+                        }
+                    });
+                } else {
+                    detailPhone.setText("-");
+                }
             }
         }
 
@@ -983,6 +1022,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
             toggleTabVisibilityListener.hideTabs();
             lm.setVisibility(View.VISIBLE);
             editName = marker.getTitle();
+            editSnippet = marker.getSnippet();
             editLat = String.valueOf(marker.getPosition().getLatitude());
             editLong = String.valueOf(marker.getPosition().getLongitude());
             //swipeValue = 1;
@@ -1106,6 +1146,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
         for (int i = 0; i < results.size(); i++) {
             String title;
             String snippet = "Swipe up for more detail";
+//            String snippet = String.valueOf(results.get(i).getId());
             double lat = results.get(i).getCoordinateslong();
             double lng = results.get(i).getCoordinateslat();
             if (results.get(i).getName() != null) {

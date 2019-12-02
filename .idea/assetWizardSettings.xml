@@ -155,9 +155,10 @@
                         </option>
                         <option name="values">
                           <map>
+                            <entry key="assetSourceType" value="FILE" />
                             <entry key="color" value="ffffff" />
-                            <entry key="outputName" value="ic_user_24" />
-                            <entry key="sourceFile" value="C:\Users\Ichha\Downloads\user-image-with-black-background.svg" />
+                            <entry key="outputName" value="ic_playground_blue" />
+                            <entry key="sourceFile" value="C:\Users\Ichha\Downloads\playground_blue.svg" />
                           </map>
                         </option>
                       </PersistentState>

@@ -102,6 +102,8 @@ import retrofit2.Response;
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, InsightFragment.onInsightSelected, ToggleTabVisibilityListener {
 
+    private static final String TAG = "MainActvity";
+
     public String updateText() {
         mSharedPref = getSharedPreferences(getString(R.string.prefrence_file_key), Context.MODE_PRIVATE);
         String user = mSharedPref.getString(LoginActivity.AUTHUSERNAME, "Explore Indore");
@@ -224,16 +226,23 @@ public class MainActivity extends AppCompatActivity
         tagMp = new HashMap<>();
         tagMp.put("public_hospitals", "Public Hospitals");
         tagMp.put("private_hospitals", "Private Hospitals");
-        tagMp.put("public_clinics", "Public Clinics and Government Centers");
+        tagMp.put("public_clinics", "AYUSH Centres");
         tagMp.put("private_clinics", "Private Clinics");
-        tagMp.put("dentists", "Dentists");
-        tagMp.put("veterinaries", "Veterinaries");
-        tagMp.put("patho_radio_labs", "Pathology and Radiology Labs");
+        tagMp.put("dentists", "Dental Clinics");
+        tagMp.put("veterinaries", "Veterinary Hospitals");
+        tagMp.put("patho_radio_labs", "Laboratories");
         tagMp.put("anganwadi", "Anganwadis");
-        tagMp.put("blood_banks", "Blood Banks");
-        tagMp.put("mental_health_centers", "Mental Health Centers");
+        tagMp.put("pharmacies", "Pharmacies");
+        tagMp.put("atms", "ATMs");
+        tagMp.put("public_washrooms", "Public Washrooms");
+        tagMp.put("public_waste_bins", "Public Wastebins");
+        tagMp.put("fuel_stations", "Fuel Stations");
         tagMp.put("bus_stops", "Bus Stops");
-
+        tagMp.put("public_schools", "Public Schools");
+        tagMp.put("blood_banks", "Blood Banks");
+        tagMp.put("private_schools", "Private Schools");
+        tagMp.put("mental_health_centers", "Mental Health Centers");
+        tagMp.put("parks_playgrounds", "Parks / playgrounds");
 
         menuAdapter = new ExpandableMenuAdapter(this, listDataHeader, listDataChild, expandableList);
 
@@ -246,6 +255,7 @@ public class MainActivity extends AppCompatActivity
                 String childValue = listDataChild.get(listDataHeader.get(i)).get(i1);
                 getSupportActionBar().setTitle(childValue);
                 for (Map.Entry<String, String> entry : tagMp.entrySet()) {
+                    Log.d(TAG, "onChildClick: " + entry.getValue() + " child " + childValue);
                     if (entry.getValue().equals(childValue)) {
                         tabs.setupWithViewPager(viewPager);
                         if (filter_param != null) filter_param.clear();
@@ -482,7 +492,7 @@ public class MainActivity extends AppCompatActivity
         final RealmResults<ExploreSchema> explore = realm.where(ExploreSchema.class).contains("tag", selectedkey).findAll();
         realm.close();
         def_type = selectedkey;
-
+        Log.d(TAG, "makeMapData: " + explore.size());
         if (explore.size() == 0) {
             showProgressDialog();
             saveDataFromV2Api(selectedkey);
@@ -549,6 +559,7 @@ public class MainActivity extends AppCompatActivity
         publicFacilitiesList.add("Public Wastebins");
         publicFacilitiesList.add("ATMs");
         publicFacilitiesList.add("Fuel Stations");
+        publicFacilitiesList.add("Parks / playgrounds");
 
         downloadlist.add("Update data");
         // downloadlist.add("Download map data");
@@ -628,6 +639,7 @@ public class MainActivity extends AppCompatActivity
         call.enqueue(new Callback<Features>() {
             @Override
             public void onResponse(Call<Features> call, Response<Features> response) {
+                Log.d(TAG, "onResponse: " + response.message());
                 if (response.body() != null) {
                     if (response.body().getSuccess() == 1) {
                         Realm realm = Realm.getDefaultInstance();
@@ -649,6 +661,9 @@ public class MainActivity extends AppCompatActivity
                                             case "name":
                                                 realmObject.setName(op.getValue());
                                                 break;
+//                                            case "name_bank":
+//                                                realmObject.setName(op.getValue());
+//                                                break;
                                             case "name_hindi":
                                                 realmObject.setNamein(op.getValue());
                                                 break;
