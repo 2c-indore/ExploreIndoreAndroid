@@ -661,9 +661,12 @@ public class MainActivity extends AppCompatActivity
                                             case "name":
                                                 realmObject.setName(op.getValue());
                                                 break;
-//                                            case "name_bank":
-//                                                realmObject.setName(op.getValue());
-//                                                break;
+                                            case "name_bank":
+                                                realmObject.setName(op.getValue());
+                                                break;
+                                            case "point_type":
+                                                realmObject.setName(op.getValue());
+                                                break;
                                             case "name_hindi":
                                                 realmObject.setNamein(op.getValue());
                                                 break;

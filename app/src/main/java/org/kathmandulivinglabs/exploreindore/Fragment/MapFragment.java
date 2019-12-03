@@ -777,12 +777,17 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
 
 
             RealmQuery<ExploreSchema> query = realm.where(ExploreSchema.class);
-            ExploreSchema dbvalue = query.equalTo("name", editName).findFirst();
-            Log.d(TAG, "detailView: " + dbvalue);
-            if (dbvalue == null)
-                dbvalue = query.equalTo("coordinateslong", editLat).equalTo("coordinateslat", editLong).findFirst();
+//            ExploreSchema dbvalue = query.equalTo("name", editName).findFirst();
+//            Log.d(TAG, "detailView: " + dbvalue);
+//            if (dbvalue == null)
+            ExploreSchema dbvalue = query
+                    .equalTo("coordinateslong", Double.valueOf(editLat))
+                    .equalTo("coordinateslat", Double.valueOf(editLong))
+                    .findFirst();
 
             Log.d(TAG, "detailView: " + dbvalue + " snippet " + editLat + " long " + editLong);
+            Log.d(TAG, "detailView: " + Double.valueOf(editLat) + " long " + Double.valueOf(editLong));
+
             if (dbvalue != null && dbvalue.getTag_type() != null) {
                 size = dbvalue.getTag_type().size();
             }
