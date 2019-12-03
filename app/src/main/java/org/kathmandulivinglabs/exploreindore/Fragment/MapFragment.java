@@ -468,11 +468,11 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
         IconFactory mIconFactory = IconFactory.getInstance(getActivity());
         tagMp_blue = new HashMap<>();
         tagMp_blue.put("public_hospitals", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.ic_hospital_blue)));
+                getActivity().getResources(), R.drawable.blue_hospital)));
         tagMp_blue.put("private_hospitals", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.ic_hospital_blue)));
+                getActivity().getResources(), R.drawable.blue_hospital)));
         tagMp_blue.put("public_clinics", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.ic_ayush_blue)));
+                getActivity().getResources(), R.drawable.blue_ayush)));
         tagMp_blue.put("private_clinics", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
                 getActivity().getResources(), R.drawable.blue_clinic)));
         tagMp_blue.put("dentists", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
@@ -480,7 +480,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
         tagMp_blue.put("veterinaries", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
                 getActivity().getResources(), R.drawable.blue_vet)));
         tagMp_blue.put("patho_radio_labs", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.ic_labs_blue)));
+                getActivity().getResources(), R.drawable.blue_lab)));
         tagMp_blue.put("anganwadi", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
                 getActivity().getResources(), R.drawable.blue_aaganwadi)));
         tagMp_blue.put("blood_banks", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
@@ -490,27 +490,27 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
         tagMp_blue.put("bus_stops", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
                 getActivity().getResources(), R.drawable.blue_busstop)));
         tagMp_blue.put("atms", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.ic_atm_blue)));
+                getActivity().getResources(), R.drawable.blue_atm)));
         tagMp_blue.put("public_washrooms", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.ic_washroom_blue)));
+                getActivity().getResources(), R.drawable.blue_washroom)));
         tagMp_blue.put("public_waste_bins", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.ic_wastebasket_blue)));
+                getActivity().getResources(), R.drawable.blue_wastebin)));
         tagMp_blue.put("fuel_stations", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.ic_fuel_blue)));
+                getActivity().getResources(), R.drawable.blue_fuel)));
         tagMp_blue.put("public_schools", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.ic_public_school_blue)));
+                getActivity().getResources(), R.drawable.blue_government_school)));
         tagMp_blue.put("private_schools", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.ic_privateschool_blue)));
+                getActivity().getResources(), R.drawable.blue_private_school)));
         tagMp_blue.put("parks_playgrounds", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.ic_playground_blue)));
+                getActivity().getResources(), R.drawable.blue_playground)));
         tagMp_blue.put("pharmacies", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.ic_pharmacy_blue)));
+                getActivity().getResources(), R.drawable.blue_pharmacy)));
 
         tagMp_orange = new HashMap<>();
         tagMp_orange.put("public_hospitals", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.ic_hospital_red)));
+                getActivity().getResources(), R.drawable.red_hospital)));
         tagMp_orange.put("private_hospitals", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.ic_hospital_red)));
+                getActivity().getResources(), R.drawable.red_hospital)));
         tagMp_orange.put("public_clinics", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
                 getActivity().getResources(), R.drawable.red_clinic)));
         tagMp_orange.put("private_clinics", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
@@ -520,7 +520,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
         tagMp_orange.put("veterinaries", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
                 getActivity().getResources(), R.drawable.red_vet)));
         tagMp_orange.put("patho_radio_labs", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.ic_labs_red)));
+                getActivity().getResources(), R.drawable.red_lab)));
         tagMp_orange.put("anganwadi", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
                 getActivity().getResources(), R.drawable.red_aaganwadi)));
         tagMp_orange.put("blood_banks", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
@@ -530,21 +530,21 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
         tagMp_orange.put("bus_stops", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
                 getActivity().getResources(), R.drawable.red_busstop)));
         tagMp_orange.put("atms", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.ic_atm_red)));
+                getActivity().getResources(), R.drawable.red_atm)));
         tagMp_orange.put("public_washrooms", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.ic_washroom_red)));
+                getActivity().getResources(), R.drawable.red_washroom)));
         tagMp_orange.put("public_waste_bins", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.ic_wastebasket_red)));
+                getActivity().getResources(), R.drawable.red_wastebin)));
         tagMp_orange.put("fuel_stations", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.ic_fuel_red)));
+                getActivity().getResources(), R.drawable.red_fuel)));
         tagMp_orange.put("public_schools", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.ic_public_school_red)));
+                getActivity().getResources(), R.drawable.red_government_school)));
         tagMp_orange.put("private_schools", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.ic_privateschool_red)));
+                getActivity().getResources(), R.drawable.red_private_school)));
         tagMp_orange.put("parks_playgrounds", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.ic_playground_red)));
+                getActivity().getResources(), R.drawable.red_playground)));
         tagMp_orange.put("pharmacies", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.ic_pharmacy_red)));
+                getActivity().getResources(), R.drawable.red_pharmacy)));
 
         navButton = v.findViewById(R.id.startButton);
         if (getArguments() != null) {
@@ -777,16 +777,10 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
 
 
             RealmQuery<ExploreSchema> query = realm.where(ExploreSchema.class);
-//            ExploreSchema dbvalue = query.equalTo("name", editName).findFirst();
-//            Log.d(TAG, "detailView: " + dbvalue);
-//            if (dbvalue == null)
             ExploreSchema dbvalue = query
                     .equalTo("coordinateslong", Double.valueOf(editLat))
                     .equalTo("coordinateslat", Double.valueOf(editLong))
                     .findFirst();
-
-            Log.d(TAG, "detailView: " + dbvalue + " snippet " + editLat + " long " + editLong);
-            Log.d(TAG, "detailView: " + Double.valueOf(editLat) + " long " + Double.valueOf(editLong));
 
             if (dbvalue != null && dbvalue.getTag_type() != null) {
                 size = dbvalue.getTag_type().size();
@@ -928,7 +922,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
             addItemsToClusterPlugin();
             mapboxMap.addOnCameraIdleListener(clusterManagerPlugin);
 
-            GeoJsonSource boundary = new GeoJsonSource("boundary", loadGeoJsonFromAsset(getContext(), "ward_boundaries.json"));
+            GeoJsonSource boundary = new GeoJsonSource("boundary", loadGeoJsonFromAsset(getContext(), "indore_geojson.json"));
             mapboxMap.addSource(boundary);
             LineLayer boundaryLine = new LineLayer("boundaryLayer", "boundary")
                     .withProperties(lineWidth(1f),
