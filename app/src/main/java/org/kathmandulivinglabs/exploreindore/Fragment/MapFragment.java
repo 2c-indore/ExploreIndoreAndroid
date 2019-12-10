@@ -1060,20 +1060,30 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
                         RealmList<PokharaBoundary> pbound = wardR.get(0).getBoundry();
                         polygon = new ArrayList<>();
                         double bbboxlat1 = 0, bbboxlat2 = 22.7230, bbboxlong1 = 0, bbboxlong2 = 75.8572;
-                        for (int i = 0; i < pbound.size(); i++) {
+                        double c1 = 0.0;
+                        double c2= 0.0;
+                        int i = 0;
+                        for (i = 0; i < pbound.size(); i++) {
+                            // Make the centroid
+                            c1 = pbound.get(i).getCoordinateslat() + c1;
+                            c2 = pbound.get(i).getCoordinateslong() + c2;
                             bbboxlat1 = pbound.get(i).getCoordinateslat() > bbboxlat1 ? pbound.get(i).getCoordinateslat() : bbboxlat1;
                             bbboxlong1 = pbound.get(i).getCoordinateslong() > bbboxlong1 ? pbound.get(i).getCoordinateslong() : bbboxlong1;
                             bbboxlat2 = pbound.get(i).getCoordinateslat() < bbboxlat2 ? pbound.get(i).getCoordinateslat() : bbboxlat2;
                             bbboxlong2 = pbound.get(i).getCoordinateslong() < bbboxlong2 ? pbound.get(i).getCoordinateslong() : bbboxlong2;
                             polygon.add(new LatLng(pbound.get(i).getCoordinateslat(), pbound.get(i).getCoordinateslong()));
                         }
+                        c1 = c1/i;
+                        c2 = c2/i;
                         LatLngBounds latLngBounds = new LatLngBounds.Builder()
                                 .include(new LatLng(bbboxlat1, bbboxlong1)) // Northeast
                                 .include(new LatLng(bbboxlat2, bbboxlong2)) // Southwest
                                 .build();
                         mapboxMap.moveCamera(CameraUpdateFactory.newLatLngBounds(latLngBounds, 50));
-                        zoomb.setLat((bbboxlat1 + bbboxlat2) / 2);
-                        zoomb.setLng((bbboxlong1 + bbboxlong2) / 2);
+//                        zoomb.setLat((bbboxlat1 + bbboxlat2) / 2);
+//                        zoomb.setLng((bbboxlong1 + bbboxlong2) / 2);
+                        zoomb.setLat(c1);
+                        zoomb.setLng(c2);
                         zoomb.setZoom(13);
                         mapboxMap.setLatLngBoundsForCameraTarget(latLngBounds);
                         mapboxMap.setMinZoomPreference(zoomb.getZoom());

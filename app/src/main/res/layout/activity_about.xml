@@ -45,7 +45,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:layout_marginBottom="10dp"
-            android:text="Explore Indore app is the answer to these questions and more. Kathmandu Living Labs, the local partner of the Secondary Cities initiative, has been spearheading the ground effort to produce robust geospatial data for Pokhara for the past two years. It is hoped that the critical infrastructure information made open here plays an integral part in keeping both yourself and your neighbors safe and allows all visitors to easily access important sites of the city."
+            android:text="Explore Indore app is the answer to these questions and more. Kathmandu Living Labs, the local partner of the Secondary Cities initiative, has been spearheading the ground effort to produce robust geospatial data for Indore for the past two years. It is hoped that the critical infrastructure information made open here plays an integral part in keeping both yourself and your neighbors safe and allows all visitors to easily access important sites of the city."
             android:textColor="@color/primaryText"
             android:textSize="14sp"
             android:textStyle="normal" />

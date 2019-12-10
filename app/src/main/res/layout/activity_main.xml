@@ -48,7 +48,8 @@
                 android:text="  Log in"
                 android:textColor="@color/white"
                 android:textSize="17sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:visibility="gone" />
 
             <ExpandableListView
                 android:id="@+id/expand_nav"

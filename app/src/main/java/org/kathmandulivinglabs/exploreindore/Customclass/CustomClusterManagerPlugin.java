@@ -173,9 +173,9 @@ public class CustomClusterManagerPlugin<T extends ClusterItem & CustomClusterIte
             mClusterTask.cancel(true);
             mClusterTask = new ClusterTask();
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
-                mClusterTask.execute((float) mMap.getCameraPosition().zoom+1.5f);
+                mClusterTask.execute((float) mMap.getCameraPosition().zoom+2.5f);
             } else {
-                mClusterTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (float) mMap.getCameraPosition().zoom+1.5f);
+                mClusterTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (float) mMap.getCameraPosition().zoom+2.5f);
             }
         } finally {
             mClusterTaskLock.writeLock().unlock();
