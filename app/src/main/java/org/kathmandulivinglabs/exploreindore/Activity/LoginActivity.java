@@ -4,15 +4,12 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.design.widget.Snackbar;
-import android.support.v7.app.AppCompatActivity;
+import com.google.android.material.snackbar.Snackbar;
+import androidx.appcompat.app.AppCompatActivity;
 import android.text.InputType;
-import android.util.Log;
 import android.util.Patterns;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 
 import org.json.JSONObject;
 import org.kathmandulivinglabs.exploreindore.Api_helper.ApiHelper;
@@ -23,7 +20,6 @@ import org.kathmandulivinglabs.exploreindore.R;
 import org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.AuthenticateModel;
 import org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.LoginModel;
 import org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.ProfileResponseModel;
-import org.w3c.dom.Text;
 
 import mehdi.sakout.fancybuttons.FancyButton;
 import retrofit2.Call;

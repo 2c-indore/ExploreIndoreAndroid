@@ -16,20 +16,23 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.PersistableBundle;
 import android.os.ResultReceiver;
-import android.support.design.widget.NavigationView;
-import android.support.design.widget.Snackbar;
-import android.support.design.widget.TabLayout;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.NotificationManagerCompat;
-import android.support.v4.content.LocalBroadcastManager;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
+
+import com.google.android.material.navigation.NavigationView;
+import com.google.android.material.snackbar.Snackbar;
+import com.google.android.material.tabs.TabLayout;
+
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -40,6 +43,7 @@ import android.widget.ExpandableListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.JsonObject;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.geometry.LatLngBounds;
@@ -51,7 +55,6 @@ import com.mapbox.mapboxsdk.offline.OfflineTilePyramidRegionDefinition;
 
 import org.greenrobot.eventbus.EventBus;
 import org.json.JSONObject;
-import org.kathmandulivinglabs.exploreindore.Activity.Edit.EditDialogActivity;
 import org.kathmandulivinglabs.exploreindore.Adapter.ExpandableMenuAdapter;
 import org.kathmandulivinglabs.exploreindore.Adapter.ExpandedMenuModel;
 import org.kathmandulivinglabs.exploreindore.Adapter.FragmentAdapter;
@@ -639,8 +642,10 @@ public class MainActivity extends AppCompatActivity
         call.enqueue(new Callback<Features>() {
             @Override
             public void onResponse(Call<Features> call, Response<Features> response) {
-                Log.d(TAG, "onResponse: " + response.message());
+                Log.d(TAG, "onResponse: " + response.body().toString());
                 if (response.body() != null) {
+
+                    Log.d(TAG, "onResponse: " + response.body().getGeometries().getPois());
                     if (response.body().getSuccess() == 1) {
                         Realm realm = Realm.getDefaultInstance();
                         try {
@@ -1260,7 +1265,7 @@ public class MainActivity extends AppCompatActivity
     public void setSnackbar(String msg) {
         snackbar = Snackbar.make(this.findViewById(android.R.id.content), msg, Snackbar.LENGTH_INDEFINITE);
         View snackbarView = snackbar.getView();
-        TextView textView = snackbarView.findViewById(android.support.design.R.id.snackbar_text);
+        TextView textView = snackbarView.findViewById(R.id.snackbar_text);
         textView.setMaxLines(5);
         final Snackbar finalSnackbar = snackbar;
         snackbar.setAction("Retry", new View.OnClickListener() {

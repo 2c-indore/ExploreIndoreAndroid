@@ -2,33 +2,34 @@ package org.kathmandulivinglabs.exploreindore.Fragment;
 
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.content.res.ColorStateList;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.graphics.Typeface;
+import android.graphics.PointF;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.RequiresApi;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
+
 import android.os.Bundle;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.view.GestureDetectorCompat;
-import android.support.v4.widget.NestedScrollView;
-import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.SearchView;
-import android.text.Html;
+
+import androidx.fragment.app.FragmentTransaction;
+import androidx.core.view.GestureDetectorCompat;
+import androidx.core.widget.NestedScrollView;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
+
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.GestureDetector;
@@ -43,8 +44,6 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -55,39 +54,31 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
+import com.mapbox.android.core.location.LocationEngine;
+import com.mapbox.android.core.permissions.PermissionsListener;
+import com.mapbox.android.core.permissions.PermissionsManager;
+import com.mapbox.geojson.Feature;
+import com.mapbox.geojson.FeatureCollection;
 import com.mapbox.geojson.Point;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.annotations.Icon;
 import com.mapbox.mapboxsdk.annotations.IconFactory;
 import com.mapbox.mapboxsdk.annotations.Marker;
-import com.mapbox.mapboxsdk.annotations.Polygon;
 import com.mapbox.mapboxsdk.annotations.PolygonOptions;
-import com.mapbox.mapboxsdk.annotations.Polyline;
-import com.mapbox.mapboxsdk.annotations.PolylineOptions;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
-import com.mapbox.mapboxsdk.constants.Style;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.geometry.LatLngBounds;
 import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
-import com.mapbox.mapboxsdk.plugins.cluster.clustering.Cluster;
-import com.mapbox.mapboxsdk.plugins.locationlayer.LocationLayerMode;
-import com.mapbox.mapboxsdk.plugins.locationlayer.LocationLayerPlugin;
+import com.mapbox.mapboxsdk.maps.Style;
+import com.mapbox.mapboxsdk.style.expressions.Expression;
 import com.mapbox.mapboxsdk.style.layers.CircleLayer;
 import com.mapbox.mapboxsdk.style.layers.LineLayer;
-import com.mapbox.mapboxsdk.style.layers.PropertyFactory;
-import com.mapbox.mapboxsdk.style.layers.TransitionOptions;
+import com.mapbox.mapboxsdk.style.layers.SymbolLayer;
+import com.mapbox.mapboxsdk.style.sources.GeoJsonOptions;
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
-import com.mapbox.services.android.navigation.ui.v5.NavigationLauncher;
-import com.mapbox.services.android.navigation.ui.v5.NavigationLauncherOptions;
-import com.mapbox.services.android.navigation.v5.navigation.NavigationUnitType;
-import com.mapbox.services.android.telemetry.location.LocationEngine;
-import com.mapbox.services.android.telemetry.location.LocationEngineListener;
-import com.mapbox.services.android.telemetry.location.LocationEnginePriority;
-import com.mapbox.services.android.telemetry.location.LostLocationEngine;
-import com.mapbox.services.android.telemetry.permissions.PermissionsListener;
-import com.mapbox.services.android.telemetry.permissions.PermissionsManager;
+
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -95,7 +86,6 @@ import org.greenrobot.eventbus.ThreadMode;
 import org.kathmandulivinglabs.exploreindore.Activity.LoginActivity;
 import org.kathmandulivinglabs.exploreindore.Activity.MainActivity;
 import org.kathmandulivinglabs.exploreindore.Adapter.SearchListAdapter;
-import org.kathmandulivinglabs.exploreindore.Customclass.CustomClusterItem;
 import org.kathmandulivinglabs.exploreindore.Customclass.CustomClusterManagerPlugin;
 import org.kathmandulivinglabs.exploreindore.FilterParcel;
 import org.kathmandulivinglabs.exploreindore.Activity.Edit.EditDialogActivity;
@@ -106,26 +96,26 @@ import org.kathmandulivinglabs.exploreindore.Interface.ToggleTabVisibilityListen
 import org.kathmandulivinglabs.exploreindore.R;
 import org.kathmandulivinglabs.exploreindore.Realmstore.ExploreSchema;
 import org.kathmandulivinglabs.exploreindore.Realmstore.PokharaBoundary;
-import org.kathmandulivinglabs.exploreindore.Realmstore.Tag;
 import org.kathmandulivinglabs.exploreindore.Realmstore.Ward;
+import org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.Features;
+import org.kathmandulivinglabs.exploreindore.models.MyItem;
+import org.kathmandulivinglabs.exploreindore.models.POI.POI;
+import org.kathmandulivinglabs.exploreindore.models.POI.POIFeature;
+import org.kathmandulivinglabs.exploreindore.models.POI.POIGeometry;
 
-import com.mapbox.services.android.navigation.ui.v5.route.NavigationMapRoute;
+import com.mapbox.mapboxsdk.utils.BitmapUtils;
 import com.mapbox.services.android.navigation.v5.navigation.NavigationRoute;
 import com.mapbox.api.directions.v5.models.DirectionsResponse;
 import com.mapbox.api.directions.v5.models.DirectionsRoute;
-import com.squareup.picasso.Picasso;
 
 import java.io.InputStream;
-import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
 
-import io.realm.RealmCollection;
 import io.realm.RealmList;
 import mehdi.sakout.fancybuttons.FancyButton;
 import retrofit2.Call;
@@ -133,22 +123,46 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 
-import io.realm.Case;
 import io.realm.Realm;
 import io.realm.RealmQuery;
 import io.realm.RealmResults;
+import timber.log.Timber;
 
 import static android.content.Context.LOCATION_SERVICE;
+import static com.mapbox.mapboxsdk.style.expressions.Expression.all;
+import static com.mapbox.mapboxsdk.style.expressions.Expression.get;
+import static com.mapbox.mapboxsdk.style.expressions.Expression.gte;
+import static com.mapbox.mapboxsdk.style.expressions.Expression.has;
+import static com.mapbox.mapboxsdk.style.expressions.Expression.literal;
+import static com.mapbox.mapboxsdk.style.expressions.Expression.log2;
+import static com.mapbox.mapboxsdk.style.expressions.Expression.lt;
+import static com.mapbox.mapboxsdk.style.expressions.Expression.toNumber;
+import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.circleColor;
+import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.circleRadius;
+import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconImage;
+import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconSize;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineColor;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineDasharray;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineTranslate;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineWidth;
+import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.textAllowOverlap;
+import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.textColor;
+import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.textField;
+import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.textIgnorePlacement;
+import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.textSize;
 
 
-public class MapFragment extends Fragment implements PermissionsListener, LocationEngineListener, MainActivity.Backlistner {
+//public class MapFragment extends Fragment implements PermissionsListener, LocationEngineListener, MainActivity.Backlistner {
+public class MapFragment extends Fragment implements PermissionsListener, MainActivity.Backlistner {
+    private static final String SINGLE_EARTHQUAKE_TRIANGLE_ICON_ID = "single-quake-icon-id";
+    private static final String EARTHQUAKE_SOURCE_ID = "earthquakes";
+    private static final String POINT_COUNT = "point_count";
+    private static final String UNCLUSTERED_POINTS = "unclustered-points";
+
     private MapView mapView;
     private CustomClusterManagerPlugin<MyItem> clusterManagerPlugin;
     private MapboxMap mapboxMap;
+    private Style style;
     private LinearLayout lm;
     private LinearLayout small_info;
     private TextView testText, detailNepaliTitle, detailEnglishTitle, detailPhone, detailWeb, detailMail;
@@ -169,6 +183,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
     public static String selectedType = MainActivity.def_type;
     Marker previous_selected;
     private ToggleTabVisibilityListener toggleTabVisibilityListener;
+    private FeatureCollection featureCollection;
 
     private class zoomobj {
         private double lat, lng, zoom;
@@ -200,7 +215,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
 
     //Location_plugin_variable
     private PermissionsManager permissionsManager;
-    private LocationLayerPlugin locationPlugin;
+    //    private LocationLayerPlugin locationPlugin;
     private LocationEngine locationEngine;
     private Location originLocation;
     private Marker destinationMarker;
@@ -210,7 +225,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
     private Point destinationPosition;
     private DirectionsRoute currentRoute;
     private static final String TAG = "DirectionsActivity";
-    private NavigationMapRoute navigationMapRoute;
+    //    private NavigationMapRoute navigationMapRoute;
     private Button edit_btn;
     private ImageButton gps, zoomtoextant, closebtn, expandinfo, attraction_close;
 
@@ -221,6 +236,8 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
     private String editName, editLat, editLong, editSnippet;
     private Map<String, com.mapbox.mapboxsdk.annotations.Icon> tagMp_blue;
     private Map<String, com.mapbox.mapboxsdk.annotations.Icon> tagMp_orange;
+    private Map<String, Integer> blueMarkers;
+    private Map<String, Integer> orangeMarkers;
     ListView listView;
     private Map<LatLng, String> uniList;
     SearchView searchView;
@@ -243,7 +260,8 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
             ((AppCompatActivity) getActivity()).getSupportActionBar().show();
             toggleTabVisibilityListener.showTabs();
             lm.setVisibility(View.GONE);
-            if (navigationMapRoute != null) navigationMapRoute.removeRoute();
+            //todo
+//            if (navigationMapRoute != null) navigationMapRoute.removeRoute();
             previous_selected.setIcon(getItemIcon()); //to change red icon to blue
             detail_screen.removeAllViews();
             if (mSearchMenuItem != null)
@@ -386,6 +404,8 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        Mapbox.getInstance(getContext(), getString(R.string.mapbox_access_token));
+
         View v = inflater.inflate(R.layout.map_fragment, container, false);
         mapScreen = v.findViewById(R.id.mapScreen);
 
@@ -425,18 +445,21 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
                             // for ActivityCompat#requestPermissions for more details.
                             return;
                         }
-                        locationEngine.requestLocationUpdates();
+                        // TODO: 12/23/2019
+//                        locationEngine.requestLocationUpdates();
                     }
-                    if (locationPlugin != null) {
-                        locationPlugin.onStart();
-                    }
+                    // TODO: 12/23/2019
+//                    if (locationPlugin != null) {
+//                        locationPlugin.onStart();
+//                    }
                 } else if (gps.getTag().equals("gps_fixed")) {
-                    if (locationEngine != null) {
-                        locationEngine.requestLocationUpdates();
-                    }
-                    if (locationPlugin != null) {
-                        locationPlugin.onStart();
-                    }
+                    // TODO: 12/23/2019
+//                    if (locationEngine != null) {
+//                        locationEngine.requestLocationUpdates();
+//                    }
+//                    if (locationPlugin != null) {
+//                        locationPlugin.onStart();
+//                    }
                 }
             }
         });
@@ -447,8 +470,6 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
         zoomtoextant.setOnClickListener(View ->
                 mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(zoomb.getLat(), zoomb.getLng()), zoomb.getZoom()), 500));
         LayoutInflater inflate_info = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-
-        Mapbox.getInstance(getContext(), "pk.eyJ1IjoiYmhhd2FrIiwiYSI6ImNpeHNrOHp4ODAwMDYzMW52cDM1a2xyd3MifQ.iQQzvoiIaVKbg8RRkvhvTA");
         mapView = v.findViewById(R.id.mapView);
         mapView.setLayoutParams(params);
         lm = v.findViewById(R.id.container);
@@ -465,6 +486,256 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
         testText = v.findViewById(R.id.hos_name);
         expandinfo = v.findViewById(R.id.detail_btn);
         insightfilter = new FilterParcel();
+
+        setUpMarkerIcons();
+        setUpNewMarkerIcons();
+
+
+        navButton = v.findViewById(R.id.startButton);
+        if (getArguments() != null) {
+            FilterParcel filterdata = getArguments().getParcelable("FilterValue");
+            selectedType = getArguments().getString("selectedType", "attractions");
+        }
+
+
+        detailbool = true;
+        amenityInfo = inflate_info.inflate(R.layout.detailview, null);
+        websiteLayout = amenityInfo.findViewById(R.id.websiteLayout);
+        emailLayout = amenityInfo.findViewById(R.id.emailLayout);
+        containera = amenityInfo.findViewById(R.id.detailLayout);
+        closebtn = amenityInfo.findViewById(R.id.btn_close);
+        detailEnglishTitle = amenityInfo.findViewById(R.id.txt_detail_enname);
+        detailNepaliTitle = amenityInfo.findViewById(R.id.txt_detail_nename);
+        detailPhone = amenityInfo.findViewById(R.id.txt_detail_phone);
+        detailWeb = amenityInfo.findViewById(R.id.txt_detail_web);
+        detailMail = amenityInfo.findViewById(R.id.txt_detail_email);
+        edit_btn = amenityInfo.findViewById(R.id.edit_btn);
+        boolean Auth = MainActivity.mSharedPref.getBoolean(LoginActivity.AUTHENTICATED, false);
+        if (Auth) {
+            edit_btn.setVisibility(View.VISIBLE);
+        } else {
+            edit_btn.setVisibility(View.GONE);
+        }
+        edit_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ((AppCompatActivity) getActivity()).getSupportActionBar().show();
+                toggleTabVisibilityListener.showTabs();
+                editAmenity(selectedType);
+            }
+        });
+        closebtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                swipeValue = 0;
+                previous_selected.setIcon(getItemIcon()); //to change red icon to blue
+                lm.setLayoutParams(lp_shrink);
+                small_info.setVisibility(View.VISIBLE);
+                ((AppCompatActivity) getActivity()).getSupportActionBar().show();
+                toggleTabVisibilityListener.showTabs();
+//                if (navigationMapRoute != null) navigationMapRoute.removeRoute();
+                lm.setVisibility(View.GONE);
+                detail_screen.removeAllViews();
+                // mapView.refreshDrawableState();
+            }
+        });
+//        }
+
+        lm.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                mDetector.onTouchEvent(motionEvent);
+                if (swipeValue == 1 || (iff_ondown && !iff_onswipe)) {
+                    ((AppCompatActivity) getActivity()).getSupportActionBar().hide();
+                    toggleTabVisibilityListener.hideTabs();
+                    small_info.setVisibility(View.GONE);
+                    lm.setLayoutParams(lp_expand);
+                    detail_screen.removeAllViews();
+                    detailView(detailbool);
+                    detail_screen.addView(amenityInfo);
+                    swipeValue = 1;
+                } else if (swipeValue == 2) {
+                    if (lm.getLayoutParams() == lp_shrink) {
+                        ((AppCompatActivity) getActivity()).getSupportActionBar().show();
+                        toggleTabVisibilityListener.showTabs();
+//                        params.setMargins(0, actionBarHeight, 0, 0);
+                        //if (navigationMapRoute != null) navigationMapRoute.removeRoute();
+                        lm.setVisibility(View.GONE);
+                        detail_screen.removeView(amenityInfo);
+                    } else {
+                        lm.setLayoutParams(lp_shrink);
+                        small_info.setVisibility(View.VISIBLE);
+                        detail_screen.removeView(amenityInfo);
+                        iff_ondown = false;
+                        iff_onswipe = false;
+                    }
+                }
+                return false;
+            }
+        });
+        expandinfo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ((AppCompatActivity) getActivity()).getSupportActionBar().hide();
+                toggleTabVisibilityListener.hideTabs();
+//                params.setMargins(0, 0, 0, 0);
+                small_info.setVisibility(View.GONE);
+                lm.setLayoutParams(lp_expand);
+                detail_screen.removeAllViews();
+                detailView(detailbool);
+                detail_screen.addView(amenityInfo);
+            }
+        });
+
+
+        close_btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                swipeValue = 0;
+                previous_selected.setIcon(getItemIcon()); //to change red icon to blue
+                lm.setLayoutParams(lp_shrink);
+                small_info.setVisibility(View.VISIBLE);
+                ((AppCompatActivity) getActivity()).getSupportActionBar().show();
+                toggleTabVisibilityListener.showTabs();
+//                params.setMargins(0, actionBarHeight, 0, 0);
+                lm.setVisibility(View.GONE);
+//                if (navigationMapRoute != null) navigationMapRoute.removeRoute();
+                detail_screen.removeAllViews();
+            }
+        });
+        navButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (navButton.getText().toString().equalsIgnoreCase("Route")) {
+                    if (originLocation != null) {
+                        Toast.makeText(getContext(), "Please wait the gps is locating you", Toast.LENGTH_LONG).show();
+                        originCoord = new LatLng(originLocation.getLatitude(), originLocation.getLongitude());
+                        originPosition = Point.fromLngLat(originCoord.getLongitude(), originCoord.getLatitude());
+                        getRoute(originPosition, destinationPosition);
+                    } else {
+                        if (gps.getTag().equals("gps_off")) {
+                            gps_checker(true);
+                            Toast.makeText(getContext(), "Please wait the gps is locating you", Toast.LENGTH_LONG).show();
+                        } else
+                            Toast.makeText(getContext(), "Could not find you", Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    // TODO: 12/23/2019
+//                    if (navigationMapRoute != null) {
+//                        Point origin = originPosition;
+//                        Point destination = destinationPosition;
+//                        // Pass in your Amazon Polly pool id for speech synthesis using Amazon Polly
+//                        // Set to null to use the default Android speech synthesizer
+//                        String awsPoolId = null;
+//                        boolean simulateRoute = false;
+//                        NavigationLauncherOptions options = NavigationLauncherOptions.builder()
+////                                .origin(origin)
+////                                .destination(destination)
+////                                .awsPoolId(awsPoolId)
+//                                .shouldSimulateRoute(simulateRoute)
+////                                .unitType(NavigationUnitType.TYPE_METRIC)
+//                                .build();
+//
+//                        // Call this method with Context from within an Activity
+//                        NavigationLauncher.startNavigation(getActivity(), options);
+//                    } else {
+//                        Toast.makeText(getContext(), "Could not find you", Toast.LENGTH_SHORT).show();
+//                    }
+                }
+            }
+        });
+        LatLngBounds latLngBounds = new LatLngBounds.Builder()
+                .include(new LatLng(22.8202, 76.0467)) // Northeast
+                .include(new LatLng(22.6248, 75.7202)) // Southwest
+                .build();
+        mapView.getMapAsync(new OnMapReadyCallback() {
+            @Override
+            public void onMapReady(MapboxMap mapboxMap) {
+                MapFragment.this.mapboxMap = mapboxMap;
+                mapboxMap.setStyle(getString(R.string.mapbox_style_mapbox_streets), style -> {
+                    MapFragment.this.style = style;
+                    mapboxMap.getUiSettings().setCompassMargins(0, actionBarHeight, 2, 0);
+                    mapboxMap.moveCamera(CameraUpdateFactory.newLatLngBounds(latLngBounds, 50));
+                    mapboxMap.setLatLngBoundsForCameraTarget(latLngBounds);
+                    mapboxMap.setMaxZoomPreference(18);
+                    mapboxMap.setMinZoomPreference(zoomb.getZoom());
+                    zoomtoextant.setEnabled(true);
+
+                    initCameraListener(style);
+                    enableLocationPlugin();
+                    style.addImageAsync(
+                            SINGLE_EARTHQUAKE_TRIANGLE_ICON_ID,
+                            BitmapUtils.getBitmapFromDrawable(getResources().getDrawable(blueMarkers.get(selectedType))),
+                            false
+                    );
+                    mapboxMap.addOnMapClickListener(point -> {
+                        return handleClickIcon(mapboxMap.getProjection().toScreenLocation(point), point);
+                    });
+                });
+            }
+        });
+        listView = v.findViewById(R.id.listView);
+        uniList = new HashMap<>();
+        searches = new ArrayList<>();
+        searchListAdapter = new
+
+                SearchListAdapter(this.getContext(), searches);
+//        adapter = new ArrayAdapter<Search>(this.getContext(), android.R.layout.simple_list_item_1, searches);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Search selected = (Search) listView.getItemAtPosition(position);
+                clickmarker(selected.cord, selected.name);
+            }
+        });
+        return v;
+    }
+
+    private void setUpNewMarkerIcons() {
+        blueMarkers = new HashMap<>();
+        blueMarkers.put("public_hospitals", R.drawable.blue_hospital);
+        blueMarkers.put("private_hospitals", R.drawable.blue_hospital);
+        blueMarkers.put("public_clinics", R.drawable.blue_ayush);
+        blueMarkers.put("private_clinics", R.drawable.blue_clinic);
+        blueMarkers.put("dentists", R.drawable.blue_dentist);
+        blueMarkers.put("veterinaries", R.drawable.blue_vet);
+        blueMarkers.put("patho_radio_labs", R.drawable.blue_lab);
+        blueMarkers.put("anganwadi", R.drawable.blue_aaganwadi);
+        blueMarkers.put("blood_banks", R.drawable.blue_bloodbank);
+        blueMarkers.put("mental_health_centers", R.drawable.blue_mental_health);
+        blueMarkers.put("bus_stops", R.drawable.blue_busstop);
+        blueMarkers.put("atms", R.drawable.blue_atm);
+        blueMarkers.put("public_washrooms", R.drawable.blue_washroom);
+        blueMarkers.put("public_waste_bins", R.drawable.blue_wastebin);
+        blueMarkers.put("fuel_stations", R.drawable.blue_fuel);
+        blueMarkers.put("public_schools", R.drawable.blue_government_school);
+        blueMarkers.put("private_schools", R.drawable.blue_private_school);
+        blueMarkers.put("parks_playgrounds", R.drawable.blue_playground);
+        blueMarkers.put("pharmacies", R.drawable.blue_pharmacy);
+
+        orangeMarkers = new HashMap<>();
+        orangeMarkers.put("public_hospitals", R.drawable.red_hospital);
+        orangeMarkers.put("private_hospitals", R.drawable.red_hospital);
+        orangeMarkers.put("public_clinics", R.drawable.red_clinic);
+        orangeMarkers.put("private_clinics", R.drawable.red_clinic);
+        orangeMarkers.put("dentists", R.drawable.red_dentist);
+        orangeMarkers.put("veterinaries", R.drawable.red_vet);
+        orangeMarkers.put("patho_radio_labs", R.drawable.red_lab);
+        orangeMarkers.put("anganwadi", R.drawable.red_aaganwadi);
+        orangeMarkers.put("blood_banks", R.drawable.red_bloodbank);
+        orangeMarkers.put("mental_health_centers", R.drawable.red_mental_health);
+        orangeMarkers.put("bus_stops", R.drawable.red_busstop);
+        orangeMarkers.put("atms", R.drawable.red_atm);
+        orangeMarkers.put("public_washrooms", R.drawable.red_washroom);
+        orangeMarkers.put("public_waste_bins", R.drawable.red_wastebin);
+        orangeMarkers.put("fuel_stations", R.drawable.red_fuel);
+        orangeMarkers.put("public_schools", R.drawable.red_government_school);
+        orangeMarkers.put("private_schools", R.drawable.red_private_school);
+        orangeMarkers.put("parks_playgrounds", R.drawable.red_playground);
+        orangeMarkers.put("pharmacies", R.drawable.red_pharmacy);
+    }
+
+    private void setUpMarkerIcons() {
         IconFactory mIconFactory = IconFactory.getInstance(getActivity());
         tagMp_blue = new HashMap<>();
         tagMp_blue.put("public_hospitals", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
@@ -545,194 +816,6 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
                 getActivity().getResources(), R.drawable.red_playground)));
         tagMp_orange.put("pharmacies", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
                 getActivity().getResources(), R.drawable.red_pharmacy)));
-
-        navButton = v.findViewById(R.id.startButton);
-        if (getArguments() != null) {
-            FilterParcel filterdata = getArguments().getParcelable("FilterValue");
-            selectedType = getArguments().getString("selectedType", "attractions");
-        }
-
-
-        detailbool = true;
-        amenityInfo = inflate_info.inflate(R.layout.detailview, null);
-        websiteLayout = amenityInfo.findViewById(R.id.websiteLayout);
-        emailLayout = amenityInfo.findViewById(R.id.emailLayout);
-        containera = amenityInfo.findViewById(R.id.detailLayout);
-        closebtn = amenityInfo.findViewById(R.id.btn_close);
-        detailEnglishTitle = amenityInfo.findViewById(R.id.txt_detail_enname);
-        detailNepaliTitle = amenityInfo.findViewById(R.id.txt_detail_nename);
-        detailPhone = amenityInfo.findViewById(R.id.txt_detail_phone);
-        detailWeb = amenityInfo.findViewById(R.id.txt_detail_web);
-        detailMail = amenityInfo.findViewById(R.id.txt_detail_email);
-        edit_btn = amenityInfo.findViewById(R.id.edit_btn);
-        boolean Auth = MainActivity.mSharedPref.getBoolean(LoginActivity.AUTHENTICATED, false);
-        if (Auth) {
-            edit_btn.setVisibility(View.VISIBLE);
-        } else {
-            edit_btn.setVisibility(View.GONE);
-        }
-        edit_btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                ((AppCompatActivity) getActivity()).getSupportActionBar().show();
-                toggleTabVisibilityListener.showTabs();
-                editAmenity(selectedType);
-            }
-        });
-        closebtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                swipeValue = 0;
-                previous_selected.setIcon(getItemIcon()); //to change red icon to blue
-                lm.setLayoutParams(lp_shrink);
-                small_info.setVisibility(View.VISIBLE);
-                ((AppCompatActivity) getActivity()).getSupportActionBar().show();
-                toggleTabVisibilityListener.showTabs();
-                if (navigationMapRoute != null) navigationMapRoute.removeRoute();
-                lm.setVisibility(View.GONE);
-                detail_screen.removeAllViews();
-                // mapView.refreshDrawableState();
-            }
-        });
-//        }
-
-        lm.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
-                mDetector.onTouchEvent(motionEvent);
-                if (swipeValue == 1 || (iff_ondown && !iff_onswipe)) {
-                    ((AppCompatActivity) getActivity()).getSupportActionBar().hide();
-                    toggleTabVisibilityListener.hideTabs();
-                    small_info.setVisibility(View.GONE);
-                    lm.setLayoutParams(lp_expand);
-                    detail_screen.removeAllViews();
-                    detailView(detailbool);
-                    detail_screen.addView(amenityInfo);
-                    swipeValue = 1;
-                } else if (swipeValue == 2) {
-                    if (lm.getLayoutParams() == lp_shrink) {
-                        ((AppCompatActivity) getActivity()).getSupportActionBar().show();
-                        toggleTabVisibilityListener.showTabs();
-//                        params.setMargins(0, actionBarHeight, 0, 0);
-                        //if (navigationMapRoute != null) navigationMapRoute.removeRoute();
-                        lm.setVisibility(View.GONE);
-                        detail_screen.removeView(amenityInfo);
-                    } else {
-                        lm.setLayoutParams(lp_shrink);
-                        small_info.setVisibility(View.VISIBLE);
-                        detail_screen.removeView(amenityInfo);
-                        iff_ondown = false;
-                        iff_onswipe = false;
-                    }
-                }
-                return false;
-            }
-        });
-        expandinfo.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                ((AppCompatActivity) getActivity()).getSupportActionBar().hide();
-                toggleTabVisibilityListener.hideTabs();
-//                params.setMargins(0, 0, 0, 0);
-                small_info.setVisibility(View.GONE);
-                lm.setLayoutParams(lp_expand);
-                detail_screen.removeAllViews();
-                detailView(detailbool);
-                detail_screen.addView(amenityInfo);
-            }
-        });
-
-
-        close_btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                swipeValue = 0;
-                previous_selected.setIcon(getItemIcon()); //to change red icon to blue
-                lm.setLayoutParams(lp_shrink);
-                small_info.setVisibility(View.VISIBLE);
-                ((AppCompatActivity) getActivity()).getSupportActionBar().show();
-                toggleTabVisibilityListener.showTabs();
-//                params.setMargins(0, actionBarHeight, 0, 0);
-                lm.setVisibility(View.GONE);
-                if (navigationMapRoute != null) navigationMapRoute.removeRoute();
-                detail_screen.removeAllViews();
-            }
-        });
-        navButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (navButton.getText().toString().equalsIgnoreCase("Route")) {
-                    if (originLocation != null) {
-                        Toast.makeText(getContext(), "Please wait the gps is locating you", Toast.LENGTH_LONG).show();
-                        originCoord = new LatLng(originLocation.getLatitude(), originLocation.getLongitude());
-                        originPosition = Point.fromLngLat(originCoord.getLongitude(), originCoord.getLatitude());
-                        getRoute(originPosition, destinationPosition);
-                    } else {
-                        if (gps.getTag().equals("gps_off")) {
-                            gps_checker(true);
-                            Toast.makeText(getContext(), "Please wait the gps is locating you", Toast.LENGTH_LONG).show();
-                        } else
-                            Toast.makeText(getContext(), "Could not find you", Toast.LENGTH_SHORT).show();
-                    }
-                } else {
-                    if (navigationMapRoute != null) {
-                        Point origin = originPosition;
-                        Point destination = destinationPosition;
-                        // Pass in your Amazon Polly pool id for speech synthesis using Amazon Polly
-                        // Set to null to use the default Android speech synthesizer
-                        String awsPoolId = null;
-                        boolean simulateRoute = false;
-                        NavigationLauncherOptions options = NavigationLauncherOptions.builder()
-                                .origin(origin)
-                                .destination(destination)
-                                .awsPoolId(awsPoolId)
-                                .shouldSimulateRoute(simulateRoute)
-                                .unitType(NavigationUnitType.TYPE_METRIC)
-                                .build();
-
-                        // Call this method with Context from within an Activity
-                        NavigationLauncher.startNavigation(getActivity(), options);
-                    } else {
-                        Toast.makeText(getContext(), "Could not find you", Toast.LENGTH_SHORT).show();
-                    }
-                }
-            }
-        });
-        LatLngBounds latLngBounds = new LatLngBounds.Builder()
-                .include(new LatLng(22.8202, 76.0467)) // Northeast
-                .include(new LatLng(22.6248, 75.7202)) // Southwest
-                .build();
-        mapView.getMapAsync(new OnMapReadyCallback() {
-            @Override
-            public void onMapReady(MapboxMap mapboxMap) {
-                MapFragment.this.mapboxMap = mapboxMap;
-                mapboxMap.getUiSettings().setCompassMargins(0, actionBarHeight, 2, 0);
-                mapboxMap.moveCamera(CameraUpdateFactory.newLatLngBounds(latLngBounds, 50));
-                mapboxMap.setLatLngBoundsForCameraTarget(latLngBounds);
-                mapboxMap.setMaxZoomPreference(18);
-                mapboxMap.setMinZoomPreference(zoomb.getZoom());
-                // mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(28.2380, 83.9956), 9.3), 500);
-                zoomtoextant.setEnabled(true);
-                clusterManagerPlugin = new CustomClusterManagerPlugin<MyItem>(getContext(), mapboxMap);
-//                mapboxMap.selectMarker(previous_selected);
-                //addmarkeronTouch();
-                initCameraListener();
-                enableLocationPlugin();
-            }
-        });
-        listView = v.findViewById(R.id.listView);
-        uniList = new HashMap<>();
-        searches = new ArrayList<>();
-        searchListAdapter = new SearchListAdapter(this.getContext(), searches);
-//        adapter = new ArrayAdapter<Search>(this.getContext(), android.R.layout.simple_list_item_1, searches);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Search selected = (Search) listView.getItemAtPosition(position);
-                clickmarker(selected.cord, selected.name);
-            }
-        });
-        return v;
     }
 
     static String loadGeoJsonFromAsset(Context context, String filename) {
@@ -880,6 +963,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
 //                if (!fromRoute) //to take you to your location on clicking gps location
 //                    setCameraPosition(originLocation);
             } else {
+                // TODO: 12/23/2019
                 initializeLocationEngine();
             }
         } else {
@@ -912,26 +996,32 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
     public void setFilter(Boolean fp) {
         filterflag = fp;
         //mapView.refreshDrawableState();
-        navigationMapRoute = null;
+        //todo
+//        navigationMapRoute = null;
         FragmentTransaction ftr = getFragmentManager().beginTransaction();
         ftr.detach(MapFragment.this).attach(MapFragment.this).commit();
     }
 
-    protected void initCameraListener() {
+    protected void initCameraListener(Style style) {
+        Log.d(TAG, "initCameraListener: " + selectedType);
+        Log.d(TAG, "initCameraListener: " + blueMarkers.get(selectedType));
+        Log.d(TAG, "initCameraListener: " + getResources().getDrawable(blueMarkers.get(selectedType)));
+//        style.addImage(
+//                SINGLE_EARTHQUAKE_TRIANGLE_ICON_ID,
+//                BitmapUtils.getBitmapFromDrawable(getResources().getDrawable(blueMarkers.get(selectedType))),
+//                true
+//        );
         try {
             addItemsToClusterPlugin();
-            mapboxMap.addOnCameraIdleListener(clusterManagerPlugin);
+//            mapboxMap.addOnCameraIdleListener(clusterManagerPlugin);
 
             GeoJsonSource boundary = new GeoJsonSource("boundary", loadGeoJsonFromAsset(getContext(), "indore_geojson.json"));
-            mapboxMap.addSource(boundary);
+            style.addSource(boundary);
             LineLayer boundaryLine = new LineLayer("boundaryLayer", "boundary")
-                    .withProperties(lineWidth(1f),
+                    .withProperties(lineWidth(0.8f),
                             lineColor(Color.GRAY));
-//                            lineTranslate(new Float[]{0f, 5f}),
-//                            lineDasharray(new Float[]{10f, 5f}));
-//            boundaryLine.setProperties(lineTranslate(new Float[] {0f, 4f}), lineWidth(1f), lineColor(Color.parseColor("#757575")));
-            int allLayer = mapboxMap.getLayers().size();
-            mapboxMap.addLayerAt(boundaryLine, allLayer - 10);
+            int allLayer = style.getLayers().size();
+            style.addLayerAt(boundaryLine, allLayer - 10);
 
             List<LatLng> polygon = new ArrayList<>();
             Realm realm = Realm.getDefaultInstance();
@@ -947,19 +1037,21 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
             mapboxMap.setOnMarkerClickListener(new MapboxMap.OnMarkerClickListener() {
                 @Override
                 public boolean onMarkerClick(@NonNull final Marker marker) {
+                    Log.d(TAG, "onMarkerClick: ");
                     markerclickAction(marker);
                     return true;
                 }
             });
 
-            clusterManagerPlugin.getRenderer().setOnClusterClickListener(new CustomClusterManagerPlugin.OnClusterClickListener<MyItem>() {
-                @Override
-                public boolean onClusterClick(Cluster<MyItem> cluster) {
-                    return false;
-                }
-            });
+//            clusterManagerPlugin.getRenderer().setOnClusterClickListener(new CustomClusterManagerPlugin.OnClusterClickListener<MyItem>() {
+//                @Override
+//                public boolean onClusterClick(Cluster<MyItem> cluster) {
+//                    return false;
+//                }
+//            });
 
         } catch (Exception e) {
+            Log.d(TAG, "initCameraListener: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -1030,7 +1122,8 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
             //to keep teh color to blue/ colorPrimary
 //            navButton.setBackgroundColor(getResources().getColor(R.color.tertiaryText));
             navButton.setText("Route");
-            if (navigationMapRoute != null) navigationMapRoute.removeRoute();
+            //todo
+//            if (navigationMapRoute != null) navigationMapRoute.removeRoute();
             if (swipeValue == 1) {
                 if (detailPhone != null)
                     detailPhone.setClickable(false);
@@ -1061,7 +1154,7 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
                         polygon = new ArrayList<>();
                         double bbboxlat1 = 0, bbboxlat2 = 22.7230, bbboxlong1 = 0, bbboxlong2 = 75.8572;
                         double c1 = 0.0;
-                        double c2= 0.0;
+                        double c2 = 0.0;
                         int i = 0;
                         for (i = 0; i < pbound.size(); i++) {
                             // Make the centroid
@@ -1073,8 +1166,8 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
                             bbboxlong2 = pbound.get(i).getCoordinateslong() < bbboxlong2 ? pbound.get(i).getCoordinateslong() : bbboxlong2;
                             polygon.add(new LatLng(pbound.get(i).getCoordinateslat(), pbound.get(i).getCoordinateslong()));
                         }
-                        c1 = c1/i;
-                        c2 = c2/i;
+                        c1 = c1 / i;
+                        c2 = c2 / i;
                         LatLngBounds latLngBounds = new LatLngBounds.Builder()
                                 .include(new LatLng(bbboxlat1, bbboxlong1)) // Northeast
                                 .include(new LatLng(bbboxlat2, bbboxlong2)) // Southwest
@@ -1152,7 +1245,11 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
             searches.clear();
             uniList.clear();
         }
+
+        List<Feature> features = new ArrayList<>();
+
         for (int i = 0; i < results.size(); i++) {
+            ExploreSchema exploreSchema = results.get(i);
             String title;
             String snippet = "Swipe up for more detail";
 //            String snippet = String.valueOf(results.get(i).getId());
@@ -1168,10 +1265,109 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
             } else title = amenity;
             items.add(new MyItem(lat, lng, title, snippet, icn));
         }
+
+
         listView.setAdapter(searchListAdapter);
         searchListAdapter.notifyDataSetChanged();
 
-        clusterManagerPlugin.addItems(items);
+        convertIntoPoiJSon(results);
+
+//        clusterManagerPlugin.addItems(items);
+    }
+
+    private void convertIntoPoiJSon(RealmList<ExploreSchema> results) {
+        List<POIFeature> poiFeatures = new ArrayList<>();
+
+        for (int i = 0; i < results.size(); i++) {
+            ExploreSchema exploreSchema = results.get(i);
+            POIFeature poiFeature = new POIFeature();
+            poiFeature.id = String.valueOf(exploreSchema.getOsm_id());
+            poiFeature.geometry = new POIGeometry(exploreSchema.getType(), new ArrayList<Double>() {
+                {
+                    add(exploreSchema.getCoordinateslat());
+                    add(exploreSchema.getCoordinateslong());
+                }
+            });
+            poiFeature.type = "Feature";
+            poiFeatures.add(poiFeature);
+        }
+        POI poi = new POI();
+        poi.type = "FeatureCollection";
+        poi.features = poiFeatures;
+        Log.d(TAG, "convertIntoPoiJSon: " + new Gson().toJson(poi));
+        addClusteredGeoJsonSource(new Gson().toJson(poi));
+
+    }
+
+    private void addClusteredGeoJsonSource(String poi) {
+        featureCollection = FeatureCollection.fromJson(poi);
+        // Add a new source from the GeoJSON data and set the 'cluster' option to true.
+        try {
+            style.addSource(
+                    new GeoJsonSource(EARTHQUAKE_SOURCE_ID,
+                            FeatureCollection.fromJson(poi),
+                            new GeoJsonOptions()
+                                    .withCluster(true)
+                                    .withClusterMaxZoom(14)
+                                    .withClusterRadius(50)
+                    )
+
+            );
+        } catch (NullPointerException uriSyntaxException) {
+            Timber.e("Check the URL %s", uriSyntaxException.getMessage());
+        }
+
+        SymbolLayer unclusteredSymbolLayer = new SymbolLayer(UNCLUSTERED_POINTS, EARTHQUAKE_SOURCE_ID).withProperties(
+                iconImage(SINGLE_EARTHQUAKE_TRIANGLE_ICON_ID),
+                iconSize(0.8f
+                )
+        );
+        //Creating a SymbolLayer icon layer for single data/icon points after cluster
+        style.addLayer(unclusteredSymbolLayer);
+
+
+        // Use the earthquakes GeoJSON source to create three layers: One layer for each cluster category.
+        // Each point range gets a different fill color.
+        int[][] layers = new int[][]{
+                new int[]{150, ContextCompat.getColor(getActivity(), R.color.colorPrimary)},
+                new int[]{20, ContextCompat.getColor(getActivity(), R.color.colorPrimary)},
+                new int[]{0, ContextCompat.getColor(getActivity(), R.color.colorPrimary)}
+        };
+
+        for (int i = 0; i < layers.length; i++) {
+            //Add clusters' circles
+            CircleLayer circles = new CircleLayer("cluster-" + i, EARTHQUAKE_SOURCE_ID);
+            circles.setProperties(
+                    circleColor(layers[i][1]),
+                    circleRadius(18f)
+            );
+
+            Expression pointCount = toNumber(get(POINT_COUNT));
+
+            // Add a filter to the cluster layer that hides the circles based on "point_count"
+            circles.setFilter(
+                    i == 0
+                            ? all(has(POINT_COUNT),
+                            gte(pointCount, literal(layers[i][0]))
+                    ) : all(has(POINT_COUNT),
+                            gte(pointCount, literal(layers[i][0])),
+                            lt(pointCount, literal(layers[i - 1][0]))
+                    )
+            );
+            style.addLayer(circles);
+        }
+
+        //Add a SymbolLayer for the cluster data number point count
+        style.addLayer(new SymbolLayer("count", EARTHQUAKE_SOURCE_ID).withProperties(
+                textField(Expression.toString(get(POINT_COUNT))),
+                textSize(12f),
+                textColor(Color.WHITE),
+                textIgnorePlacement(true),
+                // The .5f offset moves the data numbers down a little bit so that they're
+                // in the middle of the triangle cluster image
+//                textOffset(new Float[]{0f, .5f}),
+                textAllowOverlap(true)
+        ));
     }
 
     private Icon getItemIcon() {
@@ -1196,50 +1392,52 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
         if (PermissionsManager.areLocationPermissionsGranted(getContext())) {
             // Create an instance of LOST location engine
             initializeLocationEngine();
-            locationPlugin = new LocationLayerPlugin(mapView, mapboxMap, locationEngine);
-            locationPlugin.setLocationLayerEnabled(LocationLayerMode.TRACKING);
+            // TODO: 12/23/2019
+//            locationPlugin = new LocationLayerPlugin(mapView, mapboxMap, locationEngine);
+//            locationPlugin.setLocationLayerEnabled(LocationLayerMode.TRACKING);
         } else {
             permissionsManager = new PermissionsManager(this);
             permissionsManager.requestLocationPermissions(getActivity());
         }
     }
 
+    // TODO: 12/23/2019
     @SuppressWarnings({"MissingPermission"})
     private void initializeLocationEngine() {
-        locationEngine = new LostLocationEngine(getContext());
-        locationEngine.setPriority(LocationEnginePriority.HIGH_ACCURACY);
-        locationEngine.activate();
-
-        Location lastLocation = locationEngine.getLastLocation();
-        if (lastLocation != null) {
-            originLocation = lastLocation;
-            if (originLocation.getLatitude() > 28.31285 || originLocation.getLatitude() < 28.11532
-                    || originLocation.getLongitude() > 84.14949 || originLocation.getLongitude() < 83.84905) {
-//                Toast.makeText(getContext(), "You are not in Indore", Toast.LENGTH_SHORT).show();
-            } else {
-                Log.d("gps_searching", "initializeLocationEngine: ");
-                gps.setImageResource(0);
-                gps.setImageResource(R.drawable.ic_action_gps_searching);
-                gps.setTag("gps_searching");
-                Toast.makeText(getContext(), "GPS is locating you", Toast.LENGTH_SHORT).show();
-                setCameraPosition(lastLocation);
-            }
-        } else {
-            LocationManager locationManager = (LocationManager) getActivity().getSystemService(LOCATION_SERVICE);
-            if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-                Log.d(String.valueOf(gps.getTag()), "At addLocationEngineListner");
-                gps.setImageResource(0);
-                gps.setImageResource(R.drawable.ic_action_gps_searching);
-                gps.setTag("gps_searching");
-                Toast.makeText(getContext(), "GPS is locating you", Toast.LENGTH_SHORT).show();
-            }
-            locationEngine.addLocationEngineListener(this);
-        }
+//        locationEngine = new LostLocationEngine(getContext());
+//        locationEngine.setPriority(LocationEnginePriority.HIGH_ACCURACY);
+//        locationEngine.activate();
+//
+//        Location lastLocation = locationEngine.getLastLocation();
+//        if (lastLocation != null) {
+//            originLocation = lastLocation;
+//            if (originLocation.getLatitude() > 28.31285 || originLocation.getLatitude() < 28.11532
+//                    || originLocation.getLongitude() > 84.14949 || originLocation.getLongitude() < 83.84905) {
+////                Toast.makeText(getContext(), "You are not in Indore", Toast.LENGTH_SHORT).show();
+//            } else {
+//                Log.d("gps_searching", "initializeLocationEngine: ");
+//                gps.setImageResource(0);
+//                gps.setImageResource(R.drawable.ic_action_gps_searching);
+//                gps.setTag("gps_searching");
+//                Toast.makeText(getContext(), "GPS is locating you", Toast.LENGTH_SHORT).show();
+//                setCameraPosition(lastLocation);
+//            }
+//        } else {
+//            LocationManager locationManager = (LocationManager) getActivity().getSystemService(LOCATION_SERVICE);
+//            if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+//                Log.d(String.valueOf(gps.getTag()), "At addLocationEngineListner");
+//                gps.setImageResource(0);
+//                gps.setImageResource(R.drawable.ic_action_gps_searching);
+//                gps.setTag("gps_searching");
+//                Toast.makeText(getContext(), "GPS is locating you", Toast.LENGTH_SHORT).show();
+//            }
+//            locationEngine.addLocationEngineListener(this);
+//        }
     }
 
 
     private void getRoute(Point origin, Point destination) {
-        NavigationRoute.builder()
+        NavigationRoute.builder(getActivity())
                 .accessToken(Mapbox.getAccessToken())
                 .origin(origin)
                 .destination(destination)
@@ -1259,24 +1457,25 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
 
                         currentRoute = response.body().routes().get(0);
 
+                        //todo
                         // Draw the route on the map
-                        if (navigationMapRoute != null) {
-                            navigationMapRoute.removeRoute();
-                        } else {
-                            navigationMapRoute = new NavigationMapRoute(null, mapView, mapboxMap, R.style.NavigationMapRoute);
-                        }
-                        navigationMapRoute.addRoute(currentRoute);
-                        if (navigationMapRoute != null) {
-                            navButton.setText("Navigate");
-                            navButton.setBackgroundColor(getResources().getColor(R.color.colorPrimaryDark));
-                            //navButton.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT));
-//                            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-//                            params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
-//                            params.addRule(RelativeLayout.CENTER_HORIZONTAL);
-//                            params.bottomMargin = 5;
-//                            navButton.setLayoutParams(params);
-
-                        }
+//                        if (navigationMapRoute != null) {
+//                            navigationMapRoute.removeRoute();
+//                        } else {
+//                            navigationMapRoute = new NavigationMapRoute(null, mapView, mapboxMap, R.style.NavigationMapRoute);
+//                        }
+//                        navigationMapRoute.addRoute(currentRoute);
+//                        if (navigationMapRoute != null) {
+//                            navButton.setText("Navigate");
+//                            navButton.setBackgroundColor(getResources().getColor(R.color.colorPrimaryDark));
+//                            //navButton.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT));
+////                            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+////                            params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+////                            params.addRule(RelativeLayout.CENTER_HORIZONTAL);
+////                            params.bottomMargin = 5;
+////                            navButton.setLayoutParams(params);
+//
+//                        }
                     }
 
                     @Override
@@ -1302,7 +1501,8 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
         permissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
@@ -1311,12 +1511,13 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
     @SuppressWarnings({"MissingPermission"})
     public void onStart() {
         super.onStart();
-        if (locationEngine != null) {
-            locationEngine.requestLocationUpdates();
-        }
-        if (locationPlugin != null) {
-            locationPlugin.onStart();
-        }
+        // TODO: 12/23/2019
+//        if (locationEngine != null) {
+//            locationEngine.requestLocationUpdates();
+//        }
+//        if (locationPlugin != null) {
+//            locationPlugin.onStart();
+//        }
         mapView.onStart();
         EventBus.getDefault().register(this);
     }
@@ -1329,7 +1530,8 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
         }
     }
 
-    public RealmQuery<ExploreSchema> find(RealmQuery<ExploreSchema> qe, String fieldName, String[] values) {
+    public RealmQuery<ExploreSchema> find(RealmQuery<ExploreSchema> qe, String
+            fieldName, String[] values) {
         if (values == null || values.length == 0) {
             throw new IllegalArgumentException("EMPTY_VALUES");
         }
@@ -1350,12 +1552,13 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
     @Override
     public void onStop() {
         super.onStop();
-        if (locationEngine != null) {
-            locationEngine.removeLocationUpdates();
-        }
-        if (locationPlugin != null) {
-            locationPlugin.onStop();
-        }
+        // TODO: 12/23/2019
+//        if (locationEngine != null) {
+//            locationEngine.removeLocationUpdates();
+//        }
+//        if (locationPlugin != null) {
+//            locationPlugin.onStop();
+//        }
         mapView.onStop();
         EventBus.getDefault().unregister(this);
     }
@@ -1379,10 +1582,11 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
             mapView.invalidate();
             mapView.onDestroy();
         }
-        if (locationEngine != null) {
-            locationEngine.removeLocationUpdates();
-            locationEngine.deactivate();
-        }
+        // TODO: 12/23/2019
+//        if (locationEngine != null) {
+//            locationEngine.removeLocationUpdates();
+//            locationEngine.deactivate();
+//        }
 
     }
 
@@ -1408,79 +1612,32 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
         }
 
     }
+// TODO: 12/23/2019
+//    @Override
+//    @SuppressWarnings({"MissingPermission"})
+//    public void onConnected() {
+//        Log.d("gps_searching", "onConnected: " + locationEngine.isConnected() + "location" + locationEngine.getLastLocation().getLatitude());
+//        locationEngine.requestLocationUpdates();
+//    }
 
-    @Override
-    @SuppressWarnings({"MissingPermission"})
-    public void onConnected() {
-        Log.d("gps_searching", "onConnected: " + locationEngine.isConnected() + "location" + locationEngine.getLastLocation().getLatitude());
-        locationEngine.requestLocationUpdates();
-    }
-
-    @Override
-    public void onLocationChanged(Location location) {
-        if (location != null) {
-            originLocation = location;
-            if (originLocation.getLatitude() > 28.31285 || originLocation.getLatitude() < 28.11532
-                    || originLocation.getLongitude() > 84.14949 || originLocation.getLongitude() < 83.84905) {
-                // Toast.makeText(getContext(), "Out of Pokhara Bound", Toast.LENGTH_SHORT).show();
-            } else {
-                gps.setImageResource(0);
-                gps.setImageResource(R.drawable.ic_action_gps_fixed);
-                gps.setTag("gps_fixed");
-                Log.d("gps_searching", "onLocationChanged:1 ");
-                setCameraPosition(location);
-            }
-            locationEngine.removeLocationEngineListener(this);
-        }
-    }
-
-    public static class MyItem implements CustomClusterItem {
-        private final LatLng position;
-        private String title;
-        private String snippet;
-        private com.mapbox.mapboxsdk.annotations.Icon icon;
-
-        public MyItem(double lat, double lng) {
-            position = new LatLng(lat, lng);
-            title = null;
-            snippet = null;
-        }
-
-        public MyItem(double lat, double lng, String title, String snippet, com.mapbox.mapboxsdk.annotations.Icon icon) {
-            position = new LatLng(lat, lng);
-            this.title = title;
-            this.snippet = snippet;
-            this.icon = icon;
-        }
-
-        @Override
-        public LatLng getPosition() {
-            return position;
-        }
-
-        @Override
-        public String getTitle() {
-            return title;
-        }
-
-        @Override
-        public String getSnippet() {
-            return snippet;
-        }
-
-        public void setTitle(String title) {
-            this.title = title;
-        }
-
-        public void setSnippet(String snippet) {
-            this.snippet = snippet;
-        }
-
-        @Override
-        public com.mapbox.mapboxsdk.annotations.Icon getIcon() {
-            return icon;
-        }
-    }
+// TODO: 12/23/2019
+//    @Override
+//    public void onLocationChanged(Location location) {
+//        if (location != null) {
+//            originLocation = location;
+//            if (originLocation.getLatitude() > 28.31285 || originLocation.getLatitude() < 28.11532
+//                    || originLocation.getLongitude() > 84.14949 || originLocation.getLongitude() < 83.84905) {
+//                // Toast.makeText(getContext(), "Out of Pokhara Bound", Toast.LENGTH_SHORT).show();
+//            } else {
+//                gps.setImageResource(0);
+//                gps.setImageResource(R.drawable.ic_action_gps_fixed);
+//                gps.setTag("gps_fixed");
+//                Log.d("gps_searching", "onLocationChanged:1 ");
+//                setCameraPosition(location);
+//            }
+//            locationEngine.removeLocationEngineListener(this);
+//        }
+//    }
 
     class MyGestureListener extends GestureDetector.SimpleOnGestureListener {
         private static final String DEBUG_TAG = "Gestures";
@@ -1513,7 +1670,68 @@ public class MapFragment extends Fragment implements PermissionsListener, Locati
             swipeValue = 0;
             return false;
         }
+
+    }
+
+    private boolean handleClickIcon(PointF toScreenLocation, LatLng point) {
+        //if this point equals one of the point of the list shpw the dialog..simple as it is why worry :)
+        double zoom = mapboxMap.getCameraPosition().zoom;
+//        if(mapboxMap.getStyle().getLayer()
+        List<Feature> features = mapboxMap.queryRenderedFeatures(toScreenLocation, UNCLUSTERED_POINTS);
+        if (!features.isEmpty()) {
+            String name = features.get(0).id();
+            List<Feature> featureList = featureCollection.features();
+            if (zoom < 10)
+                mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(point, 12), 500);
+            else if (zoom < 14)
+                mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(point, 14), 400);
+            else if (zoom < 16)
+                mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(point, zoom + 0.5), 300);
+            else if (zoom < 18)
+                mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(point, zoom + 0.5), 200);
+            for (Feature feature : featureList) {
+                if (feature.id().equals(name)) {
+                    showDetailsOfthePoint(point, name);
+                    Log.d(TAG, "handleClickIcon:loop " + feature.id() + " bahira " + name);
+                    Toast.makeText(getActivity(), "Marker Clicked", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            return true;
+        } else
+            return false;
+    }
+
+    private void showDetailsOfthePoint(LatLng point, String name) {
+        String markerText = name;
+        testText.setText(markerText);
+        double zoom = mapboxMap.getCameraPosition().zoom;
+
+        destinationPosition = Point.fromLngLat(point.getLongitude(), point.getLatitude());
+        ((AppCompatActivity) getActivity()).getSupportActionBar().hide();
+        toggleTabVisibilityListener.hideTabs();
+        lm.setVisibility(View.VISIBLE);
+        editName = "name";
+        editSnippet = "Snippet";
+        editLat = String.valueOf(point.getLatitude());
+        editLong = String.valueOf(point.getLongitude());
+        //swipeValue = 1;
+        iff_ondown = false;
+        iff_onswipe = false;
+        //to keep teh color to blue/ colorPrimary
+//            navButton.setBackgroundColor(getResources().getColor(R.color.tertiaryText));
+        navButton.setText("Route");
+        //todo
+//            if (navigationMapRoute != null) navigationMapRoute.removeRoute();
+        if (swipeValue == 1) {
+            if (detailPhone != null)
+                detailPhone.setClickable(false);
+            detail_screen.removeAllViews();
+            detailView(detailbool);
+            detail_screen.addView(amenityInfo);
+        }
     }
 }
+
 
 

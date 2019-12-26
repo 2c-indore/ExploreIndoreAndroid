@@ -7,7 +7,7 @@
     android:background="@color/white"
     android:paddingBottom="@dimen/small_margin">
 
-    <android.support.v4.widget.NestedScrollView
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@id/bottomLayout"
@@ -71,7 +71,7 @@
         <!--android:inputType="text"-->
         <!--app:backgroundTint="@color/secondaryText"/>-->
         <!--</LinearLayout>-->
-    </android.support.v4.widget.NestedScrollView>
+    </androidx.core.widget.NestedScrollView>
 
     <LinearLayout
         android:id="@+id/bottomLayout"

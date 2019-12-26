@@ -1,4 +1,5 @@
 package org.kathmandulivinglabs.exploreindore.Customclass;
+
 import com.mapbox.mapboxsdk.annotations.Icon;
 import com.mapbox.mapboxsdk.plugins.cluster.clustering.ClusterItem;
 

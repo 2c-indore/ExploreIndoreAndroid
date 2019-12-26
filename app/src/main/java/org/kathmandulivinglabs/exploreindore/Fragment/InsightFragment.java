@@ -1,34 +1,25 @@
 package org.kathmandulivinglabs.exploreindore.Fragment;
 
-import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.res.TypedArray;
-import android.os.SystemClock;
-import android.support.annotation.NonNull;
-import android.support.v4.app.Fragment;
+
+import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
 import android.os.Bundle;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v7.widget.AppCompatCheckBox;
-import android.support.v7.widget.AppCompatSpinner;
-import android.support.v7.widget.SwitchCompat;
+
+import androidx.fragment.app.FragmentTransaction;
+import androidx.appcompat.widget.AppCompatCheckBox;
+import androidx.appcompat.widget.AppCompatSpinner;
+import androidx.appcompat.widget.SwitchCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
-
-import com.amazonaws.transform.MapEntry;
-import com.github.ybq.android.spinkit.style.Wave;
 
 import org.kathmandulivinglabs.exploreindore.Activity.MainActivity;
 import org.kathmandulivinglabs.exploreindore.Adapter.SpinnertwolineAdapter;
@@ -43,10 +34,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.TreeMap;
 
-import io.apptik.widget.MultiSlider;
 import io.realm.Realm;
 import io.realm.RealmList;
 import io.realm.RealmQuery;
@@ -113,9 +101,9 @@ public class InsightFragment extends Fragment {
         View[] title_view, switch_view, spinner_view, range_view, checkbox_view;
         TextView[] title_text, switch_text;
         RangeWidget[] range_bar;
-        android.support.v7.widget.AppCompatCheckBox[] checkbox_btn;
-        android.support.v7.widget.SwitchCompat[] switch_btn = new SwitchCompat[0];
-        android.support.v7.widget.AppCompatSpinner[] spinner_spinner;
+        androidx.appcompat.widget.AppCompatCheckBox[] checkbox_btn;
+        androidx.appcompat.widget.SwitchCompat[] switch_btn = new SwitchCompat[0];
+        androidx.appcompat.widget.AppCompatSpinner[] spinner_spinner;
 
         title_view = new View[size];
         title_text = new TextView[size];

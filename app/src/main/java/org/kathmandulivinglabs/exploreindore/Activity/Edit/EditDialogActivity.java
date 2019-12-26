@@ -2,16 +2,15 @@ package org.kathmandulivinglabs.exploreindore.Activity.Edit;
 
 
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 
-import android.support.v4.app.FragmentManager;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.AppCompatEditText;
+import androidx.fragment.app.FragmentManager;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatEditText;
 
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -33,7 +32,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.kathmandulivinglabs.exploreindore.Activity.LoginActivity;
 import org.kathmandulivinglabs.exploreindore.Activity.MainActivity;
-import org.kathmandulivinglabs.exploreindore.Activity.ResetPasswordActivity;
 import org.kathmandulivinglabs.exploreindore.Api_helper.ApiHelper;
 import org.kathmandulivinglabs.exploreindore.Api_helper.ApiInterface;
 import org.kathmandulivinglabs.exploreindore.Helper.Connectivity;

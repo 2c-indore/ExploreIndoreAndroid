@@ -1,6 +1,6 @@
 package org.kathmandulivinglabs.exploreindore.Customclass;
 
-import android.support.v4.view.ViewPager;
+import androidx.viewpager.widget.ViewPager;
 /**
  * Created by Bhawak on 3/11/2018.
  */
