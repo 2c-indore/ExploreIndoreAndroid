@@ -2,9 +2,11 @@ package org.kathmandulivinglabs.exploreindore.Fragment;
 
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -53,6 +55,17 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.Result;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.gson.Gson;
 import com.mapbox.android.core.location.LocationEngine;
 import com.mapbox.android.core.permissions.PermissionsListener;
@@ -68,6 +81,8 @@ import com.mapbox.mapboxsdk.annotations.PolygonOptions;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.geometry.LatLngBounds;
+import com.mapbox.mapboxsdk.location.LocationComponent;
+import com.mapbox.mapboxsdk.location.modes.CameraMode;
 import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
@@ -90,6 +105,7 @@ import org.kathmandulivinglabs.exploreindore.Customclass.CustomClusterManagerPlu
 import org.kathmandulivinglabs.exploreindore.FilterParcel;
 import org.kathmandulivinglabs.exploreindore.Activity.Edit.EditDialogActivity;
 import org.kathmandulivinglabs.exploreindore.Helper.EditAmenityEvent;
+import org.kathmandulivinglabs.exploreindore.Helper.Keys;
 import org.kathmandulivinglabs.exploreindore.Helper.Utils;
 
 import org.kathmandulivinglabs.exploreindore.Interface.ToggleTabVisibilityListener;
@@ -104,6 +120,9 @@ import org.kathmandulivinglabs.exploreindore.models.POI.POIFeature;
 import org.kathmandulivinglabs.exploreindore.models.POI.POIGeometry;
 
 import com.mapbox.mapboxsdk.utils.BitmapUtils;
+import com.mapbox.services.android.navigation.ui.v5.NavigationLauncher;
+import com.mapbox.services.android.navigation.ui.v5.NavigationLauncherOptions;
+import com.mapbox.services.android.navigation.ui.v5.route.NavigationMapRoute;
 import com.mapbox.services.android.navigation.v5.navigation.NavigationRoute;
 import com.mapbox.api.directions.v5.models.DirectionsResponse;
 import com.mapbox.api.directions.v5.models.DirectionsRoute;
@@ -142,8 +161,6 @@ import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.circleRadius;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconImage;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconSize;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineColor;
-import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineDasharray;
-import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineTranslate;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineWidth;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.textAllowOverlap;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.textColor;
@@ -153,14 +170,15 @@ import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.textSize;
 
 
 //public class MapFragment extends Fragment implements PermissionsListener, LocationEngineListener, MainActivity.Backlistner {
-public class MapFragment extends Fragment implements PermissionsListener, MainActivity.Backlistner {
+public class MapFragment extends Fragment implements PermissionsListener, MainActivity.Backlistner, GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener,
+        LocationListener {
     private static final String SINGLE_EARTHQUAKE_TRIANGLE_ICON_ID = "single-quake-icon-id";
     private static final String EARTHQUAKE_SOURCE_ID = "earthquakes";
     private static final String POINT_COUNT = "point_count";
     private static final String UNCLUSTERED_POINTS = "unclustered-points";
 
     private MapView mapView;
-    private CustomClusterManagerPlugin<MyItem> clusterManagerPlugin;
     private MapboxMap mapboxMap;
     private Style style;
     private LinearLayout lm;
@@ -176,9 +194,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
     private static final int SWIPE_MIN_DISTANCE = 80;
     private static final int SWIPE_MAX_OFF_PATH = 60;
     private static final int SWIPE_THRESHOLD_VELOCITY = 100;
-    private static final int LOCATION_REQUEST_CODE = 101;
     private int swipeValue = 0, size = 0;
-    private static Map<String, Boolean> filter = new HashMap<>();
     FilterParcel insightfilter;
     public static String selectedType = MainActivity.def_type;
     Marker previous_selected;
@@ -215,23 +231,22 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
     }
 
     //Location_plugin_variable
+    private Location mylocation;
+    private GoogleApiClient googleApiClient;
+    private LocationComponent locationComponent;
     private PermissionsManager permissionsManager;
-    //    private LocationLayerPlugin locationPlugin;
-    private LocationEngine locationEngine;
-    private Location originLocation;
-    private Marker destinationMarker;
+    private NavigationMapRoute navigationMapRoute;
     private LatLng originCoord;
     private LatLng destinationCoord;
     private Point originPosition;
     private Point destinationPosition;
     private DirectionsRoute currentRoute;
     private static final String TAG = "DirectionsActivity";
-    //    private NavigationMapRoute navigationMapRoute;
     private Button edit_btn;
     private ImageButton gps, zoomtoextant, closebtn, expandinfo, attraction_close;
 
     private boolean iff_ondown = false, iff_onswipe = false;
-
+    private Feature previously_selected;
     private FancyButton navButton;
     NestedScrollView scroll;
     private String editName, editLat, editLong, editSnippet;
@@ -261,8 +276,8 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
             ((AppCompatActivity) getActivity()).getSupportActionBar().show();
             toggleTabVisibilityListener.showTabs();
             lm.setVisibility(View.GONE);
+            if (navigationMapRoute != null) navigationMapRoute.removeRoute();
             //todo
-//            if (navigationMapRoute != null) navigationMapRoute.removeRoute();
 //            previous_selected.setIcon(getItemIcon()); //to change red icon to blue
             detail_screen.removeAllViews();
             if (mSearchMenuItem != null)
@@ -312,11 +327,8 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
 
     }
 
-    //    ArrayAdapter<Search> adapter;
     ArrayList<Search> searches;
     boolean filterflag = false;
-    private TextView attraction_title, attraction_title_np, attraction_detail;
-    private ImageView attraction_image;
     private boolean detailbool;
     private int detail_height;
     private List<LatLng> polygon;
@@ -409,6 +421,10 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
 
         View v = inflater.inflate(R.layout.map_fragment, container, false);
         mapScreen = v.findViewById(R.id.mapScreen);
+        Log.d(TAG, "onCreateView: " + googleApiClient);
+        //for gps related api
+        if (googleApiClient == null)
+            setUpGClient();
 
         ViewTreeObserver vto = mapScreen.getViewTreeObserver();
         vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -428,42 +444,8 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         ImageButton close_btn = v.findViewById(R.id.close_btn);
         gps = v.findViewById(R.id.gps_btn);
         zoomtoextant = v.findViewById(R.id.zoom_fix);
-        gps.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (gps.getTag().equals("gps_off")) {
-                    gps_checker(false);
-                } else if (gps.getTag().equals("gps_searching")) {
-                    if (locationEngine != null) {
-                        gps_checker(false);
-                        if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                            // TODO: Consider calling
-                            //    ActivityCompat#requestPermissions
-                            // here to request the missing permissions, and then overriding
-                            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                            //                                          int[] grantResults)
-                            // to handle the case where the user grants the permission. See the documentation
-                            // for ActivityCompat#requestPermissions for more details.
-                            return;
-                        }
-                        // TODO: 12/23/2019
-//                        locationEngine.requestLocationUpdates();
-                    }
-                    // TODO: 12/23/2019
-//                    if (locationPlugin != null) {
-//                        locationPlugin.onStart();
-//                    }
-                } else if (gps.getTag().equals("gps_fixed")) {
-                    // TODO: 12/23/2019
-//                    if (locationEngine != null) {
-//                        locationEngine.requestLocationUpdates();
-//                    }
-//                    if (locationPlugin != null) {
-//                        locationPlugin.onStart();
-//                    }
-                }
-            }
-        });
+        gps.setOnClickListener(view ->
+                checkPermissions());
         zoomb.setLat(22.7203851);
         zoomb.setLng(75.8682103);
         zoomb.setZoom(9.3);
@@ -490,15 +472,11 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
 
         setUpMarkerIcons();
         setUpNewMarkerIcons();
-
-
         navButton = v.findViewById(R.id.startButton);
         if (getArguments() != null) {
             FilterParcel filterdata = getArguments().getParcelable("FilterValue");
             selectedType = getArguments().getString("selectedType", "attractions");
         }
-
-
         detailbool = true;
         amenityInfo = inflate_info.inflate(R.layout.detailview, null);
         websiteLayout = amenityInfo.findViewById(R.id.websiteLayout);
@@ -534,8 +512,8 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
                 small_info.setVisibility(View.VISIBLE);
                 ((AppCompatActivity) getActivity()).getSupportActionBar().show();
                 toggleTabVisibilityListener.showTabs();
-//                if (navigationMapRoute != null) navigationMapRoute.removeRoute();
                 lm.setVisibility(View.GONE);
+                if (navigationMapRoute != null) navigationMapRoute.removeRoute();
                 detail_screen.removeAllViews();
                 // mapView.refreshDrawableState();
             }
@@ -559,8 +537,6 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
                     if (lm.getLayoutParams() == lp_shrink) {
                         ((AppCompatActivity) getActivity()).getSupportActionBar().show();
                         toggleTabVisibilityListener.showTabs();
-//                        params.setMargins(0, actionBarHeight, 0, 0);
-                        //if (navigationMapRoute != null) navigationMapRoute.removeRoute();
                         lm.setVisibility(View.GONE);
                         detail_screen.removeView(amenityInfo);
                     } else {
@@ -579,7 +555,6 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
             public void onClick(View view) {
                 ((AppCompatActivity) getActivity()).getSupportActionBar().hide();
                 toggleTabVisibilityListener.hideTabs();
-//                params.setMargins(0, 0, 0, 0);
                 small_info.setVisibility(View.GONE);
                 lm.setLayoutParams(lp_expand);
                 detail_screen.removeAllViews();
@@ -589,60 +564,39 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         });
 
 
-        close_btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                swipeValue = 0;
-                previous_selected.setIcon(getItemIcon()); //to change red icon to blue
-                lm.setLayoutParams(lp_shrink);
-                small_info.setVisibility(View.VISIBLE);
-                ((AppCompatActivity) getActivity()).getSupportActionBar().show();
-                toggleTabVisibilityListener.showTabs();
-//                params.setMargins(0, actionBarHeight, 0, 0);
-                lm.setVisibility(View.GONE);
-//                if (navigationMapRoute != null) navigationMapRoute.removeRoute();
-                detail_screen.removeAllViews();
-            }
-        });
-        navButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (navButton.getText().toString().equalsIgnoreCase("Route")) {
-                    if (originLocation != null) {
-                        Toast.makeText(getContext(), "Please wait the gps is locating you", Toast.LENGTH_LONG).show();
-                        originCoord = new LatLng(originLocation.getLatitude(), originLocation.getLongitude());
-                        originPosition = Point.fromLngLat(originCoord.getLongitude(), originCoord.getLatitude());
-                        getRoute(originPosition, destinationPosition);
-                    } else {
-                        if (gps.getTag().equals("gps_off")) {
-                            gps_checker(true);
-                            Toast.makeText(getContext(), "Please wait the gps is locating you", Toast.LENGTH_LONG).show();
-                        } else
-                            Toast.makeText(getContext(), "Could not find you", Toast.LENGTH_SHORT).show();
+        close_btn.setOnClickListener(view -> {
+                    swipeValue = 0;
+//                previous_selected.setIcon(getItemIcon()); //to change red icon to blue
+                    if (navigationMapRoute != null) {
+                        navigationMapRoute.removeRoute();
                     }
-                } else {
-                    // TODO: 12/23/2019
-//                    if (navigationMapRoute != null) {
-//                        Point origin = originPosition;
-//                        Point destination = destinationPosition;
-//                        // Pass in your Amazon Polly pool id for speech synthesis using Amazon Polly
-//                        // Set to null to use the default Android speech synthesizer
-//                        String awsPoolId = null;
-//                        boolean simulateRoute = false;
-//                        NavigationLauncherOptions options = NavigationLauncherOptions.builder()
-////                                .origin(origin)
-////                                .destination(destination)
-////                                .awsPoolId(awsPoolId)
-//                                .shouldSimulateRoute(simulateRoute)
-////                                .unitType(NavigationUnitType.TYPE_METRIC)
-//                                .build();
-//
-//                        // Call this method with Context from within an Activity
-//                        NavigationLauncher.startNavigation(getActivity(), options);
-//                    } else {
-//                        Toast.makeText(getContext(), "Could not find you", Toast.LENGTH_SHORT).show();
-//                    }
+                    lm.setLayoutParams(lp_shrink);
+                    small_info.setVisibility(View.VISIBLE);
+                    ((AppCompatActivity) getActivity()).getSupportActionBar().show();
+                    toggleTabVisibilityListener.showTabs();
+                    lm.setVisibility(View.GONE);
+                    detail_screen.removeAllViews();
                 }
+        );
+        navButton.setOnClickListener(view -> {
+            if (navButton.getText().toString().equalsIgnoreCase("Route")) {
+                if (mylocation != null) {
+                    Toast.makeText(getContext(), "Please wait the gps is locating you", Toast.LENGTH_LONG).show();
+                    originCoord = new LatLng(mylocation.getLatitude(), mylocation.getLongitude());
+                    originPosition = Point.fromLngLat(originCoord.getLongitude(), originCoord.getLatitude());
+                    getRoute(originPosition, destinationPosition);
+                } else {
+                    if (gps.getTag().equals("gps_off"))
+                        checkPermissions();
+                }
+            } else {
+                boolean simulateRoute = false;
+                NavigationLauncherOptions options = NavigationLauncherOptions.builder()
+                        .directionsRoute(currentRoute)
+                        .shouldSimulateRoute(simulateRoute)
+                        .build();
+                // Call this method with Context from within an Activity
+                NavigationLauncher.startNavigation(getActivity(), options);
             }
         });
         LatLngBounds latLngBounds = new LatLngBounds.Builder()
@@ -663,7 +617,6 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
                     zoomtoextant.setEnabled(true);
 
                     initCameraListener(style);
-                    enableLocationPlugin();
                     style.addImageAsync(
                             SINGLE_EARTHQUAKE_TRIANGLE_ICON_ID,
                             BitmapUtils.getBitmapFromDrawable(getResources().getDrawable(blueMarkers.get(selectedType))),
@@ -678,10 +631,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         listView = v.findViewById(R.id.listView);
         uniList = new HashMap<>();
         searches = new ArrayList<>();
-        searchListAdapter = new
-
-                SearchListAdapter(this.getContext(), searches);
-//        adapter = new ArrayAdapter<Search>(this.getContext(), android.R.layout.simple_list_item_1, searches);
+        searchListAdapter = new SearchListAdapter(this.getContext(), searches);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -690,6 +640,44 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
             }
         });
         return v;
+    }
+
+    private void getRoute(Point originPosition, Point destinationPosition) {
+        NavigationRoute.builder(getActivity())
+                .accessToken(Mapbox.getAccessToken())
+                .origin(originPosition)
+                .destination(destinationPosition)
+                .build()
+                .getRoute(new Callback<DirectionsResponse>() {
+                    @Override
+                    public void onResponse(Call<DirectionsResponse> call, Response<DirectionsResponse> response) {
+                        // You can get the generic HTTP info about the response
+                        if (response.body() == null) {
+                            Log.e(TAG, "No routes found, make sure you set the right user and access token.");
+                            return;
+                        } else if (response.body().routes().size() < 1) {
+                            Log.e(TAG, "No routes found");
+                            return;
+                        }
+                        currentRoute = response.body().routes().get(0);
+                        // Draw the route on the map
+                        if (navigationMapRoute != null) {
+                            navigationMapRoute.removeRoute();
+                        } else {
+                            navigationMapRoute = new NavigationMapRoute(null, mapView, mapboxMap, R.style.NavigationMapRoute);
+                        }
+                        navigationMapRoute.addRoute(currentRoute);
+                        if (navigationMapRoute != null) {
+                            navButton.setText("Navigate");
+                            navButton.setBackgroundColor(getResources().getColor(R.color.colorPrimaryDark));
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<DirectionsResponse> call, Throwable throwable) {
+                        Log.e(TAG, "Error: " + throwable.getMessage());
+                    }
+                });
     }
 
     private void setUpNewMarkerIcons() {
@@ -878,16 +866,14 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
                     websiteLayout.setVisibility(View.VISIBLE);
                     detailWeb.setText(dbvalue.getWeb());
                     ExploreSchema finalDbvalue = dbvalue;
-                    detailWeb.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            String url = finalDbvalue.getWeb();
-                            if (!url.startsWith("http://") && !url.startsWith("https://"))
-                                url = "http://" + url;
-                            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                            startActivity(intent);
-                        }
-                    });
+                    detailWeb.setOnClickListener(view -> {
+                                String url = finalDbvalue.getWeb();
+                                if (!url.startsWith("http://") && !url.startsWith("https://"))
+                                    url = "http://" + url;
+                                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                                startActivity(intent);
+                            }
+                    );
                 } else {
                     websiteLayout.setVisibility(View.GONE);
                     detailWeb.setText("-");
@@ -953,70 +939,17 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
 
     }
 
-    public void gps_checker(boolean fromRoute) {
-        LocationManager locationManager = (LocationManager) getActivity().getSystemService(LOCATION_SERVICE);
-
-        if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            if (originLocation != null) {
-                gps.setImageResource(0);
-                gps.setImageResource(R.drawable.ic_action_gps_searching);
-                gps.setTag("gps_searching");
-                Toast.makeText(getContext(), "GPS is locating you", Toast.LENGTH_SHORT).show();
-//                if (!fromRoute) //to take you to your location on clicking gps location
-//                    setCameraPosition(originLocation);
-            } else {
-                // TODO: 12/23/2019
-                initializeLocationEngine();
-            }
-        } else {
-            showGPSDisabledAlertToUser();
-        }
-    }
-
-    private void showGPSDisabledAlertToUser() {
-        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getContext());
-        alertDialogBuilder.setMessage("GPS is disabled in your device. Would you like to enable it?")
-                .setCancelable(false)
-                .setPositiveButton("Goto Settings Page To Enable GPS",
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                Intent callGPSSettingIntent = new Intent(
-                                        android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                                startActivity(callGPSSettingIntent);
-                            }
-                        });
-        alertDialogBuilder.setNegativeButton("Cancel",
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        dialog.cancel();
-                    }
-                });
-        AlertDialog alert = alertDialogBuilder.create();
-        alert.show();
-    }
-
     public void setFilter(Boolean fp) {
         filterflag = fp;
         //mapView.refreshDrawableState();
-        //todo
-//        navigationMapRoute = null;
+        navigationMapRoute = null;
         FragmentTransaction ftr = getFragmentManager().beginTransaction();
         ftr.detach(MapFragment.this).attach(MapFragment.this).commit();
     }
 
     protected void initCameraListener(Style style) {
-        Log.d(TAG, "initCameraListener: " + selectedType);
-        Log.d(TAG, "initCameraListener: " + blueMarkers.get(selectedType));
-        Log.d(TAG, "initCameraListener: " + getResources().getDrawable(blueMarkers.get(selectedType)));
-//        style.addImage(
-//                SINGLE_EARTHQUAKE_TRIANGLE_ICON_ID,
-//                BitmapUtils.getBitmapFromDrawable(getResources().getDrawable(blueMarkers.get(selectedType))),
-//                true
-//        );
         try {
             addItemsToClusterPlugin();
-//            mapboxMap.addOnCameraIdleListener(clusterManagerPlugin);
-
             GeoJsonSource boundary = new GeoJsonSource("boundary", loadGeoJsonFromAsset(getContext(), "indore_geojson.json"));
             style.addSource(boundary);
             LineLayer boundaryLine = new LineLayer("boundaryLayer", "boundary")
@@ -1045,15 +978,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
                 }
             });
 
-//            clusterManagerPlugin.getRenderer().setOnClusterClickListener(new CustomClusterManagerPlugin.OnClusterClickListener<MyItem>() {
-//                @Override
-//                public boolean onClusterClick(Cluster<MyItem> cluster) {
-//                    return false;
-//                }
-//            });
-
         } catch (Exception e) {
-            Log.d(TAG, "initCameraListener: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -1124,8 +1049,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
             //to keep teh color to blue/ colorPrimary
 //            navButton.setBackgroundColor(getResources().getColor(R.color.tertiaryText));
             navButton.setText("Route");
-            //todo
-//            if (navigationMapRoute != null) navigationMapRoute.removeRoute();
+            if (navigationMapRoute != null) navigationMapRoute.removeRoute();
             if (swipeValue == 1) {
                 if (detailPhone != null)
                     detailPhone.setClickable(false);
@@ -1217,8 +1141,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
                             RealmList<String> value = ep.getTag_lable();
                             int i = 0;
 
-                            for (String str : key
-                            ) {
+                            for (String str : key) {
                                 if (str.equalsIgnoreCase("delivery_service")) {
                                     if (!value.get(i).equalsIgnoreCase("no") && str.equalsIgnoreCase(filter_data.getKey())) {
                                         querycollection.add(ep);
@@ -1242,39 +1165,16 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         MainActivity.filter_param.clear();
         RealmList<ExploreSchema> results = querycollection;
         realm.close();
-        List<MyItem> items = new ArrayList<MyItem>();
+
         if (searches.size() > 0) {
             searches.clear();
             uniList.clear();
         }
 
-        List<Feature> features = new ArrayList<>();
-
-        for (int i = 0; i < results.size(); i++) {
-            ExploreSchema exploreSchema = results.get(i);
-            String title;
-            String snippet = "Swipe up for more detail";
-//            String snippet = String.valueOf(results.get(i).getId());
-            double lat = results.get(i).getCoordinateslong();
-            double lng = results.get(i).getCoordinateslat();
-            if (results.get(i).getName() != null) {
-                title = results.get(i).getName();
-                Search sh = new Search(null, null);
-                sh.cord = new LatLng(lat, lng);
-                sh.name = title;
-                searches.add(sh);
-                uniList.put(new LatLng(lat, lng), title);
-            } else title = amenity;
-            items.add(new MyItem(lat, lng, title, snippet, icn));
-        }
-
-
         listView.setAdapter(searchListAdapter);
         searchListAdapter.notifyDataSetChanged();
 
         convertIntoPoiJSon(results);
-
-//        clusterManagerPlugin.addItems(items);
     }
 
     private void convertIntoPoiJSon(RealmList<ExploreSchema> results) {
@@ -1296,7 +1196,6 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         POI poi = new POI();
         poi.type = "FeatureCollection";
         poi.features = poiFeatures;
-        Log.d(TAG, "convertIntoPoiJSon: " + new Gson().toJson(poi));
         addClusteredGeoJsonSource(new Gson().toJson(poi));
 
     }
@@ -1365,9 +1264,6 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
                 textSize(12f),
                 textColor(Color.WHITE),
                 textIgnorePlacement(true),
-                // The .5f offset moves the data numbers down a little bit so that they're
-                // in the middle of the triangle cluster image
-//                textOffset(new Float[]{0f, .5f}),
                 textAllowOverlap(true)
         ));
     }
@@ -1387,121 +1283,6 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
     }
 
 
-    //Location_code
-    @SuppressWarnings({"MissingPermission"})
-    private void enableLocationPlugin() {
-        // Check if permissions are enabled and if not request
-        if (PermissionsManager.areLocationPermissionsGranted(getContext())) {
-            // Create an instance of LOST location engine
-            initializeLocationEngine();
-            // TODO: 12/23/2019
-//            locationPlugin = new LocationLayerPlugin(mapView, mapboxMap, locationEngine);
-//            locationPlugin.setLocationLayerEnabled(LocationLayerMode.TRACKING);
-        } else {
-            permissionsManager = new PermissionsManager(this);
-            permissionsManager.requestLocationPermissions(getActivity());
-        }
-    }
-
-    // TODO: 12/23/2019
-    @SuppressWarnings({"MissingPermission"})
-    private void initializeLocationEngine() {
-//        locationEngine = new LostLocationEngine(getContext());
-//        locationEngine.setPriority(LocationEnginePriority.HIGH_ACCURACY);
-//        locationEngine.activate();
-//
-//        Location lastLocation = locationEngine.getLastLocation();
-//        if (lastLocation != null) {
-//            originLocation = lastLocation;
-//            if (originLocation.getLatitude() > 28.31285 || originLocation.getLatitude() < 28.11532
-//                    || originLocation.getLongitude() > 84.14949 || originLocation.getLongitude() < 83.84905) {
-////                Toast.makeText(getContext(), "You are not in Indore", Toast.LENGTH_SHORT).show();
-//            } else {
-//                Log.d("gps_searching", "initializeLocationEngine: ");
-//                gps.setImageResource(0);
-//                gps.setImageResource(R.drawable.ic_action_gps_searching);
-//                gps.setTag("gps_searching");
-//                Toast.makeText(getContext(), "GPS is locating you", Toast.LENGTH_SHORT).show();
-//                setCameraPosition(lastLocation);
-//            }
-//        } else {
-//            LocationManager locationManager = (LocationManager) getActivity().getSystemService(LOCATION_SERVICE);
-//            if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-//                Log.d(String.valueOf(gps.getTag()), "At addLocationEngineListner");
-//                gps.setImageResource(0);
-//                gps.setImageResource(R.drawable.ic_action_gps_searching);
-//                gps.setTag("gps_searching");
-//                Toast.makeText(getContext(), "GPS is locating you", Toast.LENGTH_SHORT).show();
-//            }
-//            locationEngine.addLocationEngineListener(this);
-//        }
-    }
-
-
-    private void getRoute(Point origin, Point destination) {
-        NavigationRoute.builder(getActivity())
-                .accessToken(Mapbox.getAccessToken())
-                .origin(origin)
-                .destination(destination)
-                .build()
-                .getRoute(new Callback<DirectionsResponse>() {
-                    @Override
-                    public void onResponse(Call<DirectionsResponse> call, Response<DirectionsResponse> response) {
-                        // You can get the generic HTTP info about the response
-                        //Log.d(TAG, "Response code: " + response.code());
-                        if (response.body() == null) {
-                            Log.d("gps_searching", "No routes found, make sure you set the right user and access token.");
-                            return;
-                        } else if (response.body().routes().size() < 1) {
-                            Log.d("gps_searching", "No routes found");
-                            return;
-                        }
-
-                        currentRoute = response.body().routes().get(0);
-
-                        //todo
-                        // Draw the route on the map
-//                        if (navigationMapRoute != null) {
-//                            navigationMapRoute.removeRoute();
-//                        } else {
-//                            navigationMapRoute = new NavigationMapRoute(null, mapView, mapboxMap, R.style.NavigationMapRoute);
-//                        }
-//                        navigationMapRoute.addRoute(currentRoute);
-//                        if (navigationMapRoute != null) {
-//                            navButton.setText("Navigate");
-//                            navButton.setBackgroundColor(getResources().getColor(R.color.colorPrimaryDark));
-//                            //navButton.setLayoutParams(new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT));
-////                            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-////                            params.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
-////                            params.addRule(RelativeLayout.CENTER_HORIZONTAL);
-////                            params.bottomMargin = 5;
-////                            navButton.setLayoutParams(params);
-//
-//                        }
-                    }
-
-                    @Override
-                    public void onFailure(Call<DirectionsResponse> call, Throwable throwable) {
-                        throwable.printStackTrace();
-                    }
-                });
-    }
-
-    //edit
-    private void editAmenity(String amenity) {
-        Intent i = new Intent(getContext(), EditDialogActivity.class);
-        String[] editInfo = {amenity, editName, editLat, editLong};
-        i.putExtra("amenity", editInfo);
-        startActivity(i);
-    }
-
-
-    private void setCameraPosition(Location location) {
-        Log.d("gps_searching", "setCameraPosition: " + location.getLatitude() + "longitude" + location.getLongitude());
-        mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
-                new LatLng(location.getLatitude(), location.getLongitude()), 13));
-    }
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
@@ -1513,13 +1294,6 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
     @SuppressWarnings({"MissingPermission"})
     public void onStart() {
         super.onStart();
-        // TODO: 12/23/2019
-//        if (locationEngine != null) {
-//            locationEngine.requestLocationUpdates();
-//        }
-//        if (locationPlugin != null) {
-//            locationPlugin.onStart();
-//        }
         mapView.onStart();
         EventBus.getDefault().register(this);
     }
@@ -1554,13 +1328,14 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
     @Override
     public void onStop() {
         super.onStop();
-        // TODO: 12/23/2019
-//        if (locationEngine != null) {
-//            locationEngine.removeLocationUpdates();
-//        }
-//        if (locationPlugin != null) {
-//            locationPlugin.onStop();
-//        }
+        if (googleApiClient != null && googleApiClient.isConnected()) {
+            googleApiClient.stopAutoManage(getActivity());
+            googleApiClient.disconnect();
+        }
+        if (locationComponent != null)
+            locationComponent.onStop();
+        if (navigationMapRoute != null)
+            navigationMapRoute.onStop();
         mapView.onStop();
         EventBus.getDefault().unregister(this);
     }
@@ -1580,16 +1355,9 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        if (MainActivity.destroyMapView) {
-            mapView.invalidate();
-            mapView.onDestroy();
-        }
-        // TODO: 12/23/2019
-//        if (locationEngine != null) {
-//            locationEngine.removeLocationUpdates();
-//            locationEngine.deactivate();
-//        }
-
+        if (locationComponent != null)
+            locationComponent.onDestroy();
+        mapView.onDestroy();
     }
 
 
@@ -1608,38 +1376,49 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
     @Override
     public void onPermissionResult(boolean granted) {
         if (granted) {
-            enableLocationPlugin();
+            enableLocationComponent(mapboxMap.getStyle());
         } else {
-            getActivity().finish();
+            Toast.makeText(getActivity(), "user_location_permission_not_granted", Toast.LENGTH_LONG).show();
         }
-
     }
-// TODO: 12/23/2019
-//    @Override
-//    @SuppressWarnings({"MissingPermission"})
-//    public void onConnected() {
-//        Log.d("gps_searching", "onConnected: " + locationEngine.isConnected() + "location" + locationEngine.getLastLocation().getLatitude());
-//        locationEngine.requestLocationUpdates();
-//    }
 
-// TODO: 12/23/2019
-//    @Override
-//    public void onLocationChanged(Location location) {
-//        if (location != null) {
-//            originLocation = location;
-//            if (originLocation.getLatitude() > 28.31285 || originLocation.getLatitude() < 28.11532
-//                    || originLocation.getLongitude() > 84.14949 || originLocation.getLongitude() < 83.84905) {
-//                // Toast.makeText(getContext(), "Out of Pokhara Bound", Toast.LENGTH_SHORT).show();
-//            } else {
-//                gps.setImageResource(0);
-//                gps.setImageResource(R.drawable.ic_action_gps_fixed);
-//                gps.setTag("gps_fixed");
-//                Log.d("gps_searching", "onLocationChanged:1 ");
-//                setCameraPosition(location);
-//            }
-//            locationEngine.removeLocationEngineListener(this);
-//        }
-//    }
+    @SuppressWarnings({"MissingPermission"})
+    private void enableLocationComponent(@NonNull Style loadedMapStyle) {
+        // Check if permissions are enabled and if not request
+        if (PermissionsManager.areLocationPermissionsGranted(getActivity())) {
+            // Activate the MapboxMap LocationComponent to show user location
+            // Adding in LocationComponentOptions is also an optional parameter
+            locationComponent = mapboxMap.getLocationComponent();
+            locationComponent.activateLocationComponent(getActivity(), loadedMapStyle);
+            locationComponent.setLocationComponentEnabled(true);
+            // Set the component's camera mode
+            locationComponent.setCameraMode(CameraMode.TRACKING);
+        } else {
+            permissionsManager = new PermissionsManager(this);
+            permissionsManager.requestLocationPermissions(getActivity());
+        }
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        if (location != null) {
+            mylocation = location;
+            if (mylocation.getLatitude() > 28.31285 || mylocation.getLatitude() < 28.11532
+                    || mylocation.getLongitude() > 84.14949 || mylocation.getLongitude() < 83.84905) {
+//                Toast.makeText(getContext(), "Out of Indore Bound", Toast.LENGTH_SHORT).show();
+            } else {
+                gps.setImageResource(0);
+                gps.setImageResource(R.drawable.ic_action_gps_fixed);
+                gps.setTag("gps_fixed");
+                setCameraPosition(location);
+            }
+        }
+    }
+
+    private void setCameraPosition(Location location) {
+        mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                new LatLng(location.getLatitude(), location.getLongitude()), 13));
+    }
 
     class MyGestureListener extends GestureDetector.SimpleOnGestureListener {
         private static final String DEBUG_TAG = "Gestures";
@@ -1676,9 +1455,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
     }
 
     private boolean handleClickIcon(PointF toScreenLocation, LatLng point) {
-        //if this point equals one of the point of the list shpw the dialog..simple as it is why worry :)
         double zoom = mapboxMap.getCameraPosition().zoom;
-//        if(mapboxMap.getStyle().getLayer()
         List<Feature> features = mapboxMap.queryRenderedFeatures(toScreenLocation, UNCLUSTERED_POINTS);
         if (!features.isEmpty()) {
             String name = features.get(0).id();
@@ -1694,8 +1471,6 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
             for (Feature feature : featureList) {
                 if (feature.id().equals(name)) {
                     showDetailsOfthePoint(point, name, feature);
-//                    Log.d(TAG, "handleClickIcon:loop " + feature.id() + " bahira " + name);
-//                    Toast.makeText(getActivity(), "Marker Clicked", Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -1705,11 +1480,8 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
     }
 
     private void showDetailsOfthePoint(LatLng point, String name, Feature feature) {
-//        Log.d(TAG, "showDetailsOfthePoint: "+feature.getProperty("coordinates"));
-        Log.d(TAG, "showDetailsOfthePoint: "+name);
         poiFeatureId = name;
         POIGeometry geometry = new Gson().fromJson(feature.geometry().toJson(), POIGeometry.class);
-        Log.d(TAG, "showDetailsOfthePoint: " + geometry.coordinates);
         String markerText = name;
         testText.setText(markerText);
         double zoom = mapboxMap.getCameraPosition().zoom;
@@ -1728,8 +1500,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         //to keep teh color to blue/ colorPrimary
 //            navButton.setBackgroundColor(getResources().getColor(R.color.tertiaryText));
         navButton.setText("Route");
-        //todo
-//            if (navigationMapRoute != null) navigationMapRoute.removeRoute();
+        if (navigationMapRoute != null) navigationMapRoute.removeRoute();
         if (swipeValue == 1) {
             if (detailPhone != null)
                 detailPhone.setClickable(false);
@@ -1738,6 +1509,138 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
             detail_screen.addView(amenityInfo);
         }
     }
+
+    private synchronized void setUpGClient() {
+        googleApiClient = new GoogleApiClient.Builder(getActivity())
+                .enableAutoManage(getActivity(), 0, this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
+        googleApiClient.connect();
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+//        checkPermissions();
+    }
+
+    private void checkPermissions() {
+        int permissionLocation = ContextCompat.checkSelfPermission(getActivity(),
+                android.Manifest.permission.ACCESS_FINE_LOCATION);
+        List<String> listPermissionsNeeded = new ArrayList<>();
+        if (permissionLocation != PackageManager.PERMISSION_GRANTED) {
+            listPermissionsNeeded.add(android.Manifest.permission.ACCESS_FINE_LOCATION);
+            if (!listPermissionsNeeded.isEmpty()) {
+                ActivityCompat.requestPermissions(getActivity(),
+                        listPermissionsNeeded.toArray(new String[listPermissionsNeeded.size()]), Keys.LOCATION_REQUEST);
+            }
+        } else {
+            gps.setImageResource(0);
+            gps.setImageResource(R.drawable.ic_action_gps_fixed);
+            gps.setTag("gps_fixed");
+            getMyLocation();
+        }
+
+    }
+
+    private void getMyLocation() {
+        if (googleApiClient != null) {
+            if (googleApiClient.isConnected()) {
+                int permissionLocation = ContextCompat.checkSelfPermission(getActivity(),
+                        Manifest.permission.ACCESS_FINE_LOCATION);
+                if (permissionLocation == PackageManager.PERMISSION_GRANTED) {
+                    mylocation = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
+                    LocationRequest locationRequest = new LocationRequest();
+                    locationRequest.setInterval(3000);
+                    locationRequest.setFastestInterval(3000);
+                    locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+                    LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
+                            .addLocationRequest(locationRequest);
+                    builder.setAlwaysShow(true);
+                    LocationServices.FusedLocationApi
+                            .requestLocationUpdates(googleApiClient, locationRequest, this);
+                    PendingResult result =
+                            LocationServices.SettingsApi
+                                    .checkLocationSettings(googleApiClient, builder.build());
+                    result.setResultCallback(new ResultCallback() {
+                        @Override
+                        public void onResult(@NonNull Result result) {
+                            final Status status = result.getStatus();
+                            switch (status.getStatusCode()) {
+                                case LocationSettingsStatusCodes.SUCCESS:
+                                    // All location settings are satisfied.
+                                    // You can initialize location requests here.
+                                    int permissionLocation = ContextCompat
+                                            .checkSelfPermission(getActivity(),
+                                                    Manifest.permission.ACCESS_FINE_LOCATION);
+                                    if (permissionLocation == PackageManager.PERMISSION_GRANTED) {
+                                        mylocation = LocationServices.FusedLocationApi
+                                                .getLastLocation(googleApiClient);
+                                    }
+                                    break;
+                                case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                                    // Location settings are not satisfied.
+                                    // But could be fixed by showing the user a dialog.
+                                    try {
+                                        // Show the dialog by calling startResolutionForResult(),
+                                        // and check the result in onActivityResult().
+                                        // Ask to turn on GPS automatically
+                                        status.startResolutionForResult(getActivity(),
+                                                Keys.GPS_REQUEST);
+                                    } catch (IntentSender.SendIntentException e) {
+                                        // Ignore the error.
+                                    }
+                                    break;
+                                case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                                    // Location settings are not satisfied. However, we have no way to fix the
+                                    // settings so we won't show the dialog.
+                                    //finish();
+                                    break;
+                            }
+                        }
+                    });
+                }
+            }
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch (requestCode) {
+            case Keys.GPS_REQUEST:
+                switch (resultCode) {
+                    case Activity.RESULT_OK:
+                        getMyLocation();
+                        break;
+                    case Activity.RESULT_CANCELED:
+                        Toast.makeText(getActivity(), "Connection Failed", Toast.LENGTH_SHORT).show();
+                        break;
+                }
+                break;
+        }
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        //Do whatever you need
+        //You can display a message here
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        Toast.makeText(getActivity(), "Connection Failed", Toast.LENGTH_SHORT).show();
+    }
+
+    //edit
+    private void editAmenity(String amenity) {
+        Intent i = new Intent(getContext(), EditDialogActivity.class);
+        String[] editInfo = {amenity, editName, editLat, editLong};
+        i.putExtra("amenity", editInfo);
+        startActivity(i);
+    }
+
 }
 
 

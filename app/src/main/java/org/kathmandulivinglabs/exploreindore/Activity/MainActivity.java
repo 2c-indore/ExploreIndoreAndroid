@@ -134,7 +134,7 @@ public class MainActivity extends AppCompatActivity
     private boolean filter_applied = false, navClicked = false;
     private NavigationView navigationView;
     private boolean update_data = false;
-    public static boolean updateMapView = false, destroyMapView = false;
+    public static boolean updateMapView = false;
     private boolean mapsDownloading = false;
     private NotificationManagerCompat mNotificationManager;
     private NotificationCompat.Builder mBuilder;
@@ -159,14 +159,6 @@ public class MainActivity extends AppCompatActivity
     int PROGRESS_CURRENT = 0;
     double progress = 0;
     boolean Auth;
-    private static final String ACTION_CUSTOM_BROADCAST =
-            BuildConfig.APPLICATION_ID + ".ACTION_CUSTOM_BROADCAST";
-
-
-    public void setMyClassListener(Backlistner listener) {
-        this.mBack = listener;
-    }
-
     private TextView loginText;
 
     @Override
@@ -177,15 +169,12 @@ public class MainActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
         loginText = findViewById(R.id.btn_login);
         String user = updateText();
-        loginText.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                drawer.closeDrawers();
-                if (!Auth) {
-                    Intent intentabout = new Intent(getApplicationContext(), LoginActivity.class);
-                    startActivity(intentabout);
-                } else showAlertDialogButtonClicked(user);
-            }
+        loginText.setOnClickListener(view -> {
+            drawer.closeDrawers();
+            if (!Auth) {
+                Intent intentabout = new Intent(getApplicationContext(), LoginActivity.class);
+                startActivity(intentabout);
+            } else showAlertDialogButtonClicked(user);
         });
         drawer = findViewById(R.id.drawer_layout);
         expandableList = findViewById(R.id.expand_nav);
@@ -204,8 +193,6 @@ public class MainActivity extends AppCompatActivity
                 .setChannelId(channelId)
                 .setAutoCancel(true)
                 .setOnlyAlertOnce(true);
-
-//        String channelId = "explore_download";
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             CharSequence name = "Downloading";
@@ -258,7 +245,6 @@ public class MainActivity extends AppCompatActivity
                 String childValue = listDataChild.get(listDataHeader.get(i)).get(i1);
                 getSupportActionBar().setTitle(childValue);
                 for (Map.Entry<String, String> entry : tagMp.entrySet()) {
-                    Log.d(TAG, "onChildClick: " + entry.getValue() + " child " + childValue);
                     if (entry.getValue().equals(childValue)) {
                         tabs.setupWithViewPager(viewPager);
                         if (filter_param != null) filter_param.clear();
@@ -266,8 +252,6 @@ public class MainActivity extends AppCompatActivity
                         drawer.closeDrawers();
                         oldtag = entry.getKey();
                         makeMapData(entry.getKey());
-
-                        Log.d(entry.getKey(), "child");
                     }
                 }
                 switch (childValue) {
