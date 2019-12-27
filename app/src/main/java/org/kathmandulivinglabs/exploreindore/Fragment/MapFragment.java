@@ -184,6 +184,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
     Marker previous_selected;
     private ToggleTabVisibilityListener toggleTabVisibilityListener;
     private FeatureCollection featureCollection;
+    private String poiFeatureId = "";
 
     private class zoomobj {
         private double lat, lng, zoom;
@@ -262,7 +263,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
             lm.setVisibility(View.GONE);
             //todo
 //            if (navigationMapRoute != null) navigationMapRoute.removeRoute();
-            previous_selected.setIcon(getItemIcon()); //to change red icon to blue
+//            previous_selected.setIcon(getItemIcon()); //to change red icon to blue
             detail_screen.removeAllViews();
             if (mSearchMenuItem != null)
                 mSearchMenuItem.collapseActionView(); //because search view still remains there of not collapsed
@@ -528,7 +529,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
             @Override
             public void onClick(View v) {
                 swipeValue = 0;
-                previous_selected.setIcon(getItemIcon()); //to change red icon to blue
+//                previous_selected.setIcon(getItemIcon()); //to change red icon to blue
                 lm.setLayoutParams(lp_shrink);
                 small_info.setVisibility(View.VISIBLE);
                 ((AppCompatActivity) getActivity()).getSupportActionBar().show();
@@ -861,8 +862,9 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
 
             RealmQuery<ExploreSchema> query = realm.where(ExploreSchema.class);
             ExploreSchema dbvalue = query
-                    .equalTo("coordinateslong", Double.valueOf(editLat))
-                    .equalTo("coordinateslat", Double.valueOf(editLong))
+                    .equalTo("osm_id", poiFeatureId)
+//                    .equalTo("coordinateslong", Double.valueOf(editLat))
+//                    .equalTo("coordinateslat", Double.valueOf(editLong))
                     .findFirst();
 
             if (dbvalue != null && dbvalue.getTag_type() != null) {
@@ -1691,9 +1693,9 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
                 mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(point, zoom + 0.5), 200);
             for (Feature feature : featureList) {
                 if (feature.id().equals(name)) {
-                    showDetailsOfthePoint(point, name);
-                    Log.d(TAG, "handleClickIcon:loop " + feature.id() + " bahira " + name);
-                    Toast.makeText(getActivity(), "Marker Clicked", Toast.LENGTH_SHORT).show();
+                    showDetailsOfthePoint(point, name, feature);
+//                    Log.d(TAG, "handleClickIcon:loop " + feature.id() + " bahira " + name);
+//                    Toast.makeText(getActivity(), "Marker Clicked", Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -1702,19 +1704,24 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
             return false;
     }
 
-    private void showDetailsOfthePoint(LatLng point, String name) {
+    private void showDetailsOfthePoint(LatLng point, String name, Feature feature) {
+//        Log.d(TAG, "showDetailsOfthePoint: "+feature.getProperty("coordinates"));
+        Log.d(TAG, "showDetailsOfthePoint: "+name);
+        poiFeatureId = name;
+        POIGeometry geometry = new Gson().fromJson(feature.geometry().toJson(), POIGeometry.class);
+        Log.d(TAG, "showDetailsOfthePoint: " + geometry.coordinates);
         String markerText = name;
         testText.setText(markerText);
         double zoom = mapboxMap.getCameraPosition().zoom;
 
-        destinationPosition = Point.fromLngLat(point.getLongitude(), point.getLatitude());
+        destinationPosition = Point.fromLngLat(geometry.coordinates.get(0), geometry.coordinates.get(1));
         ((AppCompatActivity) getActivity()).getSupportActionBar().hide();
         toggleTabVisibilityListener.hideTabs();
         lm.setVisibility(View.VISIBLE);
         editName = "name";
         editSnippet = "Snippet";
-        editLat = String.valueOf(point.getLatitude());
-        editLong = String.valueOf(point.getLongitude());
+        editLat = String.valueOf(geometry.coordinates.get(1));
+        editLong = String.valueOf(geometry.coordinates.get(0));
         //swipeValue = 1;
         iff_ondown = false;
         iff_onswipe = false;
