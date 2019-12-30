@@ -121,6 +121,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
+                            android:foregroundGravity="center"
                             android:src="@drawable/phone"
                             app:backgroundTint="@color/infoBackground"
                             app:fabSize="mini" />

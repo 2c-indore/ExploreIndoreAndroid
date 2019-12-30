@@ -14,6 +14,7 @@
     </shared>
   </component>
   <component name="AndroidLogFilters">
+    <option name="TOOL_WINDOW_CUSTOM_FILTER" value="handleClickIcon" />
     <option name="TOOL_WINDOW_LOG_LEVEL" value="verbose" />
     <option name="TOOL_WINDOW_CONFIGURED_FILTER" value="Show only selected application" />
   </component>
@@ -26,11 +27,12 @@
       <change beforePath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" beforeDir="false" afterPath="$PROJECT_DIR$/.gradle/buildOutputCleanup/buildOutputCleanup.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/caches/build_file_checksums.ser" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/caches/build_file_checksums.ser" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/app.iml" beforeDir="false" afterPath="$PROJECT_DIR$/app/app.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/app/build.gradle" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/Activity/MainActivity.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/Activity/MainActivity.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/Fragment/MapFragment.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/Fragment/MapFragment.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/Helper/Keys.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/Helper/Keys.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/models/POI/FeatureTag.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/models/POI/FeatureTag.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/models/POI/POIFeature.java" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/models/POI/POIFeature.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/detailview.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/detailview.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/progress_dialog.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/progress_dialog.xml" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -71,71 +73,37 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/Fragment/MapFragment.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="313">
-              <caret line="1197" column="14" selection-start-line="1197" selection-start-column="14" selection-end-line="1197" selection-end-column="14" />
+            <state relative-caret-position="194">
+              <caret line="342" column="5" selection-start-line="342" selection-start-column="5" selection-end-line="342" selection-end-column="5" />
               <folding>
                 <element signature="imports" expanded="true" />
-                <element signature="e#9272#9273#0" expanded="true" />
-                <element signature="e#9310#9311#0" expanded="true" />
-                <element signature="e#9344#9345#0" expanded="true" />
-                <element signature="e#9378#9379#0" expanded="true" />
-                <element signature="e#9420#9421#0" expanded="true" />
-                <element signature="e#9458#9459#0" expanded="true" />
-                <element signature="e#9493#9494#0" expanded="true" />
-                <element signature="e#9528#9529#0" expanded="true" />
-                <element signature="e#9572#9573#0" expanded="true" />
-                <element signature="e#9612#9613#0" expanded="true" />
-                <element signature="e#13016#13017#0" expanded="true" />
-                <element signature="e#13083#13084#0" expanded="true" />
-                <element signature="e#13413#13414#0" expanded="true" />
-                <element signature="e#13453#13454#0" expanded="true" />
-                <element signature="e#17132#17171#0" expanded="true" />
-                <element signature="e#26672#26719#0" expanded="true" />
-                <element signature="e#41030#41031#0" expanded="true" />
-                <element signature="e#51524#51525#0" expanded="true" />
-                <element signature="e#62357#62397#0" expanded="true" />
-                <element signature="e#64634#64674#0" expanded="true" />
+                <element signature="e#10123#10124#0" expanded="true" />
+                <element signature="e#10161#10162#0" expanded="true" />
+                <element signature="e#13904#13905#0" expanded="true" />
+                <element signature="e#13971#13972#0" expanded="true" />
+                <element signature="e#14167#14168#0" expanded="true" />
+                <element signature="e#14207#14208#0" expanded="true" />
+                <element signature="e#18020#18059#0" expanded="true" />
+                <element signature="e#27910#27957#0" expanded="true" />
+                <element signature="e#41984#41985#0" expanded="true" />
+                <element signature="e#42024#42025#0" expanded="true" />
+                <element signature="e#52477#52478#0" expanded="true" />
+                <element signature="e#52518#52519#0" expanded="true" />
+                <element signature="e#64192#64232#0" expanded="true" />
+                <element signature="e#66651#66691#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/models/POI/POI.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="102">
-              <caret line="6" column="22" lean-forward="true" selection-start-line="6" selection-start-column="22" selection-end-line="6" selection-end-column="22" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="jar://$USER_HOME$/AppData/Local/Android/sdk/platforms/android-29/android.jar!/android/widget/ImageButton.class">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="119">
-              <caret line="14" column="13" selection-start-line="14" selection-start-column="13" selection-end-line="14" selection-end-column="13" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/app/src/main/res/layout/map_fragment.xml">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="374">
-              <caret line="61" column="51" selection-start-line="61" selection-start-column="51" selection-end-line="61" selection-end-column="51" />
-            </state>
-          </provider>
-          <provider editor-type-id="android-designer2" />
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/Activity/MainActivity.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-16330">
-              <caret line="253" column="52" selection-start-line="253" selection-start-column="52" selection-end-line="253" selection-end-column="52" />
+            <state relative-caret-position="187">
+              <caret line="611" column="49" selection-start-line="611" selection-start-column="49" selection-end-line="611" selection-end-column="49" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -144,23 +112,61 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="jar://$USER_HOME$/AppData/Local/Android/sdk/platforms/android-29/android.jar!/android/view/View.class">
+        <entry file="file://$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/View/ProgressDialogFragment.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="212">
-              <caret line="2652" column="35" selection-start-line="2652" selection-start-column="35" selection-end-line="2652" selection-end-column="35" />
+            <state relative-caret-position="308">
+              <caret line="33" column="52" selection-start-line="33" selection-start-column="52" selection-end-line="33" selection-end-column="52" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/app/src/main/res/layout/progress_dialog.xml">
+          <provider editor-type-id="android-designer2" />
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="238">
+              <caret line="14" column="33" selection-start-line="14" selection-start-column="33" selection-end-line="14" selection-end-column="33" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.mapbox.mapboxsdk/mapbox-android-sdk/8.5.1/c2190ea6d8f9b32f7bc5dae2ce64a974d83c76f0/mapbox-android-sdk-8.5.1-sources.jar!/com/mapbox/mapboxsdk/style/expressions/Expression.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state>
+              <caret line="3715" column="27" selection-start-line="3715" selection-start-column="27" selection-end-line="3715" selection-end-column="27" />
               <folding>
-                <element signature="e#75343#75344#0" expanded="true" />
-                <element signature="e#75394#75395#0" expanded="true" />
+                <element signature="e#4703#4704#0" expanded="true" />
+                <element signature="e#4749#4750#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/Helper/Keys.java">
+        <entry file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.mapbox.mapboxsdk/mapbox-android-sdk/8.5.1/c2190ea6d8f9b32f7bc5dae2ce64a974d83c76f0/mapbox-android-sdk-8.5.1-sources.jar!/com/mapbox/mapboxsdk/style/layers/PropertyFactory.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="102">
-              <caret line="6" column="32" selection-start-line="6" selection-start-column="32" selection-end-line="6" selection-end-column="32" />
+            <state relative-caret-position="33643">
+              <caret line="1983" column="42" selection-start-line="1983" selection-start-column="42" selection-end-line="1983" selection-end-column="42" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/app/src/main/res/layout/detailview.xml">
+          <provider editor-type-id="android-designer2" />
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="179">
+              <caret line="37" column="24" selection-start-line="37" selection-start-column="24" selection-end-line="37" selection-end-column="24" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$USER_HOME$/.gradle/caches/transforms-1/files-1.1/material-1.0.0.aar/9aa0b68674c0b1111f46fad6a49b9b3d/res/values/values.xml">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="2550">
+              <caret line="150" column="151" selection-start-line="150" selection-start-column="151" selection-end-line="150" selection-end-column="151" />
             </state>
           </provider>
         </entry>
@@ -168,26 +174,18 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/app/build.gradle">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="434">
-              <caret line="83" column="73" selection-start-line="83" selection-start-column="73" selection-end-line="83" selection-end-column="73" />
+            <state relative-caret-position="740">
+              <caret line="65" column="77" selection-start-line="65" selection-start-column="77" selection-end-line="65" selection-end-column="77" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/models/POI/POIFeatureProperty.java">
+        <entry file="file://$PROJECT_DIR$/app/src/main/res/layout/map_fragment.xml">
+          <provider editor-type-id="android-designer2" />
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="85">
-              <caret line="5" column="33" selection-start-line="5" selection-start-column="33" selection-end-line="5" selection-end-column="33" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/models/POI/POIFeature.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="34">
-              <caret line="2" column="13" selection-start-line="2" selection-start-column="13" selection-end-line="2" selection-end-column="13" />
+            <state relative-caret-position="17">
+              <caret line="34" column="24" selection-start-line="34" selection-start-column="24" selection-end-line="34" selection-end-column="24" />
             </state>
           </provider>
         </entry>
@@ -205,24 +203,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>onMapRe</find>
-      <find>geometry</find>
-      <find>onMarkerCl</find>
-      <find>map</find>
-      <find>onGes</find>
-      <find>marker</find>
-      <find>onMarker</find>
-      <find>handleClick</find>
-      <find>spin_kit</find>
-      <find>handle</find>
-      <find>75.85058569908142</find>
-      <find>5de4cd549af0322cb3fb6300</find>
-      <find>5de4cd549af0322cb3fb6305</find>
-      <find>cli</find>
-      <find>navigationMapRoute</find>
-      <find>onCon</find>
-      <find>NavigationActivity.this</find>
-      <find>editA</find>
       <find>gps_searching</find>
       <find>setUpG</find>
       <find>onConnected</find>
@@ -235,6 +215,24 @@
       <find>onDestr</find>
       <find>onPause</find>
       <find>featureC</find>
+      <find>details</find>
+      <find>handleClickIcon</find>
+      <find>EARTHQUAKE</find>
+      <find>marker-layer</find>
+      <find>detailView</find>
+      <find>selected_marker</find>
+      <find>select_marker</find>
+      <find>selected</find>
+      <find>btn</find>
+      <find>selected-marker-layer</find>
+      <find>handle</find>
+      <find>selected_marker_layer</find>
+      <find>extent</find>
+      <find>exten</find>
+      <find>500</find>
+      <find>300</find>
+      <find>400</find>
+      <find>dese</find>
     </findStrings>
     <replaceStrings>
       <replace>explore</replace>
@@ -243,6 +241,7 @@
       <replace>getActivity()</replace>
       <replace>googleApiClient</replace>
       <replace>mylocation</replace>
+      <replace>POI</replace>
     </replaceStrings>
   </component>
   <component name="GenerateSignedApkSettings">
@@ -263,13 +262,11 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/Activity/ResetPasswordActivity.java" />
         <option value="$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/Activity/MapOffline.java" />
         <option value="$PROJECT_DIR$/app/src/main/res/layout/activity_offlinemap.xml" />
         <option value="$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/Activity/AboutActivity.java" />
         <option value="$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/Adapter/SpinnertwolineAdapter.java" />
         <option value="$PROJECT_DIR$/app/src/main/res/layout/nav_header_main.xml" />
-        <option value="$PROJECT_DIR$/app/src/main/res/layout/progress_dialog.xml" />
         <option value="$PROJECT_DIR$/app/src/main/res/layout/detailtextgenerator.xml" />
         <option value="$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/Activity/DataManager.java" />
         <option value="$PROJECT_DIR$/app/src/main/res/layout/spinner_twotv.xml" />
@@ -306,14 +303,16 @@
         <option value="$PROJECT_DIR$/app/src/main/AndroidManifest.xml" />
         <option value="$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/Api_helper/ApiHelper.java" />
         <option value="$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/Api_helper/Wards.java" />
-        <option value="$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/models/POI/FeatureTag.java" />
         <option value="$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/models/POI/POIGeometry.java" />
         <option value="$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/models/POI/POIFeatureProperty.java" />
-        <option value="$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/models/POI/POIFeature.java" />
-        <option value="$PROJECT_DIR$/app/build.gradle" />
         <option value="$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/Helper/Keys.java" />
-        <option value="$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/Fragment/MapFragment.java" />
         <option value="$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/Activity/MainActivity.java" />
+        <option value="$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/models/POI/POIFeature.java" />
+        <option value="$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/models/POI/FeatureTag.java" />
+        <option value="$PROJECT_DIR$/app/src/main/res/layout/detailview.xml" />
+        <option value="$PROJECT_DIR$/app/build.gradle" />
+        <option value="$PROJECT_DIR$/app/src/main/res/layout/progress_dialog.xml" />
+        <option value="$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/Fragment/MapFragment.java" />
       </list>
     </option>
   </component>
@@ -330,24 +329,23 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="AndroidView">
+        <subPane>
+          <expand>
+            <path>
+              <item name="ExploreIndoreAndroid" type="1abcf292:AndroidViewProjectNode" />
+              <item name="Gradle Scripts" type="ae0cef3a:AndroidBuildScriptsGroupNode" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
       <pane id="ProjectPane">
         <subPane>
           <expand>
             <path>
               <item name="ExploreIndore" type="b2602c69:ProjectViewProjectNode" />
               <item name="ExploreIndore" type="8a07ba80:GradleTreeStructureProvider$GradleModuleDirectoryNode" />
-            </path>
-          </expand>
-          <select />
-        </subPane>
-      </pane>
-      <pane id="AndroidView" />
-      <pane id="PackagesPane">
-        <subPane>
-          <expand>
-            <path>
-              <item name="ExploreIndore" type="58d84e3e:PackageViewProjectNode" />
-              <item name="app" type="616d4139:PackageViewModuleNode" />
             </path>
           </expand>
           <select />
@@ -425,11 +423,22 @@
           <select />
         </subPane>
       </pane>
+      <pane id="PackagesPane">
+        <subPane>
+          <expand>
+            <path>
+              <item name="ExploreIndore" type="58d84e3e:PackageViewProjectNode" />
+              <item name="app" type="616d4139:PackageViewModuleNode" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
     </panes>
   </component>
   <component name="PropertiesComponent">
     <property name="DeviceAndSnapshotComboBoxAction.selectedDevice" value="5b9ba291" />
-    <property name="DeviceAndSnapshotComboBoxAction.selectionTime" value="2019-12-27T06:34:13.191Z" />
+    <property name="DeviceAndSnapshotComboBoxAction.selectionTime" value="2019-12-30T09:25:17.603Z" />
     <property name="ExportApk.ApkPath" value="D:\KathmanduLivingLabs\ExploreIndore\app" />
     <property name="ExportApk.BuildVariants" value="release" />
     <property name="ExportApk.SignV1" value="true" />
@@ -680,42 +689,6 @@
     <option name="LAST_COMMIT_MESSAGE" value="uploaded version 2 to playstore" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/app/src/main/AndroidManifest.xml">
-      <provider editor-type-id="android-manifest" />
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="238">
-          <caret line="14" column="32" selection-start-line="14" selection-start-column="32" selection-end-line="14" selection-end-column="32" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.mapbox.mapboxsdk/mapbox-android-navigation-ui/0.12.0/d862feadbb1826c72b26b4fdab9dfbc47c74b1c7/mapbox-android-navigation-ui-0.12.0-sources.jar!/com/mapbox/services/android/navigation/ui/v5/route/NavigationMapRoute.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="357">
-          <caret line="71" column="20" selection-start-line="71" selection-start-column="20" selection-end-line="71" selection-end-column="20" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.mapbox.mapboxsdk/mapbox-android-sdk/8.5.0/c6ea1acf5cd93c79101a9eb425db4a99b6a12d47/mapbox-android-sdk-8.5.0-sources.jar!/com/mapbox/mapboxsdk/maps/MapboxMap.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="35819">
-          <caret line="2225" column="19" selection-start-line="2225" selection-start-column="19" selection-end-line="2225" selection-end-column="19" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/Customclass/KllclusterRenderer.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="6103">
-          <caret line="367" selection-start-line="367" selection-end-line="367" />
-          <folding>
-            <element signature="imports" expanded="true" />
-            <element signature="e#11216#11217#0" expanded="true" />
-            <element signature="e#11287#11288#0" expanded="true" />
-            <element signature="e#13449#13450#0" expanded="true" />
-            <element signature="e#13502#13503#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.mapbox.mapboxsdk/mapbox-android-plugin-cluster-utils/0.4.0/740e094d5f8c2f33dff9d26189adbf515703c0a3/mapbox-android-plugin-cluster-utils-0.4.0-sources.jar!/com/mapbox/mapboxsdk/plugins/cluster/MarkerManager.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="425">
@@ -773,16 +746,16 @@
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/app/src/main/res/layout/spinner_twotv.xml">
+      <provider editor-type-id="android-designer2" />
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="425">
           <caret line="25" column="18" selection-start-line="25" selection-start-column="18" selection-end-line="25" selection-end-column="18" />
         </state>
       </provider>
-      <provider editor-type-id="android-designer2" />
     </entry>
     <entry file="file://$PROJECT_DIR$/app/src/main/res/layout/detailtextgenerator.xml">
-      <provider selected="true" editor-type-id="text-editor" />
       <provider editor-type-id="android-designer2" />
+      <provider selected="true" editor-type-id="text-editor" />
     </entry>
     <entry file="file://$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/Realmstore/Ward.java">
       <provider selected="true" editor-type-id="text-editor">
@@ -896,9 +869,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/models/POI/FeatureTag.java">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
     <entry file="file://$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/models/MyItem.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="19">
@@ -951,28 +921,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.mapbox.mapboxsdk/mapbox-android-sdk/8.5.1/c2190ea6d8f9b32f7bc5dae2ce64a974d83c76f0/mapbox-android-sdk-8.5.1-sources.jar!/com/mapbox/mapboxsdk/style/layers/PropertyFactory.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-672">
-          <caret line="1973" column="38" selection-start-line="1973" selection-start-column="38" selection-end-line="1973" selection-end-column="38" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/src/main/res/layout/progress_dialog.xml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="136">
-          <caret line="8" column="33" selection-start-line="8" selection-start-column="25" selection-end-line="8" selection-end-column="33" />
-        </state>
-      </provider>
-      <provider editor-type-id="android-designer2" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/View/ProgressDialogFragment.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="391">
-          <caret line="33" column="45" selection-start-line="33" selection-start-column="45" selection-end-line="33" selection-end-column="45" />
-        </state>
-      </provider>
-    </entry>
     <entry file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.mapbox.mapboxsdk/mapbox-android-sdk/8.5.1/c2190ea6d8f9b32f7bc5dae2ce64a974d83c76f0/mapbox-android-sdk-8.5.1-sources.jar!/com/mapbox/mapboxsdk/camera/CameraUpdateFactory.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="195">
@@ -1004,13 +952,6 @@
             <element signature="e#2034#2035#0" expanded="true" />
             <element signature="e#2059#2060#0" expanded="true" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/models/POI/POIGeometry.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="68">
-          <caret line="4" column="13" selection-start-line="4" selection-start-column="13" selection-end-line="4" selection-end-column="13" />
         </state>
       </provider>
     </entry>
@@ -1050,10 +991,17 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/models/POI/POIFeatureProperty.java">
+    <entry file="jar://$USER_HOME$/AppData/Local/Android/sdk/platforms/android-29/android.jar!/android/widget/ImageButton.class">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="85">
-          <caret line="5" column="33" selection-start-line="5" selection-start-column="33" selection-end-line="5" selection-end-column="33" />
+        <state relative-caret-position="119">
+          <caret line="14" column="13" selection-start-line="14" selection-start-column="13" selection-end-line="14" selection-end-column="13" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$USER_HOME$/AppData/Local/Android/sdk/platforms/android-29/android.jar!/android/view/View.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="30991">
+          <caret line="2652" column="35" selection-start-line="2652" selection-start-column="35" selection-end-line="2652" selection-end-column="35" />
         </state>
       </provider>
     </entry>
@@ -1064,89 +1012,141 @@
         </state>
       </provider>
     </entry>
-    <entry file="jar://$USER_HOME$/AppData/Local/Android/sdk/platforms/android-29/android.jar!/android/view/View.class">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="212">
-          <caret line="2652" column="35" selection-start-line="2652" selection-start-column="35" selection-end-line="2652" selection-end-column="35" />
-          <folding>
-            <element signature="e#75343#75344#0" expanded="true" />
-            <element signature="e#75394#75395#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/build.gradle">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="434">
-          <caret line="83" column="73" selection-start-line="83" selection-start-column="73" selection-end-line="83" selection-end-column="73" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/src/main/res/layout/map_fragment.xml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="374">
-          <caret line="61" column="51" selection-start-line="61" selection-start-column="51" selection-end-line="61" selection-end-column="51" />
-        </state>
-      </provider>
-      <provider editor-type-id="android-designer2" />
-    </entry>
-    <entry file="jar://$USER_HOME$/AppData/Local/Android/sdk/platforms/android-29/android.jar!/android/widget/ImageButton.class">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="119">
-          <caret line="14" column="13" selection-start-line="14" selection-start-column="13" selection-end-line="14" selection-end-column="13" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/Fragment/MapFragment.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="313">
-          <caret line="1197" column="14" selection-start-line="1197" selection-start-column="14" selection-end-line="1197" selection-end-column="14" />
-          <folding>
-            <element signature="imports" expanded="true" />
-            <element signature="e#9272#9273#0" expanded="true" />
-            <element signature="e#9310#9311#0" expanded="true" />
-            <element signature="e#9344#9345#0" expanded="true" />
-            <element signature="e#9378#9379#0" expanded="true" />
-            <element signature="e#9420#9421#0" expanded="true" />
-            <element signature="e#9458#9459#0" expanded="true" />
-            <element signature="e#9493#9494#0" expanded="true" />
-            <element signature="e#9528#9529#0" expanded="true" />
-            <element signature="e#9572#9573#0" expanded="true" />
-            <element signature="e#9612#9613#0" expanded="true" />
-            <element signature="e#13016#13017#0" expanded="true" />
-            <element signature="e#13083#13084#0" expanded="true" />
-            <element signature="e#13413#13414#0" expanded="true" />
-            <element signature="e#13453#13454#0" expanded="true" />
-            <element signature="e#17132#17171#0" expanded="true" />
-            <element signature="e#26672#26719#0" expanded="true" />
-            <element signature="e#41030#41031#0" expanded="true" />
-            <element signature="e#51524#51525#0" expanded="true" />
-            <element signature="e#62357#62397#0" expanded="true" />
-            <element signature="e#64634#64674#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/models/POI/POI.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="102">
-          <caret line="6" column="22" lean-forward="true" selection-start-line="6" selection-start-column="22" selection-end-line="6" selection-end-column="22" />
+          <caret line="6" column="21" lean-forward="true" selection-start-line="6" selection-start-column="21" selection-end-line="6" selection-end-column="21" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/models/POI/POIFeature.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="34">
-          <caret line="2" column="13" selection-start-line="2" selection-start-column="13" selection-end-line="2" selection-end-column="13" />
+        <state relative-caret-position="68">
+          <caret line="4" column="16" lean-forward="true" selection-start-line="4" selection-start-column="16" selection-end-line="4" selection-end-column="16" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/models/POI/POIFeatureProperty.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="85">
+          <caret line="5" column="32" lean-forward="true" selection-start-line="5" selection-start-column="11" selection-end-line="5" selection-end-column="32" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/models/POI/FeatureTag.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="85">
+          <caret line="5" column="51" selection-start-line="5" selection-start-column="51" selection-end-line="5" selection-end-column="51" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/models/POI/POIGeometry.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="68">
+          <caret line="4" column="13" selection-start-line="4" selection-start-column="13" selection-end-line="4" selection-end-column="13" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.mapbox.mapboxsdk/mapbox-android-sdk/8.5.1/c2190ea6d8f9b32f7bc5dae2ce64a974d83c76f0/mapbox-android-sdk-8.5.1-sources.jar!/com/mapbox/mapboxsdk/style/layers/SymbolLayer.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="204">
+          <caret line="25" column="13" selection-start-line="25" selection-start-column="13" selection-end-line="25" selection-end-column="13" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.mapbox.mapboxsdk/mapbox-android-sdk/8.5.1/c2190ea6d8f9b32f7bc5dae2ce64a974d83c76f0/mapbox-android-sdk-8.5.1-sources.jar!/com/mapbox/mapboxsdk/style/layers/PropertyFactory.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="33643">
+          <caret line="1983" column="42" selection-start-line="1983" selection-start-column="42" selection-end-line="1983" selection-end-column="42" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/.gradle/caches/transforms-1/files-1.1/material-1.0.0.aar/9aa0b68674c0b1111f46fad6a49b9b3d/res/values/values.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2550">
+          <caret line="150" column="151" selection-start-line="150" selection-start-column="151" selection-end-line="150" selection-end-column="151" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/build.gradle">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="740">
+          <caret line="65" column="77" selection-start-line="65" selection-start-column="77" selection-end-line="65" selection-end-column="77" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/Activity/MainActivity.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-16330">
-          <caret line="253" column="52" selection-start-line="253" selection-start-column="52" selection-end-line="253" selection-end-column="52" />
+        <state relative-caret-position="187">
+          <caret line="611" column="49" selection-start-line="611" selection-start-column="49" selection-end-line="611" selection-end-column="49" />
           <folding>
             <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/src/main/res/layout/progress_dialog.xml">
+      <provider editor-type-id="android-designer2" />
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="238">
+          <caret line="14" column="33" selection-start-line="14" selection-start-column="33" selection-end-line="14" selection-end-column="33" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/src/main/res/layout/detailview.xml">
+      <provider editor-type-id="android-designer2" />
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="179">
+          <caret line="37" column="24" selection-start-line="37" selection-start-column="24" selection-end-line="37" selection-end-column="24" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/View/ProgressDialogFragment.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="308">
+          <caret line="33" column="52" selection-start-line="33" selection-start-column="52" selection-end-line="33" selection-end-column="52" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/src/main/res/layout/map_fragment.xml">
+      <provider editor-type-id="android-designer2" />
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="17">
+          <caret line="34" column="24" selection-start-line="34" selection-start-column="24" selection-end-line="34" selection-end-column="24" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.mapbox.mapboxsdk/mapbox-android-sdk/8.5.1/c2190ea6d8f9b32f7bc5dae2ce64a974d83c76f0/mapbox-android-sdk-8.5.1-sources.jar!/com/mapbox/mapboxsdk/style/expressions/Expression.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <caret line="3715" column="27" selection-start-line="3715" selection-start-column="27" selection-end-line="3715" selection-end-column="27" />
+          <folding>
+            <element signature="e#4703#4704#0" expanded="true" />
+            <element signature="e#4749#4750#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/app/src/main/java/org/kathmandulivinglabs/exploreindore/Fragment/MapFragment.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="194">
+          <caret line="342" column="5" selection-start-line="342" selection-start-column="5" selection-end-line="342" selection-end-column="5" />
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="e#10123#10124#0" expanded="true" />
+            <element signature="e#10161#10162#0" expanded="true" />
+            <element signature="e#13904#13905#0" expanded="true" />
+            <element signature="e#13971#13972#0" expanded="true" />
+            <element signature="e#14167#14168#0" expanded="true" />
+            <element signature="e#14207#14208#0" expanded="true" />
+            <element signature="e#18020#18059#0" expanded="true" />
+            <element signature="e#27910#27957#0" expanded="true" />
+            <element signature="e#41984#41985#0" expanded="true" />
+            <element signature="e#42024#42025#0" expanded="true" />
+            <element signature="e#52477#52478#0" expanded="true" />
+            <element signature="e#52518#52519#0" expanded="true" />
+            <element signature="e#64192#64232#0" expanded="true" />
+            <element signature="e#66651#66691#0" expanded="true" />
           </folding>
         </state>
       </provider>

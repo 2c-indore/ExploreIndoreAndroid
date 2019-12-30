@@ -2,6 +2,7 @@ package org.kathmandulivinglabs.exploreindore.Fragment;
 
 
 import android.Manifest;
+import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -72,6 +73,7 @@ import com.mapbox.android.core.permissions.PermissionsListener;
 import com.mapbox.android.core.permissions.PermissionsManager;
 import com.mapbox.geojson.Feature;
 import com.mapbox.geojson.FeatureCollection;
+import com.mapbox.geojson.Geometry;
 import com.mapbox.geojson.Point;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.annotations.Icon;
@@ -90,6 +92,7 @@ import com.mapbox.mapboxsdk.maps.Style;
 import com.mapbox.mapboxsdk.style.expressions.Expression;
 import com.mapbox.mapboxsdk.style.layers.CircleLayer;
 import com.mapbox.mapboxsdk.style.layers.LineLayer;
+import com.mapbox.mapboxsdk.style.layers.PropertyFactory;
 import com.mapbox.mapboxsdk.style.layers.SymbolLayer;
 import com.mapbox.mapboxsdk.style.sources.GeoJsonOptions;
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
@@ -115,8 +118,10 @@ import org.kathmandulivinglabs.exploreindore.Realmstore.PokharaBoundary;
 import org.kathmandulivinglabs.exploreindore.Realmstore.Ward;
 import org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.Features;
 import org.kathmandulivinglabs.exploreindore.models.MyItem;
+import org.kathmandulivinglabs.exploreindore.models.POI.FeatureTag;
 import org.kathmandulivinglabs.exploreindore.models.POI.POI;
 import org.kathmandulivinglabs.exploreindore.models.POI.POIFeature;
+import org.kathmandulivinglabs.exploreindore.models.POI.POIFeatureProperty;
 import org.kathmandulivinglabs.exploreindore.models.POI.POIGeometry;
 
 import com.mapbox.mapboxsdk.utils.BitmapUtils;
@@ -155,10 +160,16 @@ import static com.mapbox.mapboxsdk.style.expressions.Expression.has;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.literal;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.log2;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.lt;
+import static com.mapbox.mapboxsdk.style.expressions.Expression.match;
+import static com.mapbox.mapboxsdk.style.expressions.Expression.step;
+import static com.mapbox.mapboxsdk.style.expressions.Expression.stop;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.toNumber;
+import static com.mapbox.mapboxsdk.style.expressions.Expression.zoom;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.circleColor;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.circleRadius;
+import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconAllowOverlap;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconImage;
+import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconOffset;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconSize;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineColor;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineWidth;
@@ -174,10 +185,12 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener {
     private static final String SINGLE_EARTHQUAKE_TRIANGLE_ICON_ID = "single-quake-icon-id";
+    private static final String SELECTED_SINGLE_EARTHQUAKE_TRIANGLE_ICON_ID = "selected_single-quake-icon-id";
     private static final String EARTHQUAKE_SOURCE_ID = "earthquakes";
     private static final String POINT_COUNT = "point_count";
     private static final String UNCLUSTERED_POINTS = "unclustered-points";
-
+    private static final String SELECTED_MARKER_LAYER = "selected-marker-layer";
+    private static final String SELECTED_MARKER = "selected-marker";
     private MapView mapView;
     private MapboxMap mapboxMap;
     private Style style;
@@ -201,6 +214,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
     private ToggleTabVisibilityListener toggleTabVisibilityListener;
     private FeatureCollection featureCollection;
     private String poiFeatureId = "";
+    private boolean markerSelected = false;
 
     private class zoomobj {
         private double lat, lng, zoom;
@@ -241,7 +255,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
     private Point originPosition;
     private Point destinationPosition;
     private DirectionsRoute currentRoute;
-    private static final String TAG = "DirectionsActivity";
+    private static final String TAG = "Map Fragment";
     private Button edit_btn;
     private ImageButton gps, zoomtoextant, closebtn, expandinfo, attraction_close;
 
@@ -265,6 +279,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
     RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
             ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT
     );
+    SymbolLayer selectedMarkerSymbolLayer;
 
     @Override
     public boolean onBackPressed() {
@@ -450,8 +465,10 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         zoomb.setLng(75.8682103);
         zoomb.setZoom(9.3);
         zoomtoextant.setEnabled(false);
-        zoomtoextant.setOnClickListener(View ->
-                mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(zoomb.getLat(), zoomb.getLng()), zoomb.getZoom()), 500));
+        zoomtoextant.setOnClickListener(View -> {
+            style.removeLayer(SELECTED_MARKER_LAYER);
+            mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(zoomb.getLat(), zoomb.getLng()), zoomb.getZoom()), 600);
+        });
         LayoutInflater inflate_info = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         mapView = v.findViewById(R.id.mapView);
         mapView.setLayoutParams(params);
@@ -507,7 +524,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
             @Override
             public void onClick(View v) {
                 swipeValue = 0;
-//                previous_selected.setIcon(getItemIcon()); //to change red icon to blue
+                style.removeLayer(SELECTED_MARKER_LAYER);// to change red icon to blue
                 lm.setLayoutParams(lp_shrink);
                 small_info.setVisibility(View.VISIBLE);
                 ((AppCompatActivity) getActivity()).getSupportActionBar().show();
@@ -566,7 +583,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
 
         close_btn.setOnClickListener(view -> {
                     swipeValue = 0;
-//                previous_selected.setIcon(getItemIcon()); //to change red icon to blue
+                    style.removeLayer(SELECTED_MARKER_LAYER);//to change red icon to blue
                     if (navigationMapRoute != null) {
                         navigationMapRoute.removeRoute();
                     }
@@ -620,6 +637,12 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
                     style.addImageAsync(
                             SINGLE_EARTHQUAKE_TRIANGLE_ICON_ID,
                             BitmapUtils.getBitmapFromDrawable(getResources().getDrawable(blueMarkers.get(selectedType))),
+                            false
+                    );
+
+                    style.addImageAsync(
+                            SELECTED_SINGLE_EARTHQUAKE_TRIANGLE_ICON_ID,
+                            BitmapUtils.getBitmapFromDrawable(getResources().getDrawable(orangeMarkers.get(selectedType))),
                             false
                     );
                     mapboxMap.addOnMapClickListener(point -> {
@@ -1183,6 +1206,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         for (int i = 0; i < results.size(); i++) {
             ExploreSchema exploreSchema = results.get(i);
             POIFeature poiFeature = new POIFeature();
+            POIFeatureProperty poiFeatureProperty = new POIFeatureProperty();
             poiFeature.id = String.valueOf(exploreSchema.getOsm_id());
             poiFeature.geometry = new POIGeometry(exploreSchema.getType(), new ArrayList<Double>() {
                 {
@@ -1190,7 +1214,11 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
                     add(exploreSchema.getCoordinateslong());
                 }
             });
+            List<FeatureTag> tags = new ArrayList<>();
+            tags.add(0, new FeatureTag("name", exploreSchema.getName()));
+            poiFeatureProperty.tags = tags;
             poiFeature.type = "Feature";
+            poiFeature.properties = poiFeatureProperty;
             poiFeatures.add(poiFeature);
         }
         POI poi = new POI();
@@ -1220,12 +1248,16 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
 
         SymbolLayer unclusteredSymbolLayer = new SymbolLayer(UNCLUSTERED_POINTS, EARTHQUAKE_SOURCE_ID).withProperties(
                 iconImage(SINGLE_EARTHQUAKE_TRIANGLE_ICON_ID),
-                iconSize(0.8f
-                )
+                iconAllowOverlap(true),
+                iconSize(0.8f)
         );
+
         //Creating a SymbolLayer icon layer for single data/icon points after cluster
         style.addLayer(unclusteredSymbolLayer);
 
+// Add the selected marker source and layer
+        style.addSource(new GeoJsonSource(SELECTED_MARKER));
+        addSelectedMarkersLayer();
 
         // Use the earthquakes GeoJSON source to create three layers: One layer for each cluster category.
         // Each point range gets a different fill color.
@@ -1266,6 +1298,19 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
                 textIgnorePlacement(true),
                 textAllowOverlap(true)
         ));
+    }
+
+    private void addSelectedMarkersLayer() {
+        // Adding an offset so that the bottom of the blue icon gets fixed to the coordinate, rather than the
+        // middle of the icon being fixed to the coordinate point.
+        if (style.getLayer(SELECTED_MARKER_LAYER) == null)
+            style.addLayer(new SymbolLayer(SELECTED_MARKER_LAYER, SELECTED_MARKER)
+                    .withProperties(PropertyFactory
+//                                    .iconImage(SELECTED_SINGLE_EARTHQUAKE_TRIANGLE_ICON_ID),
+                                    .iconImage(step(zoom(), literal(SELECTED_SINGLE_EARTHQUAKE_TRIANGLE_ICON_ID),
+                                            stop(zoomb.zoom < 14, SINGLE_EARTHQUAKE_TRIANGLE_ICON_ID))),
+                            iconAllowOverlap(true),
+                            iconSize(0.8f)));
     }
 
     private Icon getItemIcon() {
@@ -1455,34 +1500,84 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
     }
 
     private boolean handleClickIcon(PointF toScreenLocation, LatLng point) {
+        //this is required because we remove the layer in zoom to extent
+        addSelectedMarkersLayer();
         double zoom = mapboxMap.getCameraPosition().zoom;
-        List<Feature> features = mapboxMap.queryRenderedFeatures(toScreenLocation, UNCLUSTERED_POINTS);
-        if (!features.isEmpty()) {
-            String name = features.get(0).id();
-            List<Feature> featureList = featureCollection.features();
-            if (zoom < 10)
-                mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(point, 12), 500);
-            else if (zoom < 14)
-                mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(point, 14), 400);
-            else if (zoom < 16)
-                mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(point, zoom + 0.5), 300);
-            else if (zoom < 18)
-                mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(point, zoom + 0.5), 200);
-            for (Feature feature : featureList) {
-                if (feature.id().equals(name)) {
-                    showDetailsOfthePoint(point, name, feature);
-                }
+
+        if (style != null) {
+            selectedMarkerSymbolLayer = (SymbolLayer) style.getLayer(SELECTED_MARKER_LAYER);
+            List<Feature> features = mapboxMap.queryRenderedFeatures(toScreenLocation, UNCLUSTERED_POINTS);
+            List<Feature> selectedFeature = mapboxMap.queryRenderedFeatures(
+                    toScreenLocation, SELECTED_MARKER_LAYER);
+
+            if (selectedFeature.size() > 0 && markerSelected) {
+                return false;
             }
 
-            return true;
-        } else
-            return false;
+            if (features.isEmpty()) {
+                if (markerSelected) {
+                    deselectMarker(selectedMarkerSymbolLayer);
+                }
+                return false;
+            }
+
+            GeoJsonSource source = style.getSourceAs(SELECTED_MARKER);
+            if (source != null) {
+                source.setGeoJson(FeatureCollection.fromFeatures(
+                        new Feature[]{Feature.fromGeometry(features.get(0).geometry())}));
+            }
+
+            if (markerSelected) {
+                deselectMarker(selectedMarkerSymbolLayer);
+            }
+
+
+            if (!features.isEmpty()) {
+                if (zoom < 10)
+                    mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(point, 12), 600);
+                else if (zoom < 14)
+                    mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(point, 14), 500);
+                else if (zoom < 16)
+                    mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(point, zoom + 1), 400);
+                else if (zoom < 18)
+                    mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(point, zoom + 1), 300);
+
+                String name = features.get(0).id();
+                Log.d(TAG, "handleClickIcon: " + features.get(0).properties());
+                if (features.get(0).getBooleanProperty("cluster") != null)
+                    //to handle first time auto selection of marker
+                    deselectMarker(selectedMarkerSymbolLayer);
+                List<Feature> featureList = featureCollection.features();
+                for (Feature feature : featureList) {
+                    Log.d(TAG, "handleClickIcon: " + feature.id() + " " + name);
+                    if (feature.id().equals(name)) {
+                        selectMarker(selectedMarkerSymbolLayer);
+                        showDetailsOfthePoint(point, name, feature);
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    private void selectMarker(SymbolLayer selectedMarkerSymbolLayer) {
+        selectedMarkerSymbolLayer.setProperties(
+                PropertyFactory.iconImage(SELECTED_SINGLE_EARTHQUAKE_TRIANGLE_ICON_ID)
+        );
+        markerSelected = true;
+    }
+
+    private void deselectMarker(SymbolLayer selectedMarkerSymbolLayer) {
+        selectedMarkerSymbolLayer.setProperties(
+                PropertyFactory.iconImage(SINGLE_EARTHQUAKE_TRIANGLE_ICON_ID)
+        );
+        markerSelected = false;
     }
 
     private void showDetailsOfthePoint(LatLng point, String name, Feature feature) {
         poiFeatureId = name;
         POIGeometry geometry = new Gson().fromJson(feature.geometry().toJson(), POIGeometry.class);
-        String markerText = name;
+        String markerText = feature.properties().getAsJsonArray("tags").get(0).getAsJsonObject().get("value").getAsString();
         testText.setText(markerText);
         double zoom = mapboxMap.getCameraPosition().zoom;
 
