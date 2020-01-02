@@ -2,7 +2,6 @@ package org.kathmandulivinglabs.exploreindore.Fragment;
 
 
 import android.Manifest;
-import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -13,7 +12,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.PointF;
 import android.location.Location;
-import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
 
@@ -49,7 +47,6 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
@@ -67,10 +64,11 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.gson.Gson;
-import com.mapbox.android.core.location.LocationEngine;
 import com.mapbox.android.core.permissions.PermissionsListener;
 import com.mapbox.android.core.permissions.PermissionsManager;
+import com.mapbox.geojson.BoundingBox;
 import com.mapbox.geojson.Feature;
 import com.mapbox.geojson.FeatureCollection;
 import com.mapbox.geojson.Geometry;
@@ -80,6 +78,7 @@ import com.mapbox.mapboxsdk.annotations.Icon;
 import com.mapbox.mapboxsdk.annotations.IconFactory;
 import com.mapbox.mapboxsdk.annotations.Marker;
 import com.mapbox.mapboxsdk.annotations.PolygonOptions;
+import com.mapbox.mapboxsdk.camera.CameraPosition;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.geometry.LatLngBounds;
@@ -87,7 +86,6 @@ import com.mapbox.mapboxsdk.location.LocationComponent;
 import com.mapbox.mapboxsdk.location.modes.CameraMode;
 import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
-import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.mapboxsdk.maps.Style;
 import com.mapbox.mapboxsdk.style.expressions.Expression;
 import com.mapbox.mapboxsdk.style.layers.CircleLayer;
@@ -104,9 +102,10 @@ import org.greenrobot.eventbus.ThreadMode;
 import org.kathmandulivinglabs.exploreindore.Activity.LoginActivity;
 import org.kathmandulivinglabs.exploreindore.Activity.MainActivity;
 import org.kathmandulivinglabs.exploreindore.Adapter.SearchListAdapter;
-import org.kathmandulivinglabs.exploreindore.Customclass.CustomClusterManagerPlugin;
+import org.kathmandulivinglabs.exploreindore.Api_helper.Wards;
 import org.kathmandulivinglabs.exploreindore.FilterParcel;
 import org.kathmandulivinglabs.exploreindore.Activity.Edit.EditDialogActivity;
+import org.kathmandulivinglabs.exploreindore.Helper.Connectivity;
 import org.kathmandulivinglabs.exploreindore.Helper.EditAmenityEvent;
 import org.kathmandulivinglabs.exploreindore.Helper.Keys;
 import org.kathmandulivinglabs.exploreindore.Helper.Utils;
@@ -116,8 +115,6 @@ import org.kathmandulivinglabs.exploreindore.R;
 import org.kathmandulivinglabs.exploreindore.Realmstore.ExploreSchema;
 import org.kathmandulivinglabs.exploreindore.Realmstore.PokharaBoundary;
 import org.kathmandulivinglabs.exploreindore.Realmstore.Ward;
-import org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.Features;
-import org.kathmandulivinglabs.exploreindore.models.MyItem;
 import org.kathmandulivinglabs.exploreindore.models.POI.FeatureTag;
 import org.kathmandulivinglabs.exploreindore.models.POI.POI;
 import org.kathmandulivinglabs.exploreindore.models.POI.POIFeature;
@@ -152,7 +149,6 @@ import io.realm.RealmQuery;
 import io.realm.RealmResults;
 import timber.log.Timber;
 
-import static android.content.Context.LOCATION_SERVICE;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.all;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.get;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.gte;
@@ -215,6 +211,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
     private FeatureCollection featureCollection;
     private String poiFeatureId = "";
     private boolean markerSelected = false;
+    private Snackbar snackbar;
 
     private class zoomobj {
         private double lat, lng, zoom;
@@ -260,7 +257,6 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
     private ImageButton gps, zoomtoextant, closebtn, expandinfo, attraction_close;
 
     private boolean iff_ondown = false, iff_onswipe = false;
-    private Feature previously_selected;
     private FancyButton navButton;
     NestedScrollView scroll;
     private String editName, editLat, editLong, editSnippet;
@@ -292,8 +288,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
             toggleTabVisibilityListener.showTabs();
             lm.setVisibility(View.GONE);
             if (navigationMapRoute != null) navigationMapRoute.removeRoute();
-            //todo
-//            previous_selected.setIcon(getItemIcon()); //to change red icon to blue
+            style.removeLayer(SELECTED_MARKER_LAYER); //to change red icon to blue
             detail_screen.removeAllViews();
             if (mSearchMenuItem != null)
                 mSearchMenuItem.collapseActionView(); //because search view still remains there of not collapsed
@@ -436,7 +431,6 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
 
         View v = inflater.inflate(R.layout.map_fragment, container, false);
         mapScreen = v.findViewById(R.id.mapScreen);
-        Log.d(TAG, "onCreateView: " + googleApiClient);
         //for gps related api
         if (googleApiClient == null)
             setUpGClient();
@@ -597,13 +591,13 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         );
         navButton.setOnClickListener(view -> {
             if (navButton.getText().toString().equalsIgnoreCase("Route")) {
+                Log.d(TAG, "onCreateView: " + mylocation + " gps " + gps.getTag());
                 if (mylocation != null) {
                     Toast.makeText(getContext(), "Please wait the gps is locating you", Toast.LENGTH_LONG).show();
                     originCoord = new LatLng(mylocation.getLatitude(), mylocation.getLongitude());
                     originPosition = Point.fromLngLat(originCoord.getLongitude(), originCoord.getLatitude());
                     getRoute(originPosition, destinationPosition);
                 } else {
-                    if (gps.getTag().equals("gps_off"))
                         checkPermissions();
                 }
             } else {
@@ -620,36 +614,33 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
                 .include(new LatLng(22.8202, 76.0467)) // Northeast
                 .include(new LatLng(22.6248, 75.7202)) // Southwest
                 .build();
-        mapView.getMapAsync(new OnMapReadyCallback() {
-            @Override
-            public void onMapReady(MapboxMap mapboxMap) {
-                MapFragment.this.mapboxMap = mapboxMap;
-                mapboxMap.setStyle(getString(R.string.mapbox_style_mapbox_streets), style -> {
-                    MapFragment.this.style = style;
-                    mapboxMap.getUiSettings().setCompassMargins(0, actionBarHeight, 2, 0);
-                    mapboxMap.moveCamera(CameraUpdateFactory.newLatLngBounds(latLngBounds, 50));
-                    mapboxMap.setLatLngBoundsForCameraTarget(latLngBounds);
-                    mapboxMap.setMaxZoomPreference(18);
-                    mapboxMap.setMinZoomPreference(zoomb.getZoom());
-                    zoomtoextant.setEnabled(true);
+        mapView.getMapAsync(mapboxMap -> {
+            MapFragment.this.mapboxMap = mapboxMap;
+            mapboxMap.setStyle(getString(R.string.mapbox_style_mapbox_streets), style -> {
+                MapFragment.this.style = style;
+                mapboxMap.getUiSettings().setCompassMargins(0, actionBarHeight, 2, 0);
+                mapboxMap.moveCamera(CameraUpdateFactory.newLatLngBounds(latLngBounds, 50));
+                mapboxMap.setLatLngBoundsForCameraTarget(latLngBounds);
+                mapboxMap.setMaxZoomPreference(18);
+                mapboxMap.setMinZoomPreference(zoomb.getZoom());
+                zoomtoextant.setEnabled(true);
 
-                    initCameraListener(style);
-                    style.addImageAsync(
-                            SINGLE_EARTHQUAKE_TRIANGLE_ICON_ID,
-                            BitmapUtils.getBitmapFromDrawable(getResources().getDrawable(blueMarkers.get(selectedType))),
-                            false
-                    );
+                initCameraListener(style);
+                style.addImageAsync(
+                        SINGLE_EARTHQUAKE_TRIANGLE_ICON_ID,
+                        BitmapUtils.getBitmapFromDrawable(getResources().getDrawable(blueMarkers.get(selectedType))),
+                        false
+                );
 
-                    style.addImageAsync(
-                            SELECTED_SINGLE_EARTHQUAKE_TRIANGLE_ICON_ID,
-                            BitmapUtils.getBitmapFromDrawable(getResources().getDrawable(orangeMarkers.get(selectedType))),
-                            false
-                    );
-                    mapboxMap.addOnMapClickListener(point -> {
-                        return handleClickIcon(mapboxMap.getProjection().toScreenLocation(point), point);
-                    });
+                style.addImageAsync(
+                        SELECTED_SINGLE_EARTHQUAKE_TRIANGLE_ICON_ID,
+                        BitmapUtils.getBitmapFromDrawable(getResources().getDrawable(orangeMarkers.get(selectedType))),
+                        false
+                );
+                mapboxMap.addOnMapClickListener(point -> {
+                    return handleClickIcon(mapboxMap.getProjection().toScreenLocation(point), point);
                 });
-            }
+            });
         });
         listView = v.findViewById(R.id.listView);
         uniList = new HashMap<>();
@@ -663,6 +654,15 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
             }
         });
         return v;
+    }
+
+    public void setSnackbar(String msg) {
+        new AlertDialog.Builder(getActivity())
+                .setTitle("No Internet")
+                .setIcon(R.drawable.ic_no_wifi)
+                .setMessage(msg)
+                .show();
+
     }
 
     private void getRoute(Point originPosition, Point destinationPosition) {
@@ -698,7 +698,8 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
 
                     @Override
                     public void onFailure(Call<DirectionsResponse> call, Throwable throwable) {
-                        Log.e(TAG, "Error: " + throwable.getMessage());
+                        Log.e(TAG, "Error: mapbox " + throwable.getMessage());
+                        setSnackbar("Please connect to the internet to get the route!");
                     }
                 });
     }
@@ -1089,7 +1090,6 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
     }
 
     private void populateMap(String amenity) {
-        com.mapbox.mapboxsdk.annotations.Icon icn = getItemIcon();
         Realm realm = Realm.getDefaultInstance();
         RealmQuery<ExploreSchema> query = realm.where(ExploreSchema.class).equalTo("tag", amenity);
         RealmList<ExploreSchema> querycollection = new RealmList<>();
@@ -1101,11 +1101,36 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
                         RealmResults<Ward> wardR = realm.where(Ward.class).contains("osmID", filter_data.getValue()).findAll();
                         RealmList<PokharaBoundary> pbound = wardR.get(0).getBoundry();
                         polygon = new ArrayList<>();
-                        double bbboxlat1 = 0, bbboxlat2 = 22.7230, bbboxlong1 = 0, bbboxlong2 = 75.8572;
+                        double west = 0.0;
+                        double east = 0.0;
+                        double north = 0.0;
+                        double south = 0.0;
+                        double bbboxlat1 = 0, bbboxlat2 = 22.7225, bbboxlong1 = 0, bbboxlong2 = 75.88345;
                         double c1 = 0.0;
                         double c2 = 0.0;
                         int i = 0;
+
                         for (i = 0; i < pbound.size(); i++) {
+                            PokharaBoundary pokharaBoundary = pbound.get(i);
+                            if (i == 0) {
+                                north = pokharaBoundary.getCoordinateslat();
+                                south = pokharaBoundary.getCoordinateslat();
+                                west = pokharaBoundary.getCoordinateslong();
+                                east = pokharaBoundary.getCoordinateslong();
+                            } else {
+                                if (pokharaBoundary.getCoordinateslat() > north) {
+                                    north = pokharaBoundary.getCoordinateslat();
+                                } else if (pokharaBoundary.getCoordinateslat() < south) {
+                                    south = pokharaBoundary.getCoordinateslat();
+                                }
+                                if (pokharaBoundary.getCoordinateslong() < west) {
+                                    west = pokharaBoundary.getCoordinateslong();
+                                } else if (pokharaBoundary.getCoordinateslong() > east) {
+                                    east = pokharaBoundary.getCoordinateslong();
+                                }
+                            }
+
+
                             // Make the centroid
                             c1 = pbound.get(i).getCoordinateslat() + c1;
                             c2 = pbound.get(i).getCoordinateslong() + c2;
@@ -1118,19 +1143,16 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
                         c1 = c1 / i;
                         c2 = c2 / i;
                         LatLngBounds latLngBounds = new LatLngBounds.Builder()
-                                .include(new LatLng(bbboxlat1, bbboxlong1)) // Northeast
-                                .include(new LatLng(bbboxlat2, bbboxlong2)) // Southwest
+                                .include(new LatLng(north, east)) // Northeast
+                                .include(new LatLng(south, west)) // Southwest
                                 .build();
-                        mapboxMap.moveCamera(CameraUpdateFactory.newLatLngBounds(latLngBounds, 50));
-//                        zoomb.setLat((bbboxlat1 + bbboxlat2) / 2);
-//                        zoomb.setLng((bbboxlong1 + bbboxlong2) / 2);
+                        mapboxMap.moveCamera(CameraUpdateFactory.newLatLngBounds(latLngBounds, 50, 50, 50, -50));
                         zoomb.setLat(c1);
                         zoomb.setLng(c2);
                         zoomb.setZoom(13);
                         mapboxMap.setLatLngBoundsForCameraTarget(latLngBounds);
-                        mapboxMap.setMinZoomPreference(zoomb.getZoom());
+                        mapboxMap.setMinZoomPreference(10.5);
                         wardBound(polygon);
-                        Log.d(TAG, "populateMap: ");
                         query.contains("ward_id", filter_data.getValue());
                     }
                     if (filter_data.getKey().endsWith("max")) {
@@ -1188,19 +1210,34 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         MainActivity.filter_param.clear();
         RealmList<ExploreSchema> results = querycollection;
         realm.close();
+        setUpSearchData(results, amenity);
+        //for clustering
+        convertIntoPoiJSonForClustering(results);
+    }
 
+    private void setUpSearchData(RealmList<ExploreSchema> results, String amenity) {
         if (searches.size() > 0) {
             searches.clear();
             uniList.clear();
         }
-
+        for (int i = 0; i < results.size(); i++) {
+            String title;
+            double lat = results.get(i).getCoordinateslong();
+            double lng = results.get(i).getCoordinateslat();
+            if (results.get(i).getName() != null) {
+                title = results.get(i).getName();
+                Search sh = new Search(null, null);
+                sh.cord = new LatLng(lat, lng);
+                sh.name = title;
+                searches.add(sh);
+                uniList.put(new LatLng(lat, lng), title);
+            } else title = amenity;
+        }
         listView.setAdapter(searchListAdapter);
         searchListAdapter.notifyDataSetChanged();
-
-        convertIntoPoiJSon(results);
     }
 
-    private void convertIntoPoiJSon(RealmList<ExploreSchema> results) {
+    private void convertIntoPoiJSonForClustering(RealmList<ExploreSchema> results) {
         List<POIFeature> poiFeatures = new ArrayList<>();
 
         for (int i = 0; i < results.size(); i++) {

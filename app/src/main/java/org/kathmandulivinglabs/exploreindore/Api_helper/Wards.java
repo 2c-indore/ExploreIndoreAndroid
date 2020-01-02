@@ -7,6 +7,8 @@ import org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.Features;
 
 import java.util.List;
 
+import io.realm.RealmObject;
+
 /**
  * Created by Bhawak on 3/11/2018.
  */
@@ -34,10 +36,12 @@ public class Wards {
     public void setBoundaryWithWards(BoundaryWithWards boundaryWithWards) {
         this.boundaryWithWards = boundaryWithWards;
     }
+
     public class Boundary {
         @SerializedName("features")
         @Expose
         private List<Fr> features;
+
         public class Fr {
 
             @SerializedName("type")
@@ -213,6 +217,7 @@ public class Wards {
             this.features = features;
         }
     }
+
     public class BoundaryWithWards {
 
         @SerializedName("type")
@@ -237,6 +242,7 @@ public class Wards {
         public void setFeatures(List<Feature> features) {
             this.features = features;
         }
+
         public class Feature {
 
             @SerializedName("type")
@@ -295,7 +301,8 @@ public class Wards {
             public void setId(String id) {
                 this.id = id;
             }
-            public class Geometry_ {
+
+            public class Geometry_{
 
                 @SerializedName("type")
                 @Expose
@@ -321,7 +328,8 @@ public class Wards {
                 }
 
             }
-            public class Centroid{
+
+            public class Centroid {
                 @SerializedName("coordinates")
                 @Expose
                 private List<Double> coordinates = null;
@@ -334,6 +342,7 @@ public class Wards {
                     this.coordinates = coordinates;
                 }
             }
+
             public class Properties_ {
 
                 @SerializedName("ward_no")
@@ -448,7 +457,7 @@ public class Wards {
 //                }
             }
 
-            }
+        }
 
     }
 

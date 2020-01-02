@@ -5,6 +5,7 @@ import android.content.Intent;
 
 import android.os.Bundle;
 import android.os.ResultReceiver;
+
 import androidx.annotation.Nullable;
 
 import android.util.Log;
@@ -21,6 +22,7 @@ import org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.Data;
 import org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.Features;
 import org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.Filter;
 import org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.Tags;
+import org.kathmandulivinglabs.exploreindore.models.POI.POIGeometry;
 
 import java.util.Arrays;
 import java.util.List;
@@ -209,7 +211,7 @@ public class DataManager extends IntentService {
 //                    updateMapView = true;
 //                    setSnackbar("Could not update data. Please connect to the internet and hit 'Retry'");
 
-                }
+            }
 
         });
 
@@ -311,7 +313,7 @@ public class DataManager extends IntentService {
             try {
                 saveDataFromV2Api(entry.getKey(), intent);
                 Thread.sleep(1000);
-                data.putInt("progress",i);
+                data.putInt("progress", i);
                 receiver.send(450, data);
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -321,7 +323,7 @@ public class DataManager extends IntentService {
         try {
             savetag();
             Thread.sleep(1000);
-            data.putInt("progress",i);
+            data.putInt("progress", i);
             receiver.send(450, data);
         } catch (InterruptedException e) {
             e.printStackTrace();
