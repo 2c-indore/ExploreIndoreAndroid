@@ -6,12 +6,14 @@ import android.content.SharedPreferences;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+
 import android.os.Bundle;
 
 import androidx.fragment.app.FragmentTransaction;
 import androidx.appcompat.widget.AppCompatCheckBox;
 import androidx.appcompat.widget.AppCompatSpinner;
 import androidx.appcompat.widget.SwitchCompat;
+
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,6 +21,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import org.kathmandulivinglabs.exploreindore.Activity.MainActivity;
@@ -58,6 +61,12 @@ public class InsightFragment extends Fragment {
     private static String selectedType = MainActivity.def_type;
     Map<String, String> filter_param;
     private String wardid = "all";
+    View[] title_view, switch_view, spinner_view, range_view, checkbox_view;
+    TextView[] title_text, switch_text;
+    RangeWidget[] range_bar;
+    androidx.appcompat.widget.AppCompatCheckBox[] checkbox_btn;
+    androidx.appcompat.widget.SwitchCompat[] switch_btn = new SwitchCompat[0];
+    androidx.appcompat.widget.AppCompatSpinner[] spinner_spinner;
 
     public interface onInsightSelected {
         public void onInsight(Boolean vals);
@@ -98,12 +107,6 @@ public class InsightFragment extends Fragment {
         int spinner_size = realm.where(FilterSchema.class).equalTo("amenity", selectedType).contains("type", "single-select").findAll().size();
         int size = results.size();
         int range_size = realm.where(FilterSchema.class).equalTo("amenity", selectedType).contains("type", "range").findAll().size();
-        View[] title_view, switch_view, spinner_view, range_view, checkbox_view;
-        TextView[] title_text, switch_text;
-        RangeWidget[] range_bar;
-        androidx.appcompat.widget.AppCompatCheckBox[] checkbox_btn;
-        androidx.appcompat.widget.SwitchCompat[] switch_btn = new SwitchCompat[0];
-        androidx.appcompat.widget.AppCompatSpinner[] spinner_spinner;
 
         title_view = new View[size];
         title_text = new TextView[size];
@@ -260,6 +263,9 @@ public class InsightFragment extends Fragment {
 
 
     public void updateView() {
+        if (switch_btn != null)
+            for (SwitchCompat switchCompat : switch_btn)
+                switchCompat.setChecked(false);
         Fragment frg = null;
         String tagfeature = "android:switcher:" + R.id.viewpager + ":" + 1;
         frg = (InsightFragment) getFragmentManager().findFragmentByTag(tagfeature);

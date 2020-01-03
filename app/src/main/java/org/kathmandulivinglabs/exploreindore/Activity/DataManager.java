@@ -35,6 +35,8 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+import static androidx.constraintlayout.widget.Constraints.TAG;
+
 
 public class DataManager extends IntentService {
 
@@ -313,19 +315,23 @@ public class DataManager extends IntentService {
             try {
                 saveDataFromV2Api(entry.getKey(), intent);
                 Thread.sleep(1000);
+                Log.d(TAG, "onHandleIntent: "+i);
                 data.putInt("progress", i);
                 receiver.send(450, data);
             } catch (InterruptedException e) {
+                Log.d(TAG, "onHandleIntent: " + e.getMessage());
                 e.printStackTrace();
             }
             i++;
         }
         try {
+            Log.d(TAG, "onHandleIntent: "+i);
             savetag();
             Thread.sleep(1000);
             data.putInt("progress", i);
             receiver.send(450, data);
         } catch (InterruptedException e) {
+            Log.d(TAG, "onHandleIntent: " + e.getMessage());
             e.printStackTrace();
         }
     }

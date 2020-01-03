@@ -281,6 +281,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
     public boolean onBackPressed() {
         final boolean[] b = {true};
         if ((detail_screen != null && detail_screen.getChildCount() > 0) || (lm.getVisibility() == View.VISIBLE)) {
+            Log.d(TAG, "onBackPressed: if");
             swipeValue = 0;
             lm.setLayoutParams(llp);
             small_info.setVisibility(View.VISIBLE);
@@ -293,6 +294,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
             if (mSearchMenuItem != null)
                 mSearchMenuItem.collapseActionView(); //because search view still remains there of not collapsed
         } else {
+            Log.d(TAG, "onBackPressed: else");
             AlertDialog.Builder alertDialog = new AlertDialog.Builder(
                     getActivity());
             alertDialog.setTitle("");
@@ -481,7 +483,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         expandinfo = v.findViewById(R.id.detail_btn);
         insightfilter = new FilterParcel();
 
-        setUpMarkerIcons();
+//        setUpMarkerIcons();
         setUpNewMarkerIcons();
         navButton = v.findViewById(R.id.startButton);
         if (getArguments() != null) {
@@ -591,14 +593,13 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         );
         navButton.setOnClickListener(view -> {
             if (navButton.getText().toString().equalsIgnoreCase("Route")) {
-                Log.d(TAG, "onCreateView: " + mylocation + " gps " + gps.getTag());
                 if (mylocation != null) {
                     Toast.makeText(getContext(), "Please wait the gps is locating you", Toast.LENGTH_LONG).show();
                     originCoord = new LatLng(mylocation.getLatitude(), mylocation.getLongitude());
                     originPosition = Point.fromLngLat(originCoord.getLongitude(), originCoord.getLatitude());
                     getRoute(originPosition, destinationPosition);
                 } else {
-                        checkPermissions();
+                    checkPermissions();
                 }
             } else {
                 boolean simulateRoute = false;
@@ -711,7 +712,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         blueMarkers.put("public_clinics", R.drawable.blue_ayush);
         blueMarkers.put("private_clinics", R.drawable.blue_clinic);
         blueMarkers.put("dentists", R.drawable.blue_dentist);
-        blueMarkers.put("veterinaries", R.drawable.blue_vet);
+        blueMarkers.put("veterinaries", R.drawable.blue_veterinary);
         blueMarkers.put("patho_radio_labs", R.drawable.blue_lab);
         blueMarkers.put("anganwadi", R.drawable.blue_aaganwadi);
         blueMarkers.put("blood_banks", R.drawable.blue_bloodbank);
@@ -732,7 +733,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         orangeMarkers.put("public_clinics", R.drawable.red_clinic);
         orangeMarkers.put("private_clinics", R.drawable.red_clinic);
         orangeMarkers.put("dentists", R.drawable.red_dentist);
-        orangeMarkers.put("veterinaries", R.drawable.red_vet);
+        orangeMarkers.put("veterinaries", R.drawable.red_veterinary);
         orangeMarkers.put("patho_radio_labs", R.drawable.red_lab);
         orangeMarkers.put("anganwadi", R.drawable.red_aaganwadi);
         orangeMarkers.put("blood_banks", R.drawable.red_bloodbank);
@@ -762,7 +763,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         tagMp_blue.put("dentists", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
                 getActivity().getResources(), R.drawable.blue_dentist)));
         tagMp_blue.put("veterinaries", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.blue_vet)));
+                getActivity().getResources(), R.drawable.blue_veterinary)));
         tagMp_blue.put("patho_radio_labs", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
                 getActivity().getResources(), R.drawable.blue_lab)));
         tagMp_blue.put("anganwadi", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
@@ -802,7 +803,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         tagMp_orange.put("dentists", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
                 getActivity().getResources(), R.drawable.red_dentist)));
         tagMp_orange.put("veterinaries", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.red_vet)));
+                getActivity().getResources(), R.drawable.red_veterinary)));
         tagMp_orange.put("patho_radio_labs", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
                 getActivity().getResources(), R.drawable.red_lab)));
         tagMp_orange.put("anganwadi", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
@@ -1580,16 +1581,17 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
                     mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(point, zoom + 1), 300);
 
                 String name = features.get(0).id();
-                Log.d(TAG, "handleClickIcon: " + features.get(0).properties());
                 if (features.get(0).getBooleanProperty("cluster") != null)
                     //to handle first time auto selection of marker
                     deselectMarker(selectedMarkerSymbolLayer);
                 List<Feature> featureList = featureCollection.features();
                 for (Feature feature : featureList) {
-                    Log.d(TAG, "handleClickIcon: " + feature.id() + " " + name);
                     if (feature.id().equals(name)) {
                         selectMarker(selectedMarkerSymbolLayer);
-                        showDetailsOfthePoint(point, name, feature);
+                        try {
+                            showDetailsOfthePoint(point, name, feature);
+                        } catch (Exception e) {
+                        }
                     }
                 }
             }
@@ -1654,7 +1656,6 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
 
     @Override
     public void onConnected(Bundle bundle) {
-//        checkPermissions();
     }
 
     private void checkPermissions() {
@@ -1733,7 +1734,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
                         }
                     });
                 }
-            }
+            } else googleApiClient.connect();
         }
     }
 
@@ -1762,7 +1763,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        Toast.makeText(getActivity(), "Connection Failed", Toast.LENGTH_SHORT).show();
+        Toast.makeText(getActivity(), "Connection Failed. Please try again later!", Toast.LENGTH_SHORT).show();
     }
 
     //edit
