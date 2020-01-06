@@ -211,7 +211,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
     private FeatureCollection featureCollection;
     private String poiFeatureId = "";
     private boolean markerSelected = false;
-    private Snackbar snackbar;
+    private boolean isinIndore;
 
     private class zoomobj {
         private double lat, lng, zoom;
@@ -483,7 +483,6 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         expandinfo = v.findViewById(R.id.detail_btn);
         insightfilter = new FilterParcel();
 
-//        setUpMarkerIcons();
         setUpNewMarkerIcons();
         navButton = v.findViewById(R.id.startButton);
         if (getArguments() != null) {
@@ -508,30 +507,22 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         } else {
             edit_btn.setVisibility(View.GONE);
         }
-        edit_btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                ((AppCompatActivity) getActivity()).getSupportActionBar().show();
-                toggleTabVisibilityListener.showTabs();
-                editAmenity(selectedType);
-            }
+        edit_btn.setOnClickListener(view -> {
+            ((AppCompatActivity) getActivity()).getSupportActionBar().show();
+            toggleTabVisibilityListener.showTabs();
+            editAmenity(selectedType);
         });
-        closebtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                swipeValue = 0;
-                style.removeLayer(SELECTED_MARKER_LAYER);// to change red icon to blue
-                lm.setLayoutParams(lp_shrink);
-                small_info.setVisibility(View.VISIBLE);
-                ((AppCompatActivity) getActivity()).getSupportActionBar().show();
-                toggleTabVisibilityListener.showTabs();
-                lm.setVisibility(View.GONE);
-                if (navigationMapRoute != null) navigationMapRoute.removeRoute();
-                detail_screen.removeAllViews();
-                // mapView.refreshDrawableState();
-            }
+        closebtn.setOnClickListener(view -> {
+            swipeValue = 0;
+            style.removeLayer(SELECTED_MARKER_LAYER);// to change red icon to blue
+            lm.setLayoutParams(lp_shrink);
+            small_info.setVisibility(View.VISIBLE);
+            ((AppCompatActivity) getActivity()).getSupportActionBar().show();
+            toggleTabVisibilityListener.showTabs();
+            lm.setVisibility(View.GONE);
+            if (navigationMapRoute != null) navigationMapRoute.removeRoute();
+            detail_screen.removeAllViews();
         });
-//        }
 
         lm.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -563,19 +554,15 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
                 return false;
             }
         });
-        expandinfo.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                ((AppCompatActivity) getActivity()).getSupportActionBar().hide();
-                toggleTabVisibilityListener.hideTabs();
-                small_info.setVisibility(View.GONE);
-                lm.setLayoutParams(lp_expand);
-                detail_screen.removeAllViews();
-                detailView(detailbool);
-                detail_screen.addView(amenityInfo);
-            }
+        expandinfo.setOnClickListener(view -> {
+            ((AppCompatActivity) getActivity()).getSupportActionBar().hide();
+            toggleTabVisibilityListener.hideTabs();
+            small_info.setVisibility(View.GONE);
+            lm.setLayoutParams(lp_expand);
+            detail_screen.removeAllViews();
+            detailView(detailbool);
+            detail_screen.addView(amenityInfo);
         });
-
 
         close_btn.setOnClickListener(view -> {
                     swipeValue = 0;
@@ -594,10 +581,13 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         navButton.setOnClickListener(view -> {
             if (navButton.getText().toString().equalsIgnoreCase("Route")) {
                 if (mylocation != null) {
-                    Toast.makeText(getContext(), "Please wait the gps is locating you", Toast.LENGTH_LONG).show();
                     originCoord = new LatLng(mylocation.getLatitude(), mylocation.getLongitude());
                     originPosition = Point.fromLngLat(originCoord.getLongitude(), originCoord.getLatitude());
-                    getRoute(originPosition, destinationPosition);
+                    if (isinIndore) {
+                        getRoute(originPosition, destinationPosition);
+                        Toast.makeText(getContext(), "Please wait...", Toast.LENGTH_SHORT).show();
+                    } else
+                        Toast.makeText(getContext(), "Sorry, You are out of Indore!", Toast.LENGTH_SHORT).show();
                 } else {
                     checkPermissions();
                 }
@@ -749,89 +739,6 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         orangeMarkers.put("pharmacies", R.drawable.red_pharmacy);
     }
 
-    private void setUpMarkerIcons() {
-        IconFactory mIconFactory = IconFactory.getInstance(getActivity());
-        tagMp_blue = new HashMap<>();
-        tagMp_blue.put("public_hospitals", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.blue_hospital)));
-        tagMp_blue.put("private_hospitals", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.blue_hospital)));
-        tagMp_blue.put("public_clinics", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.blue_ayush)));
-        tagMp_blue.put("private_clinics", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.blue_clinic)));
-        tagMp_blue.put("dentists", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.blue_dentist)));
-        tagMp_blue.put("veterinaries", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.blue_veterinary)));
-        tagMp_blue.put("patho_radio_labs", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.blue_lab)));
-        tagMp_blue.put("anganwadi", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.blue_aaganwadi)));
-        tagMp_blue.put("blood_banks", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.blue_bloodbank)));
-        tagMp_blue.put("mental_health_centers", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.blue_mental_health)));
-        tagMp_blue.put("bus_stops", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.blue_busstop)));
-        tagMp_blue.put("atms", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.blue_atm)));
-        tagMp_blue.put("public_washrooms", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.blue_washroom)));
-        tagMp_blue.put("public_waste_bins", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.blue_wastebin)));
-        tagMp_blue.put("fuel_stations", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.blue_fuel)));
-        tagMp_blue.put("public_schools", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.blue_government_school)));
-        tagMp_blue.put("private_schools", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.blue_private_school)));
-        tagMp_blue.put("parks_playgrounds", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.blue_playground)));
-        tagMp_blue.put("pharmacies", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.blue_pharmacy)));
-
-        tagMp_orange = new HashMap<>();
-        tagMp_orange.put("public_hospitals", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.red_hospital)));
-        tagMp_orange.put("private_hospitals", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.red_hospital)));
-        tagMp_orange.put("public_clinics", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.red_clinic)));
-        tagMp_orange.put("private_clinics", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.red_clinic)));
-        tagMp_orange.put("dentists", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.red_dentist)));
-        tagMp_orange.put("veterinaries", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.red_veterinary)));
-        tagMp_orange.put("patho_radio_labs", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.red_lab)));
-        tagMp_orange.put("anganwadi", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.red_aaganwadi)));
-        tagMp_orange.put("blood_banks", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.red_bloodbank)));
-        tagMp_orange.put("mental_health_centers", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.red_mental_health)));
-        tagMp_orange.put("bus_stops", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.red_busstop)));
-        tagMp_orange.put("atms", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.red_atm)));
-        tagMp_orange.put("public_washrooms", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.red_washroom)));
-        tagMp_orange.put("public_waste_bins", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.red_wastebin)));
-        tagMp_orange.put("fuel_stations", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.red_fuel)));
-        tagMp_orange.put("public_schools", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.red_government_school)));
-        tagMp_orange.put("private_schools", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.red_private_school)));
-        tagMp_orange.put("parks_playgrounds", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.red_playground)));
-        tagMp_orange.put("pharmacies", mIconFactory.fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.red_pharmacy)));
-    }
-
     static String loadGeoJsonFromAsset(Context context, String filename) {
         try {
             // Load GeoJSON file from local asset folder
@@ -864,10 +771,6 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         toggleTabVisibilityListener = null;
     }
 
-    public void getSelected(String selection) {
-        selectedType = selection;
-    }
-
     public void detailView(boolean detailbool) {
         if (detailbool) {
             Realm realm = Realm.getDefaultInstance();
@@ -876,8 +779,6 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
             RealmQuery<ExploreSchema> query = realm.where(ExploreSchema.class);
             ExploreSchema dbvalue = query
                     .equalTo("osm_id", poiFeatureId)
-//                    .equalTo("coordinateslong", Double.valueOf(editLat))
-//                    .equalTo("coordinateslat", Double.valueOf(editLong))
                     .findFirst();
 
             if (dbvalue != null && dbvalue.getTag_type() != null) {
@@ -1351,21 +1252,6 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
                             iconSize(0.8f)));
     }
 
-    private Icon getItemIcon() {
-        for (Map.Entry<String, com.mapbox.mapboxsdk.annotations.Icon> entry : tagMp_blue.entrySet()) {
-            if (!selectedType.equals("attractions")) {
-                if (entry.getKey().equals(selectedType)) {
-                    return entry.getValue();
-                }
-            } else if (entry.getKey().equals(MainActivity.def_type_category)) {
-                return entry.getValue();
-            }
-        }
-        return IconFactory.getInstance(getActivity()).fromBitmap(BitmapFactory.decodeResource(
-                getActivity().getResources(), R.drawable.map_marker_dark));
-    }
-
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
@@ -1485,16 +1371,13 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
     @Override
     public void onLocationChanged(Location location) {
         if (location != null) {
+            Log.d(TAG, "onLocationChanged: " + mylocation);
             mylocation = location;
-            if (mylocation.getLatitude() > 28.31285 || mylocation.getLatitude() < 28.11532
-                    || mylocation.getLongitude() > 84.14949 || mylocation.getLongitude() < 83.84905) {
-//                Toast.makeText(getContext(), "Out of Indore Bound", Toast.LENGTH_SHORT).show();
-            } else {
-                gps.setImageResource(0);
-                gps.setImageResource(R.drawable.ic_action_gps_fixed);
-                gps.setTag("gps_fixed");
-                setCameraPosition(location);
-            }
+            if (mylocation.getLatitude() > 22.8202 || mylocation.getLatitude() < 22.6248
+                    || mylocation.getLongitude() > 76.0467 || mylocation.getLongitude() < 75.7202) {
+                isinIndore = false;
+            } else
+                isinIndore = true;
         }
     }
 
@@ -1631,8 +1514,6 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         //swipeValue = 1;
         iff_ondown = false;
         iff_onswipe = false;
-        //to keep teh color to blue/ colorPrimary
-//            navButton.setBackgroundColor(getResources().getColor(R.color.tertiaryText));
         navButton.setText("Route");
         if (navigationMapRoute != null) navigationMapRoute.removeRoute();
         if (swipeValue == 1) {
@@ -1745,6 +1626,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
             case Keys.GPS_REQUEST:
                 switch (resultCode) {
                     case Activity.RESULT_OK:
+                        Toast.makeText(getContext(), "Please wait the gps is locating you", Toast.LENGTH_LONG).show();
                         getMyLocation();
                         break;
                     case Activity.RESULT_CANCELED:
