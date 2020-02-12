@@ -1,18 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:gravity="center"
-    android:alpha="1"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    >
+    android:alpha="1"
+    android:gravity="center">
+
     <com.github.ybq.android.spinkit.SpinKitView
         android:id="@+id/spin_kit"
         style="@style/SpinKitView.Large.WanderingCubes"
-        android:background="@color/mapbox_blue"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:padding="20dp"
-         />
+        android:background="@color/mapbox_blue"
+        android:padding="20dp" />
 
 </RelativeLayout>

@@ -1,7 +1,6 @@
 package org.kathmandulivinglabs.exploreindore.Activity;
 
 import android.app.ActivityManager;
-import android.app.IntentService;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
@@ -12,27 +11,28 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.PersistableBundle;
 import android.os.ResultReceiver;
-import android.support.design.widget.NavigationView;
-import android.support.design.widget.Snackbar;
-import android.support.design.widget.TabLayout;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.NotificationManagerCompat;
-import android.support.v4.content.LocalBroadcastManager;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.view.ViewPager;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
+
+import com.google.android.material.navigation.NavigationView;
+import com.google.android.material.snackbar.Snackbar;
+import com.google.android.material.tabs.TabLayout;
+
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -43,6 +43,7 @@ import android.widget.ExpandableListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.JsonObject;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.geometry.LatLngBounds;
@@ -52,12 +53,16 @@ import com.mapbox.mapboxsdk.offline.OfflineRegionError;
 import com.mapbox.mapboxsdk.offline.OfflineRegionStatus;
 import com.mapbox.mapboxsdk.offline.OfflineTilePyramidRegionDefinition;
 
+import org.greenrobot.eventbus.EventBus;
 import org.json.JSONObject;
 import org.kathmandulivinglabs.exploreindore.Adapter.ExpandableMenuAdapter;
 import org.kathmandulivinglabs.exploreindore.Adapter.ExpandedMenuModel;
 import org.kathmandulivinglabs.exploreindore.Adapter.FragmentAdapter;
 import org.kathmandulivinglabs.exploreindore.Api_helper.ApiHelper;
 import org.kathmandulivinglabs.exploreindore.Api_helper.ApiInterface;
+import org.kathmandulivinglabs.exploreindore.Helper.EditAmenityEvent;
+import org.kathmandulivinglabs.exploreindore.Helper.Keys;
+import org.kathmandulivinglabs.exploreindore.Interface.DownloadKeys;
 import org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.Data;
 import org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.Tags;
 import org.kathmandulivinglabs.exploreindore.Api_helper.Wards;
@@ -98,8 +103,13 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+import static org.kathmandulivinglabs.exploreindore.Interface.DownloadKeys.OFFLINE_MAP_LAYER;
+import static org.kathmandulivinglabs.exploreindore.Interface.DownloadKeys.UPDATE_DATA;
+
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, InsightFragment.onInsightSelected, ToggleTabVisibilityListener {
+
+    private static final String TAG = "MainActvity";
 
     public String updateText() {
         mSharedPref = getSharedPreferences(getString(R.string.prefrence_file_key), Context.MODE_PRIVATE);
@@ -107,8 +117,11 @@ public class MainActivity extends AppCompatActivity
         if (user.equals("Explore Indore"))
             user = mSharedPref.getString(LoginActivity.AUTHEMAIL, "Explore Indore");
         Auth = mSharedPref.getBoolean(LoginActivity.AUTHENTICATED, false);
-        Log.wtf(user, String.valueOf(Auth));
-        if (Auth) this.tv.setText(user);
+        if (Auth) {
+            this.loginText.setText(user);
+            loginText.setCompoundDrawablePadding(16);
+            loginText.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_user_24, 0, 0, 0);
+        }
         return user;
     }
 
@@ -125,7 +138,7 @@ public class MainActivity extends AppCompatActivity
     private boolean filter_applied = false, navClicked = false;
     private NavigationView navigationView;
     private boolean update_data = false;
-    public static boolean updateMapView = false, destroyMapView = false;
+    public static boolean updateMapView = false;
     private boolean mapsDownloading = false;
     private NotificationManagerCompat mNotificationManager;
     private NotificationCompat.Builder mBuilder;
@@ -136,7 +149,6 @@ public class MainActivity extends AppCompatActivity
     List<ExpandedMenuModel> listDataHeader;
     HashMap<ExpandedMenuModel, List<String>> listDataChild;
     static Map<String, String> tagMp;
-    Map<String, String> tagHospitals, tagClincs, tagOthers;
     private static String oldtag;
     public static Map<String, String> filter_param;
     private static boolean downloadalldata = false;
@@ -151,16 +163,7 @@ public class MainActivity extends AppCompatActivity
     int PROGRESS_CURRENT = 0;
     double progress = 0;
     boolean Auth;
-    private static final String ACTION_CUSTOM_BROADCAST =
-            BuildConfig.APPLICATION_ID + ".ACTION_CUSTOM_BROADCAST";
-
-
-    public void setMyClassListener(Backlistner listener) {
-        this.mBack = listener;
-    }
-
-    private TextView tv;
-
+    private TextView loginText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -168,17 +171,14 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        tv = findViewById(R.id.btn_login);
+        loginText = findViewById(R.id.btn_login);
         String user = updateText();
-        tv.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                drawer.closeDrawers();
-                if (!Auth) {
-                    Intent intentabout = new Intent(getApplicationContext(), LoginActivity.class);
-                    startActivity(intentabout);
-                } else showAlertDialogButtonClicked(user);
-            }
+        loginText.setOnClickListener(view -> {
+            drawer.closeDrawers();
+            if (!Auth) {
+                Intent intentabout = new Intent(getApplicationContext(), LoginActivity.class);
+                startActivity(intentabout);
+            } else showAlertDialogButtonClicked(user);
         });
         drawer = findViewById(R.id.drawer_layout);
         expandableList = findViewById(R.id.expand_nav);
@@ -197,8 +197,6 @@ public class MainActivity extends AppCompatActivity
                 .setChannelId(channelId)
                 .setAutoCancel(true)
                 .setOnlyAlertOnce(true);
-
-//        String channelId = "explore_download";
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             CharSequence name = "Downloading";
@@ -222,16 +220,23 @@ public class MainActivity extends AppCompatActivity
         tagMp = new HashMap<>();
         tagMp.put("public_hospitals", "Public Hospitals");
         tagMp.put("private_hospitals", "Private Hospitals");
-        tagMp.put("public_clinics", "Public Clinics and Government Centers");
+        tagMp.put("public_clinics", "AYUSH Centres");
         tagMp.put("private_clinics", "Private Clinics");
-        tagMp.put("dentists", "Dentists");
-        tagMp.put("veterinaries", "Veterinaries");
-        tagMp.put("patho_radio_labs", "Pathology and Radiology Labs");
+        tagMp.put("dentists", "Dental Clinics");
+        tagMp.put("veterinaries", "Veterinary Hospitals");
+        tagMp.put("patho_radio_labs", "Laboratories");
         tagMp.put("anganwadi", "Anganwadis");
-        tagMp.put("blood_banks", "Blood Banks");
-        tagMp.put("mental_health_centers", "Mental Health Centers");
+        tagMp.put("pharmacies", "Pharmacies");
+        tagMp.put("atms", "ATMs");
+        tagMp.put("public_washrooms", "Public Washrooms");
+        tagMp.put("public_waste_bins", "Public Wastebins");
+        tagMp.put("fuel_stations", "Fuel Stations");
         tagMp.put("bus_stops", "Bus Stops");
-
+        tagMp.put("public_schools", "Public Schools");
+        tagMp.put("blood_banks", "Blood Banks");
+        tagMp.put("private_schools", "Private Schools");
+        tagMp.put("mental_health_centers", "Mental Health Centers");
+        tagMp.put("parks_playgrounds", "Parks / playgrounds");
 
         menuAdapter = new ExpandableMenuAdapter(this, listDataHeader, listDataChild, expandableList);
 
@@ -251,45 +256,25 @@ public class MainActivity extends AppCompatActivity
                         drawer.closeDrawers();
                         oldtag = entry.getKey();
                         makeMapData(entry.getKey());
-
-                        Log.d(entry.getKey(), "child");
                     }
                 }
                 switch (childValue) {
-                    case "Update data":
-                        drawer.closeDrawers();
-                        updateRealm(oldtag);
-                        getSupportActionBar().setTitle(tagMp.get(def_type));
-//
+                    case UPDATE_DATA:
+                        showInformationDialog(UPDATE_DATA);
                         break;
-                    case "Offline map layer":
-                        drawer.closeDrawers();
-                        getSupportActionBar().setTitle(tagMp.get(def_type));
-                        if (Connectivity.isConnected(Mapbox.getApplicationContext())) {
-//                            downloadStarted();
-                            downloadBaseMap();
-                        } else
-                            Snackbar.make(MainActivity.this.findViewById(android.R.id.content), "No internet connection", Snackbar.LENGTH_LONG).show();
-//
+                    case DownloadKeys.OFFLINE_MAP_LAYER:
+                        showInformationDialog(OFFLINE_MAP_LAYER);
                         break;
-//
-                    case "Offline map data":
-                        drawer.closeDrawers();
-                        downloadAll();
-                        getSupportActionBar().setTitle(tagMp.get(def_type));
+                    case DownloadKeys.OFFLINE_MAP_DATA:
+                        showInformationDialog(DownloadKeys.OFFLINE_MAP_DATA);
                         break;
-
-                    case "About Us":
+                    case DownloadKeys.ABOUT_US:
                         drawer.closeDrawers();
-                        Log.d("About Us", def_type);
                         Intent intentabout = new Intent(getApplicationContext(), AboutActivity.class);
                         intentabout.putExtra("amenityType", def_type);
                         startActivity(intentabout);
-
                         break;
                 }
-
-
                 return false;
             }
         });
@@ -305,13 +290,12 @@ public class MainActivity extends AppCompatActivity
 
         final RealmResults<Tag> tag = realm.where(Tag.class).findAll();
         final RealmResults<ExploreSchema> explore_data = realm.where(ExploreSchema.class).findAll();
-        List<String> amenity_tag = new ArrayList<>();
+
         if (tag.size() == 0)
             savetag();
 
         if (explore_data.size() == 0) {
             showProgressDialog();
-//            downloadAll();
             saveDataFromV2Api(def_type);
         }
         viewPager = findViewById(R.id.viewpager);
@@ -320,13 +304,24 @@ public class MainActivity extends AppCompatActivity
         // Set Tabs inside Toolbar
         tabs = findViewById(R.id.result_tabs);
         tabs.setupWithViewPager(viewPager);
+
         Intent i = getIntent();
+        String marker[];
         String amenityedited;
-        String fromabout;
+        String fromabout, fromLogin = "";
         if (i != null) {
+            fromLogin = i.getStringExtra(Keys.AMENITY_SELECTED);
             amenityedited = i.getStringExtra("amenityedited");
+            marker = i.getStringArrayExtra("marker");
+            if (amenityedited != null && marker != null) {
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        EventBus.getDefault().post(new EditAmenityEvent(marker[0], marker[1], marker[2]));
+                    }
+                }, 1000);
+            }
             fromabout = i.getStringExtra("about");
-            Log.wtf(fromabout, "ABout");
             if (fromabout == null) {
                 for (Map.Entry<String, String> entry : tagMp.entrySet()) {
                     if (entry.getKey().equals(amenityedited)) {
@@ -336,33 +331,115 @@ public class MainActivity extends AppCompatActivity
                 if (amenityedited != null) {
                     getSupportActionBar().setTitle(amenityedited);
                 } else {
-                    getSupportActionBar().setTitle("Public Hospitals");
-//                    tabs.removeTabAt(1);
+                    if (fromLogin != null) getSupportActionBar().setTitle(tagMp.get(fromLogin));
+                    else getSupportActionBar().setTitle("Public Hospitals");
                 }
             } else getSupportActionBar().setTitle(tagMp.get(fromabout));
-
         } else {
             getSupportActionBar().setTitle("Public Hospitals");
-//            tabs.removeTabAt(1);
         }
-        viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
-            @Override
-            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+    }
 
+    private void showInformationDialog(String type) {
+        drawer.closeDrawers();
+        getSupportActionBar().setTitle(tagMp.get(def_type));
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle("Confirmation")
+                .setIcon(R.drawable.ic_info)
+                .setMessage(giveMeMessage(type))
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        dialogInterface.dismiss();
+                    }
+                })
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        switch (type) {
+                            case UPDATE_DATA:
+                                updateRealm(oldtag);
+                                break;
+                            case DownloadKeys.OFFLINE_MAP_LAYER:
+                                if (Connectivity.isConnected(Mapbox.getApplicationContext())) {
+//                            downloadStarted();
+//                            downloadBaseMap();
+                                    if (!mapsDownloading)
+                                        checkDownloadedRegionList();
+                                    else
+                                        Toast.makeText(MainActivity.this, "Map is already downloading ", Toast.LENGTH_SHORT).show();
+                                } else
+                                    Snackbar.make(MainActivity.this.findViewById(android.R.id.content), "No internet connection", Snackbar.LENGTH_LONG).show();
+                                break;
+//
+                            case DownloadKeys.OFFLINE_MAP_DATA:
+                                if (Connectivity.isConnected(Mapbox.getApplicationContext())) {
+                                    downloadAll();
+                                } else
+                                    Snackbar.make(MainActivity.this.findViewById(android.R.id.content), "No internet connection", Snackbar.LENGTH_LONG).show();
+                                break;
+                        }
+
+                    }
+                })
+                .show();
+        dialog.getButton(dialog.BUTTON_NEGATIVE).setTextColor(Color.DKGRAY);
+    }
+
+    private String giveMeMessage(String type) {
+        String message = "";
+        switch (type) {
+            case UPDATE_DATA:
+                message = "This action will download and update the data of " + tagMp.get(def_type) + ".\n\nDo you want to proceed?";
+                break;
+            case DownloadKeys.OFFLINE_MAP_LAYER:
+                message = "This action will download the map for offline purpose.\n\nDo you want to proceed?";
+                break;
+            case DownloadKeys.OFFLINE_MAP_DATA:
+                message = "This action will download the data of all the amenities so that you can see the details of all the points even when there is no internet connection.\n\nDo you want to proceed?";
+                break;
+            default:
+                break;
+        }
+        return message;
+    }
+
+    private void checkDownloadedRegionList() {
+        // Query the DB asynchronously
+        OfflineManager offlineManager = OfflineManager.getInstance(getApplicationContext());
+        offlineManager.listOfflineRegions(new OfflineManager.ListOfflineRegionsCallback() {
+            @Override
+            public void onList(final OfflineRegion[] offlineRegions) {
+                // Check result. If no regions have been downloaded yet, notify user and return
+                if (offlineRegions == null || offlineRegions.length == 0) {
+                    downloadBaseMap();
+                    return;
+                } else showMapAlreadyDownloadedAlertDialog();
+//                    Toast.makeText(MainActivity.this, "Offline Maps has already been downloaded.", Toast.LENGTH_SHORT).show();
             }
 
             @Override
-            public void onPageSelected(int position) {
-                Log.d(String.valueOf(position), "onPageSelected: ");
-                SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
-            }
-
-            @Override
-            public void onPageScrollStateChanged(int state) {
-
+            public void onError(String error) {
+                Log.d("Error: %s", error);
             }
         });
+    }
 
+    private void showMapAlreadyDownloadedAlertDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this)
+                .setTitle("Info")
+                .setMessage("Offline map has already been downloaded. Do you want to download it again?")
+                .setNegativeButton("Yes", (dialogInterface, i) -> {
+                    dialogInterface.dismiss();
+                    downloadBaseMap();
+                })
+                .setPositiveButton("Cancel", (dialogInterface, i) -> {
+                    dialogInterface.dismiss();
+                });
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+        dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(Color.parseColor("#E64228"));
     }
 
     public void showAlertDialogButtonClicked(String user) {
@@ -382,7 +459,8 @@ public class MainActivity extends AppCompatActivity
                 memory.putBoolean(LoginActivity.AUTHENTICATED, false);
                 Auth = false;
                 memory.apply();
-                tv.setText("  Log In");
+                loginText.setText("  Log In");
+                loginText.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_action_lock, 0, 0, 0);
                 expandableList.refreshDrawableState();
                 fragmentRefresh();
             }
@@ -402,7 +480,6 @@ public class MainActivity extends AppCompatActivity
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setAllCaps(false);
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.parseColor("#1bd393"));
         dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setAllCaps(false);
-//        dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setTextColor(Color.parseColor("#"));
         dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setAllCaps(false);
         dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(Color.parseColor("#1bd393"));
     }
@@ -422,7 +499,7 @@ public class MainActivity extends AppCompatActivity
     private void downloadAll() {
         Intent intent = new Intent(MainActivity.this, DataManager.class);
         intent.putExtra("receiver", new DownReceiver(new Handler()));
-            startService(intent);
+        startService(intent);
         downloadStarted();
 //        showProgressDialog();
 //        Thread thread = new Thread(new Runnable() {
@@ -446,7 +523,7 @@ public class MainActivity extends AppCompatActivity
         final RealmResults<ExploreSchema> explore = realm.where(ExploreSchema.class).contains("tag", selectedkey).findAll();
         realm.close();
         def_type = selectedkey;
-
+        Log.d(TAG, "makeMapData: " + explore.size());
         if (explore.size() == 0) {
             showProgressDialog();
             saveDataFromV2Api(selectedkey);
@@ -468,17 +545,17 @@ public class MainActivity extends AppCompatActivity
     private void prepareListData() {
         listDataHeader = new ArrayList<ExpandedMenuModel>();
         listDataChild = new HashMap<ExpandedMenuModel, List<String>>();
-        ExpandedMenuModel hospitals = new ExpandedMenuModel();
-        hospitals.setIconName("Hospitals");
-        listDataHeader.add(hospitals);
+        ExpandedMenuModel healthFacilities = new ExpandedMenuModel();
+        healthFacilities.setIconName("Health Facilities");
+        listDataHeader.add(healthFacilities);
 
-        ExpandedMenuModel clinics = new ExpandedMenuModel();
-        clinics.setIconName("Clinics");
-        listDataHeader.add(clinics);
+        ExpandedMenuModel publicFacilities = new ExpandedMenuModel();
+        publicFacilities.setIconName("Public Facilities");
+        listDataHeader.add(publicFacilities);
 
-        ExpandedMenuModel others = new ExpandedMenuModel();
-        others.setIconName("Others");
-        listDataHeader.add(others);
+//        ExpandedMenuModel others = new ExpandedMenuModel();
+//        others.setIconName("Others");
+//        listDataHeader.add(others);
 
 
         ExpandedMenuModel download = new ExpandedMenuModel();
@@ -491,40 +568,41 @@ public class MainActivity extends AppCompatActivity
         listDataHeader.add(about);
 
         // Adding child data
-        List<String> hospitalslist = new ArrayList<>();
-        List<String> clinicslist = new ArrayList<String>();
+        List<String> healthFacilitiesList = new ArrayList<>();
+        List<String> publicFacilitiesList = new ArrayList<String>();
         List<String> otherslist = new ArrayList<String>();
         List<String> downloadlist = new ArrayList<String>();
         List<String> aboutlist = new ArrayList<String>();
 
-        hospitalslist.add("Public Hospitals");
-        hospitalslist.add("Private Hospitals");
+        healthFacilitiesList.add("Public Hospitals");
+        healthFacilitiesList.add("Private Hospitals");
+        healthFacilitiesList.add("Private Clinics");
+        healthFacilitiesList.add("Dental Clinics");
+        healthFacilitiesList.add("Veterinary Hospitals");
+        healthFacilitiesList.add("Pharmacies");
+        healthFacilitiesList.add("Laboratories");
+        healthFacilitiesList.add("Anganwadis");
+        healthFacilitiesList.add("AYUSH Centres");
 
-        clinicslist.add("Public Clinics and Government Centers");
-        clinicslist.add("Private Clinics");
-        clinicslist.add("Dentists");
-        clinicslist.add("Veterinaries");
-        clinicslist.add("Pathology and Radiology Labs");
-
-        otherslist.add("Anganwadis");
-        otherslist.add("Blood Banks");
-        otherslist.add("Mental Health Centers");
-        otherslist.add("Bus Stops");
+        publicFacilitiesList.add("Public Schools");
+        publicFacilitiesList.add("Private Schools");
+        publicFacilitiesList.add("Public Washrooms");
+        publicFacilitiesList.add("Public Wastebins");
+        publicFacilitiesList.add("ATMs");
+        publicFacilitiesList.add("Fuel Stations");
+        publicFacilitiesList.add("Parks / playgrounds");
 
         downloadlist.add("Update data");
         // downloadlist.add("Download map data");
-        downloadlist.add("Offline map layer");
+//        downloadlist.add("Offline map layer");
         downloadlist.add("Offline map data");
 
         aboutlist.add("About Us");
 
-        listDataChild.put(listDataHeader.get(0), hospitalslist);
-        listDataChild.put(listDataHeader.get(1), clinicslist);
-        listDataChild.put(listDataHeader.get(2), otherslist);
-        listDataChild.put(listDataHeader.get(3), downloadlist);
-        listDataChild.put(listDataHeader.get(4), aboutlist);
-
-
+        listDataChild.put(listDataHeader.get(0), healthFacilitiesList);
+        listDataChild.put(listDataHeader.get(1), publicFacilitiesList);
+        listDataChild.put(listDataHeader.get(2), downloadlist);
+        listDataChild.put(listDataHeader.get(3), aboutlist);
     }
 
 
@@ -592,7 +670,10 @@ public class MainActivity extends AppCompatActivity
         call.enqueue(new Callback<Features>() {
             @Override
             public void onResponse(Call<Features> call, Response<Features> response) {
+                Log.d(TAG, "onResponse: " + response.body().toString());
                 if (response.body() != null) {
+
+                    Log.d(TAG, "onResponse: " + response.body().getGeometries().getPois());
                     if (response.body().getSuccess() == 1) {
                         Realm realm = Realm.getDefaultInstance();
                         try {
@@ -611,6 +692,12 @@ public class MainActivity extends AppCompatActivity
                                         a_value.add(op.getValue());
                                         switch (op.getLabel()) {
                                             case "name":
+                                                realmObject.setName(op.getValue());
+                                                break;
+                                            case "name_bank":
+                                                realmObject.setName(op.getValue());
+                                                break;
+                                            case "point_type":
                                                 realmObject.setName(op.getValue());
                                                 break;
                                             case "name_hindi":
@@ -708,7 +795,6 @@ public class MainActivity extends AppCompatActivity
                             updateMapView = true;
                             if (!downloadalldata)
                                 fragmentRefresh();
-                            Log.d("realm closed", "map data ");
                         }
                     }
                 } else {
@@ -828,6 +914,8 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void fragmentRefresh() {
+        getSupportActionBar().show();
+        showTabs();
         Bundle args = new Bundle();
         args.putString("selectedType", def_type);
         String tagmap = "android:switcher:" + R.id.viewpager + ":" + 0;
@@ -888,6 +976,14 @@ public class MainActivity extends AppCompatActivity
         return super.onCreateOptionsMenu(menu);
     }
 
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        MenuItem searchMenu = menu.findItem(R.id.search);
+        if (viewPager.getCurrentItem() == 0)
+            searchMenu.setVisible(true);
+        else searchMenu.setVisible(false);
+        return super.onPrepareOptionsMenu(menu);
+    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -943,18 +1039,14 @@ public class MainActivity extends AppCompatActivity
             }
         }
 
-
-        Log.d(String.valueOf(filter_applied), "onResume: ");
         Intent i = getIntent();
         FilterParcel object = i.getParcelableExtra("FilterValue");
         if (object != null) {
-            Log.d("value changed", "onResume");
             String tagmap = "android:switcher:" + R.id.viewpager + ":" + 0;
             MapFragment mpfrag = (MapFragment) getSupportFragmentManager().findFragmentByTag(tagmap);
             Bundle bd = new Bundle();
             bd.putParcelable("FilterValue", object);
             bd.putString("selectedType", def_type);
-            Log.d(def_type, "onResume: ");
             if (mpfrag != null) {
                 mpfrag.setArguments(bd);
                 if (viewPager.getAdapter() != null)
@@ -1054,17 +1146,15 @@ public class MainActivity extends AppCompatActivity
                         @Override
                         public void onCreate(OfflineRegion offlineRegion) {
                             offlineRegion.setDownloadState(OfflineRegion.STATE_ACTIVE);
-
                             // Monitor the download progress using setObserver
                             offlineRegion.setObserver(new OfflineRegion.OfflineRegionObserver() {
                                 @Override
                                 public void onStatusChanged(OfflineRegionStatus status) {
-
-
                                     double percentage = status.getRequiredResourceCount() >= 0
                                             ? (100.0 * status.getCompletedResourceCount() / status.getRequiredResourceCount()) :
                                             0.0;
                                     if (!status.isComplete()) {
+                                        mapsDownloading = true;
                                         mBuilder.setProgress(100, (int) percentage, false);
                                         mBuilder.setContentTitle("Please wait...");
                                         int per = (int) percentage;
@@ -1074,6 +1164,7 @@ public class MainActivity extends AppCompatActivity
 
                                     } else {
                                         status.isComplete();
+                                        mapsDownloading = false;
                                         // Download complete
                                         Log.d("Basemap Download", "Region downloaded successfully.");
                                         mBuilder.setContentTitle("Download Successful")
@@ -1094,6 +1185,7 @@ public class MainActivity extends AppCompatActivity
                                     // If an error occurs, print to logcat
 //                                    Log.e("onError reason: ", error.getReason());
 //                                    Log.e( "onError message: " , error.getMessage());
+                                    mapsDownloading = false;
                                     mBuilder.setContentTitle("Download canceled")
                                             .setContentText("Offline map cannot be downloaded, please try again later.")
                                             .setProgress(0, 0, false)
@@ -1105,6 +1197,7 @@ public class MainActivity extends AppCompatActivity
 
                                 @Override
                                 public void mapboxTileCountLimitExceeded(long limit) {
+                                    mapsDownloading = false;
                                     mBuilder.setContentTitle("Download canceled")
                                             .setContentText("Offline map cannot be downloaded, please try again later.")
                                             .setProgress(0, 0, false)
@@ -1147,7 +1240,7 @@ public class MainActivity extends AppCompatActivity
             int importance = NotificationManager.IMPORTANCE_HIGH;
             channel = new NotificationChannel(channelId, name, importance);
             channel.setDescription(description);
-            notificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+            notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
             assert notificationManager != null;
             notificationManager.createNotificationChannel(channel);
         }
@@ -1164,12 +1257,11 @@ public class MainActivity extends AppCompatActivity
             int resultCode = intent.getIntExtra("resultCode", RESULT_CANCELED);
             if (resultCode == RESULT_OK) {
                 String resultValue = intent.getStringExtra("resultValue");
-                Log.wtf(resultValue,"From service");
+                Log.wtf(resultValue, "From service");
 //                Toast.makeText(MainActivity.this, resultValue, Toast.LENGTH_SHORT).show();
             }
         }
     };
-
 
 
     @Override
@@ -1198,7 +1290,7 @@ public class MainActivity extends AppCompatActivity
     public void setSnackbar(String msg) {
         snackbar = Snackbar.make(this.findViewById(android.R.id.content), msg, Snackbar.LENGTH_INDEFINITE);
         View snackbarView = snackbar.getView();
-        TextView textView = snackbarView.findViewById(android.support.design.R.id.snackbar_text);
+        TextView textView = snackbarView.findViewById(R.id.snackbar_text);
         textView.setMaxLines(5);
         final Snackbar finalSnackbar = snackbar;
         snackbar.setAction("Retry", new View.OnClickListener() {
@@ -1279,8 +1371,6 @@ public class MainActivity extends AppCompatActivity
         mNotificationManager.notify(0, mBuilder.build());
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
             notificationManager.notify(0, mBuilder.build());
-//        LocalBroadcastManager.getInstance(this)
-//                .unregisterReceiver(myReceiver);
     }
 
     public void downloadInterrupted() {
@@ -1294,9 +1384,6 @@ public class MainActivity extends AppCompatActivity
         mNotificationManager.notify(0, mBuilder.build());
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
             notificationManager.notify(0, mBuilder.build());
-
-//        LocalBroadcastManager.getInstance(this)
-//                .unregisterReceiver(myReceiver);
     }
 
     private class DownReceiver extends ResultReceiver {
@@ -1310,21 +1397,23 @@ public class MainActivity extends AppCompatActivity
             super.onReceiveResult(resultCode, resultData);
             if (resultCode == 450) {
                 int progress1 = resultData.getInt("progress");
-                if(progress1 <11 ) {
+                int totalAmenitiesSize = tagMp.entrySet().size();
+                Toast.makeText(MainActivity.this, "" + progress1 + " sixe " + tagMp.entrySet().size(), Toast.LENGTH_SHORT).show();
+                if (progress1 < totalAmenitiesSize) {
 //                    Log.wtf("sdkrfjhglis", String.valueOf(progress1));
-                    progress = (double) progress1/11 *100;
-                    Log.wtf("per", String.valueOf(progress));
+                    progress = (double) progress1 / totalAmenitiesSize * 100;
                     downloadProgress();
-                }
-                else if (progress1 == 11){
+                } else if (progress1 == totalAmenitiesSize) {
                     try {
                         Thread.sleep(1000);
                         downloadCompleted();
                     } catch (InterruptedException e) {
+                        Log.d(TAG, "onReceiveResult: " + e.getMessage());
                         e.printStackTrace();
                         downloadInterrupted();
                     }
                 } else {
+                    Log.d(TAG, "onReceiveResult: here");
                     downloadInterrupted();
                 }
 

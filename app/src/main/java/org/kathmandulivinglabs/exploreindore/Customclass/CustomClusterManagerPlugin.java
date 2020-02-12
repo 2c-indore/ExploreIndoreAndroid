@@ -3,7 +3,7 @@ package org.kathmandulivinglabs.exploreindore.Customclass;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Build;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import com.mapbox.mapboxsdk.annotations.Marker;
 import com.mapbox.mapboxsdk.camera.CameraPosition;
@@ -16,7 +16,6 @@ import com.mapbox.mapboxsdk.plugins.cluster.clustering.algo.Algorithm;
 import com.mapbox.mapboxsdk.plugins.cluster.clustering.algo.NonHierarchicalDistanceBasedAlgorithm;
 import com.mapbox.mapboxsdk.plugins.cluster.clustering.algo.PreCachingAlgorithmDecorator;
 import com.mapbox.mapboxsdk.plugins.cluster.clustering.view.ClusterRenderer;
-import com.mapbox.mapboxsdk.plugins.cluster.clustering.view.DefaultClusterRenderer;
 
 import java.util.Collection;
 import java.util.Set;
@@ -173,9 +172,9 @@ public class CustomClusterManagerPlugin<T extends ClusterItem & CustomClusterIte
             mClusterTask.cancel(true);
             mClusterTask = new ClusterTask();
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
-                mClusterTask.execute((float) mMap.getCameraPosition().zoom+1.5f);
+                mClusterTask.execute((float) mMap.getCameraPosition().zoom+2.5f);
             } else {
-                mClusterTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (float) mMap.getCameraPosition().zoom+1.5f);
+                mClusterTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (float) mMap.getCameraPosition().zoom+2.5f);
             }
         } finally {
             mClusterTaskLock.writeLock().unlock();

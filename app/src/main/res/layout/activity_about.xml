@@ -1,113 +1,87 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".Activity.AboutActivity">
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
         android:layout_margin="5dp"
+        android:clipToPadding="false"
+        android:orientation="vertical"
         android:paddingLeft="15dp"
         android:paddingTop="15dp"
-        >
+        android:paddingBottom="@dimen/activity_vertical_margin">
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Explore Indore"
-            android:textSize="20sp"
-            android:textStyle="bold"
             android:textColor="@color/primaryText"
-            />
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Bringing data, people and technology together."
-            android:textSize="14sp"
             android:textColor="@color/secondaryText"
-            android:textStyle="bold"/>
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            android:text="Do you know where the closest hospital is from your home? Do you know where you can easily access cash during an emergency situation? Are you Prepared?"
+            android:text="Do you know where the closest hospital is from your home? Do you know where you can easily access cash during an emergency situation? Are you prepared?"
+            android:textColor="@color/primaryText"
             android:textSize="14sp"
-            android:textStyle="normal"
-            android:textColor="@color/primaryText"/>
+            android:textStyle="normal" />
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:text="Explore Indore app is the answer to these questions and more. Kathmandu Living Labs, the local partner of the Secondary Cities initiative, has been spearheading the ground effort to produce robust geospatial data for Pokhara for the past two years. It is hoped that the critical infrastructure information made open here plays an integral part in keeping both yourself and your neighbors safe and allows all visitors to easily access important sites of the city."
-            android:textSize="14sp"
-            android:textStyle="normal"
             android:layout_marginBottom="10dp"
-            android:textColor="@color/primaryText"/>
+            android:text="@string/about_second_para"
+            android:textColor="@color/primaryText"
+            android:textSize="14sp"
+            android:textStyle="normal" />
+
         <FrameLayout
-            android:layout_marginTop="25dp"
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:background="@color/secondaryText"/>
+            android:layout_marginTop="25dp"
+            android:background="@color/secondaryText" />
+
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingBottom="10dp"
-            android:paddingTop="15dp">
+            android:paddingTop="15dp"
+            android:paddingBottom="10dp">
+
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/acropolis"/>
+                android:src="@drawable/acropolis" />
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:paddingTop="5dp"
                 android:text="Acropolis Institute of Technology and Research "
-            android:textSize="12sp"/>
+                android:textSize="12sp" />
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:lineSpacingExtra="2dp"
                 android:paddingTop="0dp"
-                android:text="Indore, Madhya Pradesh, India"
-                android:textSize="12sp"/>
-        </LinearLayout>
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingBottom="10dp"
-            >
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/kll"/>
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingTop="5dp"
-                android:text="Kathmandu Living Labs"
-                android:textSize="12sp"/>
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="1474, Lamtangin Marga"
-                android:textSize="12sp"/>
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Chundevi, Kathmandu, Nepal"
-                android:textSize="12sp"/>
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="contact@kathmandulivinglabs.org"
-                android:textSize="12sp"/>
+                android:text="@string/acropolis_address"
+                android:textSize="12sp" />
         </LinearLayout>
 
         <LinearLayout
@@ -115,33 +89,74 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:paddingBottom="10dp">
-        <ImageView
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/kll" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingTop="5dp"
+                android:text="Kathmandu Living Labs"
+                android:textSize="12sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="1474, Lamtangin Marga"
+                android:textSize="12sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Chundevi, Kathmandu, Nepal"
+                android:textSize="12sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="contact@kathmandulivinglabs.org"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/secondary_cities"/>
+            android:orientation="vertical"
+            android:paddingBottom="10dp">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/secondary_cities" />
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:paddingTop="5dp"
                 android:text="Humanitarian Information Unit"
-                android:textSize="12sp"/>
+                android:textSize="12sp" />
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="US Department of State"
-                android:textSize="12sp"/>
+                android:textSize="12sp" />
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="American Red Cross Building 2025 E St. NW"
-                android:textSize="12sp"/>
+                android:textSize="12sp" />
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="hiu_info@state.gov"
-                android:textSize="12sp"/>
+                android:textSize="12sp" />
         </LinearLayout>
 
     </LinearLayout>
-    </ScrollView>
-</android.support.constraint.ConstraintLayout>
+</ScrollView>

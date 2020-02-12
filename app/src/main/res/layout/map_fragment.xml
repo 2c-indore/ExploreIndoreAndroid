@@ -2,7 +2,6 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:fancy="http://schemas.android.com/apk/res-auto"
     xmlns:mapbox="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/mapScreen"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -30,8 +29,7 @@
             android:layout_alignParentTop="true"
             mapbox:mapbox_cameraTargetLat="28.2380"
             mapbox:mapbox_cameraTargetLng="83.9956"
-            mapbox:mapbox_cameraZoom="11"
-            mapbox:mapbox_styleUrl="@string/mapbox_style_mapbox_streets" />
+            mapbox:mapbox_cameraZoom="11" />
 
         <ImageButton
             android:id="@+id/zoom_fix"
@@ -123,9 +121,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@color/white"
+                android:gravity="center_vertical"
                 android:orientation="horizontal"
                 android:padding="5dp"
-                android:gravity="center_vertical">
+                android:weightSum="20">
 
                 <ImageButton
                     android:id="@+id/detail_btn"
@@ -141,7 +140,7 @@
                     android:id="@+id/tap_prompt"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="13"
+                    android:layout_weight="10"
                     android:paddingLeft="5dp"
                     android:text="More Info"
                     android:textColor="@color/secondaryText"
@@ -149,12 +148,11 @@
 
                 <mehdi.sakout.fancybuttons.FancyButton
                     android:id="@+id/startButton"
-                    android:translationZ="2dp"
                     android:layout_width="0dp"
                     android:layout_height="35dp"
                     android:layout_marginEnd="3dp"
                     android:layout_marginRight="3dp"
-                    android:layout_weight="6"
+                    android:layout_weight="8"
                     android:background="@color/colorPrimary"
                     android:enabled="true"
                     android:gravity="center"
@@ -162,6 +160,7 @@
                     android:text="Route"
                     android:textAllCaps="true"
                     android:textColor="@color/white"
+                    android:translationZ="2dp"
                     fancy:fb_borderColor="#FFFFFF"
                     fancy:fb_borderWidth="1dp"
                     fancy:fb_defaultColor="@color/colorAccent"

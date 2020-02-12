@@ -21,7 +21,8 @@ allprojects {
         google()
         maven { url "https://jitpack.io" }
 //        maven { url 'https://oss.jfrog.org/artifactory/oss-snapshot-local/' }
-        maven { url "http://oss.sonatype.org/content/repositories/snapshots/" }
+//        maven { url "http://oss.sonatype.org/content/repositories/snapshots/" }
+        maven { url 'https://mapbox.bintray.com/mapbox' }
     }
 }
 

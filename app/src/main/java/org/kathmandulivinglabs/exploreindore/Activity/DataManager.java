@@ -1,13 +1,13 @@
 package org.kathmandulivinglabs.exploreindore.Activity;
 
-import android.app.Activity;
 import android.app.IntentService;
 import android.content.Intent;
 
 import android.os.Bundle;
 import android.os.ResultReceiver;
-import android.support.annotation.Nullable;
-import android.support.v4.content.LocalBroadcastManager;
+
+import androidx.annotation.Nullable;
+
 import android.util.Log;
 
 import org.kathmandulivinglabs.exploreindore.Api_helper.ApiHelper;
@@ -22,6 +22,7 @@ import org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.Data;
 import org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.Features;
 import org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.Filter;
 import org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.Tags;
+import org.kathmandulivinglabs.exploreindore.models.POI.POIGeometry;
 
 import java.util.Arrays;
 import java.util.List;
@@ -33,6 +34,8 @@ import io.realm.RealmResults;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+
+import static androidx.constraintlayout.widget.Constraints.TAG;
 
 
 public class DataManager extends IntentService {
@@ -210,7 +213,7 @@ public class DataManager extends IntentService {
 //                    updateMapView = true;
 //                    setSnackbar("Could not update data. Please connect to the internet and hit 'Retry'");
 
-                }
+            }
 
         });
 
@@ -312,19 +315,23 @@ public class DataManager extends IntentService {
             try {
                 saveDataFromV2Api(entry.getKey(), intent);
                 Thread.sleep(1000);
-                data.putInt("progress",i);
+                Log.d(TAG, "onHandleIntent: "+i);
+                data.putInt("progress", i);
                 receiver.send(450, data);
             } catch (InterruptedException e) {
+                Log.d(TAG, "onHandleIntent: " + e.getMessage());
                 e.printStackTrace();
             }
             i++;
         }
         try {
+            Log.d(TAG, "onHandleIntent: "+i);
             savetag();
             Thread.sleep(1000);
-            data.putInt("progress",i);
+            data.putInt("progress", i);
             receiver.send(450, data);
         } catch (InterruptedException e) {
+            Log.d(TAG, "onHandleIntent: " + e.getMessage());
             e.printStackTrace();
         }
     }

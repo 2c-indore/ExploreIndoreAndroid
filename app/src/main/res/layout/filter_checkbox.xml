@@ -5,7 +5,7 @@
     android:orientation="horizontal"
     android:paddingTop="10dp"
     android:paddingBottom="10dp">
-    <android.support.v7.widget.AppCompatCheckBox
+    <androidx.appcompat.widget.AppCompatCheckBox
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Checkbox"
