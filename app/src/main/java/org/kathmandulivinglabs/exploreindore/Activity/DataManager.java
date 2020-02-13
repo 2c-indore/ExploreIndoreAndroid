@@ -106,7 +106,7 @@ public class DataManager extends IntentService {
                                             case "name_hindi":
                                                 realmObject.setNamein(op.getValue());
                                                 break;
-                                            case "phone":
+                                            case "phone_number":
                                                 realmObject.setContact_phone(op.getValue());
                                                 break;
                                             case "email":
@@ -200,8 +200,6 @@ public class DataManager extends IntentService {
                         }
                     }
                 } else {
-//                    Toast.makeText(getApplicationContext(), "Server is not responding? Please try again later", Toast.LENGTH_LONG).show();
-
                 }
 //                    dismissProgressDialog();
             }
@@ -209,10 +207,6 @@ public class DataManager extends IntentService {
             @Override
             public void onFailure(Call<Features> call, Throwable t) {
                 t.printStackTrace();
-//                    Toast.makeText(getApplicationContext(), "Are you connected to internet? If not, connect and update the data", Toast.LENGTH_LONG).show();
-//                    updateMapView = true;
-//                    setSnackbar("Could not update data. Please connect to the internet and hit 'Retry'");
-
             }
 
         });
@@ -315,7 +309,7 @@ public class DataManager extends IntentService {
             try {
                 saveDataFromV2Api(entry.getKey(), intent);
                 Thread.sleep(1000);
-                Log.d(TAG, "onHandleIntent: "+i);
+                Log.d(TAG, "onHandleIntent: " + i);
                 data.putInt("progress", i);
                 receiver.send(450, data);
             } catch (InterruptedException e) {
@@ -325,7 +319,7 @@ public class DataManager extends IntentService {
             i++;
         }
         try {
-            Log.d(TAG, "onHandleIntent: "+i);
+            Log.d(TAG, "onHandleIntent: " + i);
             savetag();
             Thread.sleep(1000);
             data.putInt("progress", i);

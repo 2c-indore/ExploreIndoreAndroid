@@ -236,7 +236,7 @@ public class MainActivity extends AppCompatActivity
         tagMp.put("blood_banks", "Blood Banks");
         tagMp.put("private_schools", "Private Schools");
         tagMp.put("mental_health_centers", "Mental Health Centers");
-        tagMp.put("parks_playgrounds", "Parks / playgrounds");
+        tagMp.put("parks_playgrounds", "Parks / Playgrounds");
 
         menuAdapter = new ExpandableMenuAdapter(this, listDataHeader, listDataChild, expandableList);
 
@@ -590,7 +590,7 @@ public class MainActivity extends AppCompatActivity
         publicFacilitiesList.add("Public Wastebins");
         publicFacilitiesList.add("ATMs");
         publicFacilitiesList.add("Fuel Stations");
-        publicFacilitiesList.add("Parks / playgrounds");
+        publicFacilitiesList.add("Parks / Playgrounds");
 
         downloadlist.add("Update data");
         // downloadlist.add("Download map data");
@@ -670,10 +670,7 @@ public class MainActivity extends AppCompatActivity
         call.enqueue(new Callback<Features>() {
             @Override
             public void onResponse(Call<Features> call, Response<Features> response) {
-                Log.d(TAG, "onResponse: " + response.body().toString());
                 if (response.body() != null) {
-
-                    Log.d(TAG, "onResponse: " + response.body().getGeometries().getPois());
                     if (response.body().getSuccess() == 1) {
                         Realm realm = Realm.getDefaultInstance();
                         try {
@@ -704,6 +701,7 @@ public class MainActivity extends AppCompatActivity
                                                 realmObject.setNamein(op.getValue());
                                                 break;
                                             case "phone":
+                                            case "phone_number":
                                                 realmObject.setContact_phone(op.getValue());
                                                 break;
                                             case "email":
@@ -1398,9 +1396,7 @@ public class MainActivity extends AppCompatActivity
             if (resultCode == 450) {
                 int progress1 = resultData.getInt("progress");
                 int totalAmenitiesSize = tagMp.entrySet().size();
-                Toast.makeText(MainActivity.this, "" + progress1 + " sixe " + tagMp.entrySet().size(), Toast.LENGTH_SHORT).show();
                 if (progress1 < totalAmenitiesSize) {
-//                    Log.wtf("sdkrfjhglis", String.valueOf(progress1));
                     progress = (double) progress1 / totalAmenitiesSize * 100;
                     downloadProgress();
                 } else if (progress1 == totalAmenitiesSize) {
@@ -1408,12 +1404,10 @@ public class MainActivity extends AppCompatActivity
                         Thread.sleep(1000);
                         downloadCompleted();
                     } catch (InterruptedException e) {
-                        Log.d(TAG, "onReceiveResult: " + e.getMessage());
                         e.printStackTrace();
                         downloadInterrupted();
                     }
                 } else {
-                    Log.d(TAG, "onReceiveResult: here");
                     downloadInterrupted();
                 }
 
