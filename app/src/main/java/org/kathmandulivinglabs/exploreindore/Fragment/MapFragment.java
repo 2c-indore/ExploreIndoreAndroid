@@ -524,35 +524,32 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
             detail_screen.removeAllViews();
         });
 
-        lm.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
-                mDetector.onTouchEvent(motionEvent);
-                if (swipeValue == 1 || (iff_ondown && !iff_onswipe)) {
-                    ((AppCompatActivity) getActivity()).getSupportActionBar().hide();
-                    toggleTabVisibilityListener.hideTabs();
-                    small_info.setVisibility(View.GONE);
-                    lm.setLayoutParams(lp_expand);
-                    detail_screen.removeAllViews();
-                    detailView(detailbool);
-                    detail_screen.addView(amenityInfo);
-                    swipeValue = 1;
-                } else if (swipeValue == 2) {
-                    if (lm.getLayoutParams() == lp_shrink) {
-                        ((AppCompatActivity) getActivity()).getSupportActionBar().show();
-                        toggleTabVisibilityListener.showTabs();
-                        lm.setVisibility(View.GONE);
-                        detail_screen.removeView(amenityInfo);
-                    } else {
-                        lm.setLayoutParams(lp_shrink);
-                        small_info.setVisibility(View.VISIBLE);
-                        detail_screen.removeView(amenityInfo);
-                        iff_ondown = false;
-                        iff_onswipe = false;
-                    }
+        lm.setOnTouchListener((view, motionEvent) -> {
+            mDetector.onTouchEvent(motionEvent);
+            if (swipeValue == 1 || (iff_ondown && !iff_onswipe)) {
+                ((AppCompatActivity) getActivity()).getSupportActionBar().hide();
+                toggleTabVisibilityListener.hideTabs();
+                small_info.setVisibility(View.GONE);
+                lm.setLayoutParams(lp_expand);
+                detail_screen.removeAllViews();
+                detailView(detailbool);
+                detail_screen.addView(amenityInfo);
+                swipeValue = 1;
+            } else if (swipeValue == 2) {
+                if (lm.getLayoutParams() == lp_shrink) {
+                    ((AppCompatActivity) getActivity()).getSupportActionBar().show();
+                    toggleTabVisibilityListener.showTabs();
+                    lm.setVisibility(View.GONE);
+                    detail_screen.removeView(amenityInfo);
+                } else {
+                    lm.setLayoutParams(lp_shrink);
+                    small_info.setVisibility(View.VISIBLE);
+                    detail_screen.removeView(amenityInfo);
+                    iff_ondown = false;
+                    iff_onswipe = false;
                 }
-                return false;
             }
+            return false;
         });
         expandinfo.setOnClickListener(view -> {
             ((AppCompatActivity) getActivity()).getSupportActionBar().hide();
@@ -637,12 +634,9 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         uniList = new HashMap<>();
         searches = new ArrayList<>();
         searchListAdapter = new SearchListAdapter(this.getContext(), searches);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Search selected = (Search) listView.getItemAtPosition(position);
-                clickmarker(selected.cord, selected.name);
-            }
+        listView.setOnItemClickListener((parent, view, position, id) -> {
+            Search selected = (Search) listView.getItemAtPosition(position);
+            clickmarker(selected.cord, selected.name);
         });
         return v;
     }
@@ -828,10 +822,10 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
                 for (String tg : dbvalue.getTag_type()) {
                     String label = Utils.toTitleCase(labels.get(i));
                     String key = Utils.toTitleCase(keys.get(i).replace("_", " "));
-                    if (key.equals("Mobile")) mob = label;
-                    if (!key.equals("Name") && !key.equals("Name Hindi") && !key.equals("Phone Number") &&
-                            !key.equals("Email Address") && !key.equals("Id") && !key.equals("Latitude") && !key.equals("Longitude")
-                            && !key.equals("Precision") && !key.equals("Mobile")) {
+                    if (key.contains("Mobile")) mob = label;
+                    if (!key.equalsIgnoreCase("Name") && !key.equalsIgnoreCase("Name Hindi") && !key.equalsIgnoreCase("Phone Number") &&
+                            !key.equalsIgnoreCase("Email Address") && !key.equalsIgnoreCase("Id") && !key.equalsIgnoreCase("Latitude") && !key.equalsIgnoreCase("Longitude")
+                            && !key.equalsIgnoreCase("Precision") && !(key.equalsIgnoreCase("Mobile") || (key.equalsIgnoreCase("Mobile Number")))) {
                         view[i] = getLayoutInflater().inflate(R.layout.detailtextgenerator, containera, false);
                         detailTag[i] = view[i].findViewById(R.id.detail_type);
                         detailValue[i] = view[i].findViewById(R.id.detail_value);
@@ -841,7 +835,9 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
                     }
                     i++;
                 }
-                if (dbvalue.getContact_phone() != null || mob != null) {
+                if (dbvalue.getContact_phone() == null && mob == null) {
+                    detailPhone.setText("-");
+                } else {
                     String pho = null;
                     if (dbvalue.getContact_phone() != null) pho = dbvalue.getContact_phone();
                     if (mob != null) {
@@ -850,15 +846,10 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
                         else pho = mob;
                     }
                     detailPhone.setText(pho);
-                    detailPhone.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            Intent intent = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + detailPhone.getText().toString().split(",")[0]));
-                            startActivity(intent);
-                        }
+                    detailPhone.setOnClickListener(view1 -> {
+                        Intent intent = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + detailPhone.getText().toString().split(",")[0]));
+                        startActivity(intent);
                     });
-                } else {
-                    detailPhone.setText("-");
                 }
             }
         }
@@ -1501,7 +1492,6 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         POIGeometry geometry = new Gson().fromJson(feature.geometry().toJson(), POIGeometry.class);
         String markerText = feature.properties().getAsJsonArray("tags").get(0).getAsJsonObject().get("value").getAsString();
         testText.setText(markerText);
-        double zoom = mapboxMap.getCameraPosition().zoom;
 
         destinationPosition = Point.fromLngLat(geometry.coordinates.get(0), geometry.coordinates.get(1));
         ((AppCompatActivity) getActivity()).getSupportActionBar().hide();
