@@ -17,7 +17,6 @@ import android.os.Build;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
@@ -55,8 +54,6 @@ import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
-import com.google.android.gms.common.api.Result;
-import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
@@ -144,6 +141,8 @@ import io.realm.RealmQuery;
 import io.realm.RealmResults;
 import timber.log.Timber;
 
+import static android.icu.lang.UCharacter.GraphemeClusterBreak.T;
+import static androidx.core.content.ContextCompat.checkSelfPermission;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.all;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.get;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.gte;
@@ -179,13 +178,7 @@ import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.textSize;
 public class MapFragment extends Fragment implements PermissionsListener, MainActivity.Backlistner, GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener {
-
-    private static final String FILL_SOURCE_ID = "SOURCE-ID";
-    private static final String LINE_SOURCE_ID = "LINE_SOURCE_ID";
-    private static final String FILL_LAYER_ID = "FILL-LAYER-ID";
-    private static final String LINE_LAYER_ID = "LINE-LAYER-ID";
-    private static final float FILL_OPACITY = .7f;
-    private static final float LINE_WIDTH = 5f;
+    public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
 
     private static final String SINGLE_EARTHQUAKE_TRIANGLE_ICON_ID = "single-quake-icon-id";
     private static final String SELECTED_SINGLE_EARTHQUAKE_TRIANGLE_ICON_ID = "selected_single-quake-icon-id";
@@ -217,7 +210,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
     private ToggleTabVisibilityListener toggleTabVisibilityListener;
     private FeatureCollection featureCollection;
     private String poiFeatureId = "";
-    private boolean markerSelected = false;
+    private boolean markerSelected = false, firstTimeLocationAccessed = false;
     private boolean isinIndore;
 
     private class zoomobj {
@@ -261,10 +254,10 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
     private DirectionsRoute currentRoute;
     private static final String TAG = "Map Fragment";
     private Button edit_btn;
-    private ImageButton gps, zoomtoextant, closebtn, expandinfo, attraction_close;
+    private ImageButton btnGPS, zoomtoextant, closebtn, expandinfo, attraction_close;
 
     private boolean iff_ondown = false, iff_onswipe = false;
-    private FancyButton navButton;
+    private FancyButton btnRoute;
     NestedScrollView scroll;
     private String editName, editLat, editLong, editSnippet;
     private Map<String, com.mapbox.mapboxsdk.annotations.Icon> tagMp_blue;
@@ -434,9 +427,9 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
 
         View v = inflater.inflate(R.layout.map_fragment, container, false);
         mapScreen = v.findViewById(R.id.mapScreen);
-        //for gps related api
-        if (googleApiClient == null)
-            setUpGClient();
+        //for btnGPS related api
+//        if (googleApiClient == null)
+//            setUpGClient();
 
         ViewTreeObserver vto = mapScreen.getViewTreeObserver();
         vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -454,10 +447,17 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         }
         detail_screen = v.findViewById(R.id.detailView);
         ImageButton close_btn = v.findViewById(R.id.close_btn);
-        gps = v.findViewById(R.id.gps_btn);
+        btnGPS = v.findViewById(R.id.gps_btn);
         zoomtoextant = v.findViewById(R.id.zoom_fix);
-        gps.setOnClickListener(view ->
-                checkPermissions());
+        btnGPS.setOnClickListener(view -> {
+            if (mylocation != null)
+                if (checkIfIsInIndore(mylocation))
+                    showToastMessage("Your gps has already been enabled!");
+                else
+                    showToastMessage("Sorry, You are out of Indore!");
+            else
+                checkLocationPermission();
+        });
         zoomb.setLat(22.7203851);
         zoomb.setLng(75.8682103);
         zoomb.setZoom(9.3);
@@ -485,7 +485,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         insightfilter = new FilterParcel();
 
         setUpNewMarkerIcons();
-        navButton = v.findViewById(R.id.startButton);
+        btnRoute = v.findViewById(R.id.startButton);
         if (getArguments() != null) {
             FilterParcel filterdata = getArguments().getParcelable("FilterValue");
             selectedType = getArguments().getString("selectedType", "attractions");
@@ -576,33 +576,15 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
                     detail_screen.removeAllViews();
                 }
         );
-        navButton.setOnClickListener(view -> {
-            if (navButton.getText().toString().equalsIgnoreCase("Route")) {
-                if (mylocation != null) {
-                    originCoord = new LatLng(mylocation.getLatitude(), mylocation.getLongitude());
-                    originPosition = Point.fromLngLat(originCoord.getLongitude(), originCoord.getLatitude());
-                    if (isinIndore) {
-                        getRoute(originPosition, destinationPosition);
-                        Toast.makeText(getContext(), "Please wait...", Toast.LENGTH_SHORT).show();
-                    } else
-                        Toast.makeText(getContext(), "Sorry, You are out of Indore!", Toast.LENGTH_SHORT).show();
-                } else {
-                    checkPermissions();
-                }
-            } else {
-                boolean simulateRoute = false;
-                NavigationLauncherOptions options = NavigationLauncherOptions.builder()
-                        .directionsRoute(currentRoute)
-                        .shouldSimulateRoute(simulateRoute)
-                        .build();
-                // Call this method with Context from within an Activity
-                NavigationLauncher.startNavigation(getActivity(), options);
-            }
-        });
+
+        btnRoute.setOnClickListener(view ->
+                performRouting());
+
         LatLngBounds latLngBounds = new LatLngBounds.Builder()
                 .include(new LatLng(22.8202, 76.0467)) // Northeast
                 .include(new LatLng(22.6248, 75.7202)) // Southwest
                 .build();
+
         mapView.getMapAsync(mapboxMap -> {
             MapFragment.this.mapboxMap = mapboxMap;
             mapboxMap.setStyle(getString(R.string.mapbox_style_mapbox_streets), style -> {
@@ -642,6 +624,34 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         return v;
     }
 
+    private void showToastMessage(String s) {
+        Toast.makeText(getContext(), s, Toast.LENGTH_SHORT).show();
+
+    }
+
+    private void performRouting() {
+        if (btnRoute.getText().toString().equalsIgnoreCase("Route")) {
+            if (mylocation != null) {
+                originCoord = new LatLng(mylocation.getLatitude(), mylocation.getLongitude());
+                originPosition = Point.fromLngLat(originCoord.getLongitude(), originCoord.getLatitude());
+                if (isinIndore && destinationPosition != null) {
+                    getRoute(originPosition, destinationPosition);
+                    Toast.makeText(getContext(), "Please wait...", Toast.LENGTH_LONG).show();
+                } else
+                    Toast.makeText(getContext(), "Sorry, You are out of Indore!", Toast.LENGTH_LONG).show();
+            } else
+                checkLocationPermission();
+        } else {
+            boolean simulateRoute = false;
+            NavigationLauncherOptions options = NavigationLauncherOptions.builder()
+                    .directionsRoute(currentRoute)
+                    .shouldSimulateRoute(simulateRoute)
+                    .build();
+            // Call this method with Context from within an Activity
+            NavigationLauncher.startNavigation(getActivity(), options);
+        }
+    }
+
     public void setSnackbar(String msg) {
         new AlertDialog.Builder(getActivity())
                 .setTitle("No Internet")
@@ -677,8 +687,9 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
                         }
                         navigationMapRoute.addRoute(currentRoute);
                         if (navigationMapRoute != null) {
-                            navButton.setText("Navigate");
-                            navButton.setBackgroundColor(getResources().getColor(R.color.colorPrimaryDark));
+                            btnRoute.setText("Navigate");
+                            btnRoute.setBackgroundColor(getResources().getColor(R.color.colorPrimaryDark));
+                            Toast.makeText(getContext(), "Click the navigate button to start!", Toast.LENGTH_SHORT).show();
                         }
                     }
 
@@ -732,21 +743,6 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         orangeMarkers.put("private_schools", R.drawable.red_private_school);
         orangeMarkers.put("parks_playgrounds", R.drawable.red_playground);
         orangeMarkers.put("pharmacies", R.drawable.red_pharmacy);
-    }
-
-    static String loadGeoJsonFromAsset(Context context, String filename) {
-        try {
-            // Load GeoJSON file from local asset folder
-            InputStream is = context.getAssets().open(filename);
-            int size = is.available();
-            byte[] buffer = new byte[size];
-            is.read(buffer);
-            is.close();
-            return new String(buffer, "UTF-8");
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
-
     }
 
     @Override
@@ -865,7 +861,6 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         ftr.detach(MapFragment.this).attach(MapFragment.this).commit();
     }
 
-    //todo
     protected void initCameraListener(Style style) {
         try {
             new DrawIndoreGeoJson().execute();
@@ -1015,8 +1010,8 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
             iff_ondown = false;
             iff_onswipe = false;
             //to keep teh color to blue/ colorPrimary
-//            navButton.setBackgroundColor(getResources().getColor(R.color.tertiaryText));
-            navButton.setText("Route");
+//            btnRoute.setBackgroundColor(getResources().getColor(R.color.tertiaryText));
+            btnRoute.setText("Route");
             if (navigationMapRoute != null) navigationMapRoute.removeRoute();
             if (swipeValue == 1) {
                 if (detailPhone != null)
@@ -1293,12 +1288,6 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
                             iconSize(0.8f)));
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
-                                           @NonNull int[] grantResults) {
-        permissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
-    }
-
 
     @Override
     @SuppressWarnings({"MissingPermission"})
@@ -1315,19 +1304,6 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
             mapView.onResume();
         }
     }
-
-    public RealmQuery<ExploreSchema> find(RealmQuery<ExploreSchema> qe, String
-            fieldName, String[] values) {
-        if (values == null || values.length == 0) {
-            throw new IllegalArgumentException("EMPTY_VALUES");
-        }
-        qe.beginGroup().equalTo(fieldName, values[0]);
-        for (int i = 1; i < values.length; i++) {
-            qe.or().equalTo(fieldName, values[i]);
-        }
-        return qe.endGroup();
-    }
-
 
     @Override
     public void onPause() {
@@ -1414,12 +1390,22 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
     public void onLocationChanged(Location location) {
         if (location != null) {
             mylocation = location;
-            if (mylocation.getLatitude() > 22.8202 || mylocation.getLatitude() < 22.6248
-                    || mylocation.getLongitude() > 76.0467 || mylocation.getLongitude() < 75.7202) {
-                isinIndore = false;
-            } else
-                isinIndore = true;
+            isinIndore = checkIfIsInIndore(mylocation);
+
+            if (!firstTimeLocationAccessed) {
+                firstTimeLocationAccessed = true;
+                performRouting();
+            }
+
         }
+    }
+
+    private boolean checkIfIsInIndore(Location mylocation) {
+        if (mylocation.getLatitude() > 22.8202 || mylocation.getLatitude() < 22.6248
+                || mylocation.getLongitude() > 76.0467 || mylocation.getLongitude() < 75.7202) {
+            return false;
+        } else
+            return true;
     }
 
     class MyGestureListener extends GestureDetector.SimpleOnGestureListener {
@@ -1549,7 +1535,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         //swipeValue = 1;
         iff_ondown = false;
         iff_onswipe = false;
-        navButton.setText("Route");
+        btnRoute.setText("Route");
         if (navigationMapRoute != null) navigationMapRoute.removeRoute();
         if (swipeValue == 1) {
             if (detailPhone != null)
@@ -1572,31 +1558,17 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
 
     @Override
     public void onConnected(Bundle bundle) {
-    }
-
-    private void checkPermissions() {
-        int permissionLocation = ContextCompat.checkSelfPermission(getActivity(),
-                android.Manifest.permission.ACCESS_FINE_LOCATION);
-        List<String> listPermissionsNeeded = new ArrayList<>();
-        if (permissionLocation != PackageManager.PERMISSION_GRANTED) {
-            listPermissionsNeeded.add(android.Manifest.permission.ACCESS_FINE_LOCATION);
-            if (!listPermissionsNeeded.isEmpty()) {
-                ActivityCompat.requestPermissions(getActivity(),
-                        listPermissionsNeeded.toArray(new String[listPermissionsNeeded.size()]), Keys.LOCATION_REQUEST);
-            }
-        } else {
-            gps.setImageResource(0);
-            gps.setImageResource(R.drawable.ic_action_gps_fixed);
-            gps.setTag("gps_fixed");
-            getMyLocation();
-        }
-
+        btnGPS.setImageResource(0);
+        btnGPS.setImageResource(R.drawable.ic_action_gps_fixed);
+        btnGPS.setTag("gps_fixed");
+        getMyLocation();
     }
 
     private void getMyLocation() {
+        Log.d(TAG, "getMyLocation: direction");
         if (googleApiClient != null) {
             if (googleApiClient.isConnected()) {
-                int permissionLocation = ContextCompat.checkSelfPermission(getActivity(),
+                int permissionLocation = checkSelfPermission(getActivity(),
                         Manifest.permission.ACCESS_FINE_LOCATION);
                 if (permissionLocation == PackageManager.PERMISSION_GRANTED) {
                     mylocation = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
@@ -1612,60 +1584,52 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
                     PendingResult result =
                             LocationServices.SettingsApi
                                     .checkLocationSettings(googleApiClient, builder.build());
-                    result.setResultCallback(new ResultCallback() {
-                        @Override
-                        public void onResult(@NonNull Result result) {
-                            final Status status = result.getStatus();
-                            Log.d(TAG, "onResult: " + status.getStatusCode());
-                            switch (status.getStatusCode()) {
-                                case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-                                    // Location settings are not satisfied.
-                                    // But could be fixed by showing the user a dialog.
-                                    try {
-                                        // Show the dialog by calling startResolutionForResult(),
-                                        // and check the result in onActivityResult().
-                                        // Ask to turn on GPS automatically
-//                                        Toast.makeText(getContext(), "Gps is locating you!", Toast.LENGTH_LONG).show();
-                                        status.startResolutionForResult(getActivity(),
-                                                Keys.GPS_REQUEST);
-                                    } catch (IntentSender.SendIntentException e) {
-                                        // Ignore the error.
-                                    }
-                                    break;
-                                case LocationSettingsStatusCodes.SUCCESS:
-                                    // All location settings are satisfied.
-                                    // You can initialize location requests here.
-                                    int permissionLocation = ContextCompat
-                                            .checkSelfPermission(getActivity(),
-                                                    Manifest.permission.ACCESS_FINE_LOCATION);
-                                    if (permissionLocation == PackageManager.PERMISSION_GRANTED) {
-                                        mylocation = LocationServices.FusedLocationApi
-                                                .getLastLocation(googleApiClient);
-                                    }
-                                    Toast.makeText(getContext(), "Gps is locating you!", Toast.LENGTH_LONG).show();
-                                    break;
-                                case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
-                                    // Location settings are not satisfied. However, we have no way to fix the
-                                    // settings so we won't show the dialog.
-                                    //finish();
-                                    break;
-                            }
+                    result.setResultCallback(result1 -> {
+                        final Status status = result1.getStatus();
+                        switch (status.getStatusCode()) {
+                            case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                                // Location settings are not satisfied.
+                                // But could be fixed by showing the user a dialog.
+                                try {
+                                    // Show the dialog by calling startResolutionForResult(),
+                                    status.startResolutionForResult(getActivity(),
+                                            Keys.GPS_REQUEST);
+                                } catch (IntentSender.SendIntentException e) {
+                                    // Ignore the error.
+                                }
+                                break;
+                            case LocationSettingsStatusCodes.SUCCESS:
+                                // All location settings are satisfied.
+                                // You can initialize location requests here.
+                                int permissionLocation1 = checkSelfPermission(getActivity(),
+                                        Manifest.permission.ACCESS_FINE_LOCATION);
+                                if (permissionLocation1 == PackageManager.PERMISSION_GRANTED) {
+                                    mylocation = LocationServices.FusedLocationApi
+                                            .getLastLocation(googleApiClient);
+                                }
+                                Toast.makeText(getContext(), "Please wait...", Toast.LENGTH_LONG).show();
+                                break;
+                            case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                                // Location settings are not satisfied. However, we have no way to fix the
+                                // settings so we won't show the dialog.
+                                //finish();
+                                break;
                         }
                     });
                 }
             } else googleApiClient.connect();
-        }
+        } else setUpGClient();
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        Log.d(TAG, "onActivityResult: " + resultCode + " request " + requestCode);
+        Log.d(TAG, "onActivityResult: direction " + resultCode + " request " + requestCode);
         switch (requestCode) {
             case Keys.GPS_REQUEST:
                 switch (resultCode) {
                     case Activity.RESULT_OK:
-                        Toast.makeText(getContext(), "Please wait the gps is locating you", Toast.LENGTH_LONG).show();
+                        Toast.makeText(getContext(), "Please wait the GPS is locating you", Toast.LENGTH_LONG).show();
                         getMyLocation();
                         break;
                     case Activity.RESULT_CANCELED:
@@ -1693,6 +1657,66 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         String[] editInfo = {amenity, editName, editLat, editLong};
         i.putExtra("amenity", editInfo);
         startActivity(i);
+    }
+
+    public void checkLocationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Log.d(TAG, "checkLocationPermission: direction marshmello");
+            if (checkSelfPermission(getContext(),
+                    Manifest.permission.ACCESS_FINE_LOCATION)
+                    != PackageManager.PERMISSION_GRANTED) {
+
+                // Should we show an explanation?
+                if (shouldShowRequestPermissionRationale(
+                        Manifest.permission.ACCESS_FINE_LOCATION)) {
+
+                    // Show an explanation to the user *asynchronously* -- don't block
+                    // this thread waiting for the user's response! After the user
+                    // sees the explanation, try again to request the permission.
+                    new AlertDialog.Builder(getContext())
+                            .setTitle(R.string.title_location_permission)
+                            .setMessage(R.string.text_location_permission)
+                            .setPositiveButton(R.string.ok, (dialogInterface, i) -> {
+                                //Prompt the user once explanation has been shown
+                                requestPermissions(
+                                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                                        MY_PERMISSIONS_REQUEST_LOCATION);
+                            })
+                            .create()
+                            .show();
+
+
+                } else {
+                    // No explanation needed, we can request the permission.
+                    requestPermissions(
+                            new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                            MY_PERMISSIONS_REQUEST_LOCATION);
+                }
+            } else getMyLocation();
+        } else getMyLocation();
+    }
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_LOCATION: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    //means location has not been accessed before so is permission requested
+                    firstTimeLocationAccessed = false;
+                    getMyLocation();
+
+                } else {
+
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+
+                }
+                return;
+            }
+
+        }
     }
 
 }

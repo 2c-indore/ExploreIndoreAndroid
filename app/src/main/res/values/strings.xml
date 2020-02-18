@@ -16,4 +16,7 @@
     <string name="about_third_para">Explore Indore app is the answer to these questions and more. Kathmandu Living Labs, the local partner of the Secondary Cities initiative, has been spearheading the ground effort to produce robust geospatial data about healthcare providers in the city, in order to understand the geographical distribution and access to health care in remote areas.</string>
     <string name="about_second_para">Explore Indore app is the answer to these questions and more. Kathmandu Living Labs, the local partner of the Secondary Cities initiative, has been spearheading the ground effort to produce robust geospatial data about health care providers in the city, in order to understand the geographical distribution and access to healthcare in remote areas. It is hoped that the critical infrastructure information made open here plays an integral part in assisting the local government in measuring healthcare outreach to poorer sections of the society.
 </string>
+    <string name="ok">ok</string>
+    <string name="title_location_permission">Location Permission</string>
+    <string name="text_location_permission">Required to get your location</string>
 </resources>
