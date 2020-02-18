@@ -4,15 +4,14 @@ package org.kathmandulivinglabs.exploreindore.Fragment;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.PointF;
 import android.location.Location;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 
 import androidx.annotation.NonNull;
@@ -31,6 +30,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.GestureDetector;
@@ -44,7 +44,6 @@ import android.view.ViewTreeObserver;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -64,21 +63,15 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
-import com.google.android.material.snackbar.Snackbar;
 import com.google.gson.Gson;
 import com.mapbox.android.core.permissions.PermissionsListener;
 import com.mapbox.android.core.permissions.PermissionsManager;
-import com.mapbox.geojson.BoundingBox;
 import com.mapbox.geojson.Feature;
 import com.mapbox.geojson.FeatureCollection;
-import com.mapbox.geojson.Geometry;
 import com.mapbox.geojson.Point;
 import com.mapbox.mapboxsdk.Mapbox;
-import com.mapbox.mapboxsdk.annotations.Icon;
-import com.mapbox.mapboxsdk.annotations.IconFactory;
 import com.mapbox.mapboxsdk.annotations.Marker;
 import com.mapbox.mapboxsdk.annotations.PolygonOptions;
-import com.mapbox.mapboxsdk.camera.CameraPosition;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.geometry.LatLngBounds;
@@ -89,7 +82,6 @@ import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.Style;
 import com.mapbox.mapboxsdk.style.expressions.Expression;
 import com.mapbox.mapboxsdk.style.layers.CircleLayer;
-import com.mapbox.mapboxsdk.style.layers.LineLayer;
 import com.mapbox.mapboxsdk.style.layers.PropertyFactory;
 import com.mapbox.mapboxsdk.style.layers.SymbolLayer;
 import com.mapbox.mapboxsdk.style.sources.GeoJsonOptions;
@@ -99,13 +91,13 @@ import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.kathmandulivinglabs.exploreindore.Activity.LoginActivity;
 import org.kathmandulivinglabs.exploreindore.Activity.MainActivity;
 import org.kathmandulivinglabs.exploreindore.Adapter.SearchListAdapter;
-import org.kathmandulivinglabs.exploreindore.Api_helper.Wards;
 import org.kathmandulivinglabs.exploreindore.FilterParcel;
 import org.kathmandulivinglabs.exploreindore.Activity.Edit.EditDialogActivity;
-import org.kathmandulivinglabs.exploreindore.Helper.Connectivity;
 import org.kathmandulivinglabs.exploreindore.Helper.EditAmenityEvent;
 import org.kathmandulivinglabs.exploreindore.Helper.Keys;
 import org.kathmandulivinglabs.exploreindore.Helper.Utils;
@@ -129,7 +121,10 @@ import com.mapbox.services.android.navigation.v5.navigation.NavigationRoute;
 import com.mapbox.api.directions.v5.models.DirectionsResponse;
 import com.mapbox.api.directions.v5.models.DirectionsRoute;
 
+import java.io.BufferedReader;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -163,11 +158,15 @@ import static com.mapbox.mapboxsdk.style.expressions.Expression.toNumber;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.zoom;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.circleColor;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.circleRadius;
+import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.fillColor;
+import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.fillOpacity;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconAllowOverlap;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconImage;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconOffset;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconSize;
+import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineCap;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineColor;
+import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineJoin;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineWidth;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.textAllowOverlap;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.textColor;
@@ -180,6 +179,14 @@ import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.textSize;
 public class MapFragment extends Fragment implements PermissionsListener, MainActivity.Backlistner, GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener {
+
+    private static final String FILL_SOURCE_ID = "SOURCE-ID";
+    private static final String LINE_SOURCE_ID = "LINE_SOURCE_ID";
+    private static final String FILL_LAYER_ID = "FILL-LAYER-ID";
+    private static final String LINE_LAYER_ID = "LINE-LAYER-ID";
+    private static final float FILL_OPACITY = .7f;
+    private static final float LINE_WIDTH = 5f;
+
     private static final String SINGLE_EARTHQUAKE_TRIANGLE_ICON_ID = "single-quake-icon-id";
     private static final String SELECTED_SINGLE_EARTHQUAKE_TRIANGLE_ICON_ID = "selected_single-quake-icon-id";
     private static final String EARTHQUAKE_SOURCE_ID = "earthquakes";
@@ -301,21 +308,15 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
             alertDialog.setMessage("Are you sure you want to exit?");
 
             alertDialog.setPositiveButton("YES",
-                    new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            Objects.requireNonNull(getActivity()).finish();
-                            getActivity().finishAffinity();
-                            System.exit(0);
-                            b[0] = false;
-                        }
+                    (dialog, which) -> {
+                        Objects.requireNonNull(getActivity()).finish();
+                        getActivity().finishAffinity();
+                        System.exit(0);
+                        b[0] = false;
                     });
 
             alertDialog.setNegativeButton("NO",
-                    new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            b[0] = true;
-                        }
-                    });
+                    (dialog, which) -> b[0] = true);
 
             alertDialog.show();
         }
@@ -864,35 +865,22 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         ftr.detach(MapFragment.this).attach(MapFragment.this).commit();
     }
 
+    //todo
     protected void initCameraListener(Style style) {
         try {
+            new DrawIndoreGeoJson().execute();
             addItemsToClusterPlugin();
-            GeoJsonSource boundary = new GeoJsonSource("boundary", loadGeoJsonFromAsset(getContext(), "indore_geojson.json"));
-            style.addSource(boundary);
-            LineLayer boundaryLine = new LineLayer("boundaryLayer", "boundary")
-                    .withProperties(lineWidth(0.8f),
-                            lineColor(Color.GRAY));
-            int allLayer = style.getLayers().size();
-            style.addLayerAt(boundaryLine, allLayer - 10);
-
             List<LatLng> polygon = new ArrayList<>();
             Realm realm = Realm.getDefaultInstance();
             RealmResults<PokharaBoundary> wardResult = realm.where(PokharaBoundary.class).contains("tag", "all_boundary").findAll();
             realm.close();
             if (polygon.size() > 0) polygon.clear();
             polygon = new ArrayList<>();
-            for (PokharaBoundary pbs : wardResult
-            ) {
+            for (PokharaBoundary pbs : wardResult)
                 polygon.add(new LatLng(pbs.getCoordinateslat(), pbs.getCoordinateslong()));
-            }
-//            wardBound(polygon);
-            mapboxMap.setOnMarkerClickListener(new MapboxMap.OnMarkerClickListener() {
-                @Override
-                public boolean onMarkerClick(@NonNull final Marker marker) {
-                    Log.d(TAG, "onMarkerClick: ");
-                    markerclickAction(marker);
-                    return true;
-                }
+            mapboxMap.setOnMarkerClickListener(marker -> {
+                markerclickAction(marker);
+                return true;
             });
 
         } catch (Exception e) {
@@ -900,8 +888,71 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         }
     }
 
+
+    private class DrawIndoreGeoJson extends AsyncTask<Void, Void, List<LatLng>> {
+
+        @Override
+        protected List<LatLng> doInBackground(Void... voids) {
+            ArrayList<LatLng> points = new ArrayList<>();
+
+            try {
+                InputStream inputStream = getContext().getAssets().open("Indore_City_Boundary.json");
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, Charset.forName("UTF-8")));
+                StringBuilder stringBuilder = new StringBuilder();
+                int cp;
+                while ((cp = bufferedReader.read()) != -1) {
+                    stringBuilder.append((char) cp);
+                }
+                inputStream.close();
+
+                JSONObject jsonObject = new JSONObject(stringBuilder.toString());
+                JSONArray features = jsonObject.getJSONArray("features");
+                JSONObject feature = features.getJSONObject(0);
+                JSONObject geometry = feature.getJSONObject("geometry");
+                if (geometry != null) {
+                    String type = geometry.getString("type");
+
+                    if (!TextUtils.isEmpty(type) && type.equalsIgnoreCase("LineString")) {
+
+                        JSONArray coordinates = geometry.getJSONArray("coordinates");
+                        for (int i = 0; i < coordinates.length(); i++) {
+                            JSONArray coordinate = coordinates.getJSONArray(i);
+                            LatLng latLng = new LatLng(coordinate.getDouble(1), coordinate.getDouble(0));
+                            points.add(latLng);
+                        }
+                    }
+                }
+            } catch (Exception exception) {
+                Log.e(TAG, "GeoJSON: " + exception.toString());
+            }
+
+            return points;
+        }
+
+        @Override
+        protected void onPostExecute(List<LatLng> points) {
+            super.onPostExecute(points);
+            indoreBound(points);
+        }
+    }
+
+    private void indoreBound(List<LatLng> polygon) {
+        List<LatLng> polygonbound = new ArrayList<>();
+        polygonbound.add(new LatLng(21.647217065387817, 74.8443603515625));
+        polygonbound.add(new LatLng(21.652322721683642, 76.90429687500001));
+        polygonbound.add(new LatLng(23.609295317664735, 76.915283203125));
+        polygonbound.add(new LatLng(23.629427267052417, 74.81689453125));
+        polygonbound.add(new LatLng(21.647217065387817, 74.8443603515625));
+        mapboxMap.addPolygon(new PolygonOptions()
+                .addAll(polygonbound)
+                .addHole(polygon)
+                .alpha(0.5f)
+                .fillColor(Color.parseColor("#000000")));
+    }
+
     private void wardBound(List<LatLng> polygon) {
         List<LatLng> polygonbound = new ArrayList<>();
+        //this points are boundary of indore to show wardbound in respect to indore
         polygonbound.add(new LatLng(22.8202, 76.0467));
         polygonbound.add(new LatLng(22.6248, 76.0467));
         polygonbound.add(new LatLng(22.6248, 75.7202));
@@ -1155,7 +1206,6 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         poi.type = "FeatureCollection";
         poi.features = poiFeatures;
         addClusteredGeoJsonSource(new Gson().toJson(poi));
-
     }
 
     private void addClusteredGeoJsonSource(String poi) {
@@ -1185,7 +1235,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         //Creating a SymbolLayer icon layer for single data/icon points after cluster
         style.addLayer(unclusteredSymbolLayer);
 
-// Add the selected marker source and layer
+        // Add the selected marker source and layer
         style.addSource(new GeoJsonSource(SELECTED_MARKER));
         addSelectedMarkersLayer();
 
@@ -1346,6 +1396,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
     private void enableLocationComponent(@NonNull Style loadedMapStyle) {
         // Check if permissions are enabled and if not request
         if (PermissionsManager.areLocationPermissionsGranted(getActivity())) {
+            Toast.makeText(getContext(), "GPS is locating you!", Toast.LENGTH_SHORT).show();
             // Activate the MapboxMap LocationComponent to show user location
             // Adding in LocationComponentOptions is also an optional parameter
             locationComponent = mapboxMap.getLocationComponent();
@@ -1362,7 +1413,6 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
     @Override
     public void onLocationChanged(Location location) {
         if (location != null) {
-            Log.d(TAG, "onLocationChanged: " + mylocation);
             mylocation = location;
             if (mylocation.getLatitude() > 22.8202 || mylocation.getLatitude() < 22.6248
                     || mylocation.getLongitude() > 76.0467 || mylocation.getLongitude() < 75.7202) {
@@ -1370,11 +1420,6 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
             } else
                 isinIndore = true;
         }
-    }
-
-    private void setCameraPosition(Location location) {
-        mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
-                new LatLng(location.getLatitude(), location.getLongitude()), 13));
     }
 
     class MyGestureListener extends GestureDetector.SimpleOnGestureListener {
@@ -1571,7 +1616,22 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
                         @Override
                         public void onResult(@NonNull Result result) {
                             final Status status = result.getStatus();
+                            Log.d(TAG, "onResult: " + status.getStatusCode());
                             switch (status.getStatusCode()) {
+                                case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                                    // Location settings are not satisfied.
+                                    // But could be fixed by showing the user a dialog.
+                                    try {
+                                        // Show the dialog by calling startResolutionForResult(),
+                                        // and check the result in onActivityResult().
+                                        // Ask to turn on GPS automatically
+//                                        Toast.makeText(getContext(), "Gps is locating you!", Toast.LENGTH_LONG).show();
+                                        status.startResolutionForResult(getActivity(),
+                                                Keys.GPS_REQUEST);
+                                    } catch (IntentSender.SendIntentException e) {
+                                        // Ignore the error.
+                                    }
+                                    break;
                                 case LocationSettingsStatusCodes.SUCCESS:
                                     // All location settings are satisfied.
                                     // You can initialize location requests here.
@@ -1582,19 +1642,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
                                         mylocation = LocationServices.FusedLocationApi
                                                 .getLastLocation(googleApiClient);
                                     }
-                                    break;
-                                case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-                                    // Location settings are not satisfied.
-                                    // But could be fixed by showing the user a dialog.
-                                    try {
-                                        // Show the dialog by calling startResolutionForResult(),
-                                        // and check the result in onActivityResult().
-                                        // Ask to turn on GPS automatically
-                                        status.startResolutionForResult(getActivity(),
-                                                Keys.GPS_REQUEST);
-                                    } catch (IntentSender.SendIntentException e) {
-                                        // Ignore the error.
-                                    }
+                                    Toast.makeText(getContext(), "Gps is locating you!", Toast.LENGTH_LONG).show();
                                     break;
                                 case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
                                     // Location settings are not satisfied. However, we have no way to fix the
@@ -1612,6 +1660,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        Log.d(TAG, "onActivityResult: " + resultCode + " request " + requestCode);
         switch (requestCode) {
             case Keys.GPS_REQUEST:
                 switch (resultCode) {
