@@ -48,29 +48,20 @@ public class DataManager extends IntentService {
 
     private void removedata(String amenity_type) {
         Realm realm = Realm.getDefaultInstance();
-        realm.executeTransaction(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                final RealmResults<ExploreSchema> explore = realm.where(ExploreSchema.class).contains("tag", amenity_type).findAll();
-                if (explore.size() != 0) explore.deleteAllFromRealm();
-                final RealmResults<FilterSchema> filter = realm.where(FilterSchema.class).contains("amenity", amenity_type).findAll();
-                if (filter.size() != 0) filter.deleteAllFromRealm();
-                realm.delete(Ward.class);
-            }
+        realm.executeTransaction(realm1 -> {
+            final RealmResults<ExploreSchema> explore = realm1.where(ExploreSchema.class).contains("tag", amenity_type).findAll();
+            if (explore.size() != 0) explore.deleteAllFromRealm();
+            final RealmResults<FilterSchema> filter = realm1.where(FilterSchema.class).contains("amenity", amenity_type).findAll();
+            if (filter.size() != 0) filter.deleteAllFromRealm();
+            realm1.delete(Ward.class);
         });
-        realm.executeTransaction(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
+        realm.executeTransaction(realm12 -> {
 
-            }
         });
-        realm.executeTransaction(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                realm.delete(PokharaBoundary.class);
+        realm.executeTransaction(realm13 -> {
+            realm13.delete(PokharaBoundary.class);
 //                realm.delete(Ward.class);
-                realm.delete(Tag.class);
-            }
+            realm13.delete(Tag.class);
         });
         realm.close();
 
@@ -258,7 +249,6 @@ public class DataManager extends IntentService {
     }
 
     private void savetag() {
-        Log.d("onSave", "savefunc: ");
         ApiInterface api = new ApiHelper().getApiInterface();
         Call<Tags> call = api.getTag();
         // showProgressDialog();

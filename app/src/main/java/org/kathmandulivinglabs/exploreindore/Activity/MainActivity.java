@@ -43,7 +43,6 @@ import android.widget.ExpandableListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.gson.JsonObject;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.geometry.LatLngBounds;
@@ -54,20 +53,23 @@ import com.mapbox.mapboxsdk.offline.OfflineRegionStatus;
 import com.mapbox.mapboxsdk.offline.OfflineTilePyramidRegionDefinition;
 
 import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONObject;
 import org.kathmandulivinglabs.exploreindore.Adapter.ExpandableMenuAdapter;
 import org.kathmandulivinglabs.exploreindore.Adapter.ExpandedMenuModel;
 import org.kathmandulivinglabs.exploreindore.Adapter.FragmentAdapter;
 import org.kathmandulivinglabs.exploreindore.Api_helper.ApiHelper;
 import org.kathmandulivinglabs.exploreindore.Api_helper.ApiInterface;
-import org.kathmandulivinglabs.exploreindore.Helper.EditAmenityEvent;
+import org.kathmandulivinglabs.exploreindore.Events.EditAmenityEvent;
+import org.kathmandulivinglabs.exploreindore.Events.ShowDownloadAllDialogEvent;
 import org.kathmandulivinglabs.exploreindore.Helper.Keys;
+import org.kathmandulivinglabs.exploreindore.IndoreApp;
 import org.kathmandulivinglabs.exploreindore.Interface.DownloadKeys;
 import org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.Data;
 import org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.Tags;
 import org.kathmandulivinglabs.exploreindore.Api_helper.Wards;
 //import org.kathmandulivinglabs.exploreindore.BuildConfig;
-import org.kathmandulivinglabs.exploreindore.BuildConfig;
 import org.kathmandulivinglabs.exploreindore.Customclass.CustomViewPager;
 import org.kathmandulivinglabs.exploreindore.FilterParcel;
 import org.kathmandulivinglabs.exploreindore.Fragment.InsightFragment;
@@ -104,6 +106,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 import static org.kathmandulivinglabs.exploreindore.Fragment.MapFragment.lm;
+import static org.kathmandulivinglabs.exploreindore.Interface.DownloadKeys.DOWNLOAD_ALL_DATA;
 import static org.kathmandulivinglabs.exploreindore.Interface.DownloadKeys.OFFLINE_MAP_LAYER;
 import static org.kathmandulivinglabs.exploreindore.Interface.DownloadKeys.UPDATE_DATA;
 
@@ -165,6 +168,24 @@ public class MainActivity extends AppCompatActivity
     double progress = 0;
     boolean Auth;
     private TextView loginText;
+
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(ShowDownloadAllDialogEvent event) {
+        new Handler().postDelayed(() -> showInformationDialog(DOWNLOAD_ALL_DATA), 2000);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        EventBus.getDefault().register(this);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        EventBus.getDefault().unregister(this);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -257,6 +278,7 @@ public class MainActivity extends AppCompatActivity
                         drawer.closeDrawers();
                         oldtag = entry.getKey();
                         makeMapData(entry.getKey());
+                        IndoreApp.db().putInt(Keys.AMENITY_SELECTED, IndoreApp.db().getInt(Keys.AMENITY_SELECTED) + 1);
                     }
                 }
                 switch (childValue) {
@@ -279,12 +301,9 @@ public class MainActivity extends AppCompatActivity
                 return false;
             }
         });
-        expandableList.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
-            @Override
-            public boolean onGroupClick(ExpandableListView expandableListView, View view, int i, long l) {
-                String childValue = listDataHeader.get(i).getIconName();
-                return false;
-            }
+        expandableList.setOnGroupClickListener((expandableListView, view, i, l) -> {
+            String childValue = listDataHeader.get(i).getIconName();
+            return false;
         });
         Realm realm = Realm.getDefaultInstance();
         //TODO
@@ -315,12 +334,7 @@ public class MainActivity extends AppCompatActivity
             amenityedited = i.getStringExtra("amenityedited");
             marker = i.getStringArrayExtra("marker");
             if (amenityedited != null && marker != null) {
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        EventBus.getDefault().post(new EditAmenityEvent(marker[0], marker[1], marker[2]));
-                    }
-                }, 1000);
+                new Handler().postDelayed(() -> EventBus.getDefault().post(new EditAmenityEvent(marker[0], marker[1], marker[2])), 1000);
             }
             fromabout = i.getStringExtra("about");
             if (fromabout == null) {
@@ -363,7 +377,7 @@ public class MainActivity extends AppCompatActivity
                             } else
                                 Snackbar.make(MainActivity.this.findViewById(android.R.id.content), "No internet connection", Snackbar.LENGTH_LONG).show();
                             break;
-//
+                        case DOWNLOAD_ALL_DATA:
                         case UPDATE_DATA:
                             if (Connectivity.isConnected(Mapbox.getApplicationContext())) {
                                 downloadAll();
@@ -388,6 +402,9 @@ public class MainActivity extends AppCompatActivity
                 break;
             case UPDATE_DATA:
                 message = "This action will download the data of all the amenities so that you can see the details of all the points even when there is no internet connection.\n\nDo you want to proceed?";
+                break;
+            case DOWNLOAD_ALL_DATA:
+                message = "Do you want to download the data of all the amenities so that you can see the details of all the points even when there is no internet connection.\n\nDo you want to proceed?";
                 break;
             default:
                 break;
@@ -1045,36 +1062,8 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    public void goBack() {
-
-        AlertDialog.Builder alertDialog = new AlertDialog.Builder(
-                this);
-
-        alertDialog.setTitle("");
-        alertDialog.setMessage("Are you sure you want to exit?");
-
-        alertDialog.setPositiveButton("YES",
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        finish();
-                        finishAffinity();
-                        System.exit(0);
-                    }
-                });
-
-        alertDialog.setNegativeButton("NO",
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.cancel();
-                    }
-                });
-
-        alertDialog.show();
-    }
-
     private void downloadBaseMap() {
         if (!mapsDownloading) {
-            Log.d("maps...", "downloadBaseMap: ");
             OfflineManager offlineManager = OfflineManager.getInstance(getApplicationContext());
             offlineManager.setOfflineMapboxTileCountLimit(10000);
             // Create a bounding box for the offline region

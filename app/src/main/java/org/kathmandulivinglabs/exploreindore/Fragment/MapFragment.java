@@ -29,6 +29,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 
+import android.os.Handler;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.TypedValue;
@@ -60,6 +61,7 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
+import com.google.android.material.snackbar.Snackbar;
 import com.google.gson.Gson;
 import com.mapbox.android.core.permissions.PermissionsListener;
 import com.mapbox.android.core.permissions.PermissionsManager;
@@ -90,15 +92,20 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.kathmandulivinglabs.exploreindore.Activity.DataManager;
 import org.kathmandulivinglabs.exploreindore.Activity.LoginActivity;
 import org.kathmandulivinglabs.exploreindore.Activity.MainActivity;
 import org.kathmandulivinglabs.exploreindore.Adapter.SearchListAdapter;
+import org.kathmandulivinglabs.exploreindore.Events.ShowDownloadAllDialogEvent;
 import org.kathmandulivinglabs.exploreindore.FilterParcel;
 import org.kathmandulivinglabs.exploreindore.Activity.Edit.EditDialogActivity;
-import org.kathmandulivinglabs.exploreindore.Helper.EditAmenityEvent;
+import org.kathmandulivinglabs.exploreindore.Events.EditAmenityEvent;
+import org.kathmandulivinglabs.exploreindore.Helper.Connectivity;
 import org.kathmandulivinglabs.exploreindore.Helper.Keys;
 import org.kathmandulivinglabs.exploreindore.Helper.Utils;
 
+import org.kathmandulivinglabs.exploreindore.IndoreApp;
+import org.kathmandulivinglabs.exploreindore.Interface.DownloadKeys;
 import org.kathmandulivinglabs.exploreindore.Interface.ToggleTabVisibilityListener;
 import org.kathmandulivinglabs.exploreindore.R;
 import org.kathmandulivinglabs.exploreindore.Realmstore.ExploreSchema;
@@ -141,7 +148,6 @@ import io.realm.RealmQuery;
 import io.realm.RealmResults;
 import timber.log.Timber;
 
-import static android.icu.lang.UCharacter.GraphemeClusterBreak.T;
 import static androidx.core.content.ContextCompat.checkSelfPermission;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.all;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.get;
@@ -163,16 +169,11 @@ import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconAllowOverlap
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconImage;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconOffset;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconSize;
-import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineCap;
-import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineColor;
-import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineJoin;
-import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineWidth;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.textAllowOverlap;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.textColor;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.textField;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.textIgnorePlacement;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.textSize;
-
 
 //public class MapFragment extends Fragment implements PermissionsListener, LocationEngineListener, MainActivity.Backlistner {
 public class MapFragment extends Fragment implements PermissionsListener, MainActivity.Backlistner, GoogleApiClient.ConnectionCallbacks,
@@ -278,58 +279,10 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
     );
     SymbolLayer selectedMarkerSymbolLayer;
 
-    @Override
-    public boolean onBackPressed() {
-        final boolean[] b = {true};
-        if ((detail_screen != null && detail_screen.getChildCount() > 0) || (lm.getVisibility() == View.VISIBLE)) {
-            swipeValue = 0;
-            lm.setLayoutParams(llp);
-            small_info.setVisibility(View.VISIBLE);
-            ((AppCompatActivity) getActivity()).getSupportActionBar().show();
-            toggleTabVisibilityListener.showTabs();
-            lm.setVisibility(View.GONE);
-            if (navigationMapRoute != null) navigationMapRoute.removeRoute();
-            style.removeLayer(SELECTED_MARKER_LAYER); //to change red icon to blue
-            detail_screen.removeAllViews();
-            if (mSearchMenuItem != null)
-                mSearchMenuItem.collapseActionView(); //because search view still remains there of not collapsed
-        } else {
-            AlertDialog.Builder alertDialog = new AlertDialog.Builder(
-                    getActivity());
-            alertDialog.setTitle("");
-            alertDialog.setMessage("Are you sure you want to exit?");
 
-            alertDialog.setPositiveButton("YES",
-                    (dialog, which) -> {
-                        Objects.requireNonNull(getActivity()).finish();
-                        getActivity().finishAffinity();
-                        System.exit(0);
-                        b[0] = false;
-                    });
-
-            alertDialog.setNegativeButton("NO",
-                    (dialog, which) -> b[0] = true);
-
-            alertDialog.show();
-        }
-        return b[0];
-    }
-
-
-    public static class Search {
-        LatLng cord;
-        String name;
-
-        public Search(LatLng cord, String name) {
-            this.cord = cord;
-            this.name = name;
-        }
-
-        @Override
-        public String toString() {
-            return this.name;
-        }
-
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(EditAmenityEvent event) {
+        clickmarker(new LatLng(Double.parseDouble(event.lat), Double.parseDouble(event.longitude)), event.name);
     }
 
     ArrayList<Search> searches;
@@ -603,6 +556,10 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
                 mapboxMap.addOnMapClickListener(point -> {
                     return handleClickIcon(mapboxMap.getProjection().toScreenLocation(point), point);
                 });
+
+                if (IndoreApp.db().getInt(Keys.AMENITY_SELECTED) == 2)
+                    EventBus.getDefault().post(new ShowDownloadAllDialogEvent());
+
             });
         });
         listView = v.findViewById(R.id.listView);
@@ -1317,11 +1274,6 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         EventBus.getDefault().unregister(this);
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onMessageEvent(EditAmenityEvent event) {
-        clickmarker(new LatLng(Double.parseDouble(event.lat), Double.parseDouble(event.longitude)), event.name);
-    }
-
     @Override
     public void onLowMemory() {
         super.onLowMemory();
@@ -1710,6 +1662,60 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
             }
 
         }
+    }
+
+    @Override
+    public boolean onBackPressed() {
+        final boolean[] b = {true};
+        if ((detail_screen != null && detail_screen.getChildCount() > 0) || (lm.getVisibility() == View.VISIBLE)) {
+            swipeValue = 0;
+            lm.setLayoutParams(llp);
+            small_info.setVisibility(View.VISIBLE);
+            ((AppCompatActivity) getActivity()).getSupportActionBar().show();
+            toggleTabVisibilityListener.showTabs();
+            lm.setVisibility(View.GONE);
+            if (navigationMapRoute != null) navigationMapRoute.removeRoute();
+            style.removeLayer(SELECTED_MARKER_LAYER); //to change red icon to blue
+            detail_screen.removeAllViews();
+            if (mSearchMenuItem != null)
+                mSearchMenuItem.collapseActionView(); //because search view still remains there of not collapsed
+        } else {
+            AlertDialog.Builder alertDialog = new AlertDialog.Builder(
+                    getActivity());
+            alertDialog.setTitle("");
+            alertDialog.setMessage("Are you sure you want to exit?");
+
+            alertDialog.setPositiveButton("YES",
+                    (dialog, which) -> {
+                        Objects.requireNonNull(getActivity()).finish();
+                        getActivity().finishAffinity();
+                        System.exit(0);
+                        b[0] = false;
+                    });
+
+            alertDialog.setNegativeButton("NO",
+                    (dialog, which) -> b[0] = true);
+
+            alertDialog.show();
+        }
+        return b[0];
+    }
+
+
+    public static class Search {
+        LatLng cord;
+        String name;
+
+        public Search(LatLng cord, String name) {
+            this.cord = cord;
+            this.name = name;
+        }
+
+        @Override
+        public String toString() {
+            return this.name;
+        }
+
     }
 
 }
