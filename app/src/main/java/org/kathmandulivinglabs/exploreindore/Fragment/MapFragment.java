@@ -281,7 +281,6 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
     public boolean onBackPressed() {
         final boolean[] b = {true};
         if ((detail_screen != null && detail_screen.getChildCount() > 0) || (lm.getVisibility() == View.VISIBLE)) {
-            Log.d(TAG, "onBackPressed: if");
             swipeValue = 0;
             lm.setLayoutParams(llp);
             small_info.setVisibility(View.VISIBLE);
@@ -294,7 +293,6 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
             if (mSearchMenuItem != null)
                 mSearchMenuItem.collapseActionView(); //because search view still remains there of not collapsed
         } else {
-            Log.d(TAG, "onBackPressed: else");
             AlertDialog.Builder alertDialog = new AlertDialog.Builder(
                     getActivity());
             alertDialog.setTitle("");
@@ -375,12 +373,9 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
                 } else SearchListAdapter.searchText = "";
                 newText = newText.toLowerCase();
                 ArrayList<Search> search = new ArrayList<>();
-                int flag = 0;
-                // List<String> searchString = new ArrayList<>();
                 if (uniList.size() > 0) {
                     for (Map.Entry<LatLng, String> aitem : uniList.entrySet()) {
                         if (aitem.getValue().toLowerCase().contains(newText)) {
-//                            Log.wtf(aitem.getValue(), "Item");
                             Search hs = new Search(null, null);
                             hs.cord = aitem.getKey();
                             hs.name = aitem.getValue();
@@ -413,7 +408,6 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
                 InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
                 imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
             }
-//           searchView.setIconified(true);
             searchView.clearFocus();
         }
 
@@ -427,9 +421,6 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
 
         View v = inflater.inflate(R.layout.map_fragment, container, false);
         mapScreen = v.findViewById(R.id.mapScreen);
-        //for btnGPS related api
-//        if (googleApiClient == null)
-//            setUpGClient();
 
         ViewTreeObserver vto = mapScreen.getViewTreeObserver();
         vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -695,7 +686,6 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
 
                     @Override
                     public void onFailure(Call<DirectionsResponse> call, Throwable throwable) {
-                        Log.e(TAG, "Error: mapbox " + throwable.getMessage());
                         setSnackbar("Please connect to the internet to get the route!");
                     }
                 });
@@ -1388,6 +1378,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
 
     @Override
     public void onLocationChanged(Location location) {
+        Log.d(TAG, "onLocationChanged: direction ");
         if (location != null) {
             mylocation = location;
             isinIndore = checkIfIsInIndore(mylocation);
@@ -1558,6 +1549,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
 
     @Override
     public void onConnected(Bundle bundle) {
+        Log.d(TAG, "onConnected: direction");
         btnGPS.setImageResource(0);
         btnGPS.setImageResource(R.drawable.ic_action_gps_fixed);
         btnGPS.setTag("gps_fixed");
