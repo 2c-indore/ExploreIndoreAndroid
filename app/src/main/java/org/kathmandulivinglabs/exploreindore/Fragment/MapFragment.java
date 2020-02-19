@@ -52,6 +52,12 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.github.javiersantos.appupdater.AppUpdater;
+import com.github.javiersantos.appupdater.AppUpdaterUtils;
+import com.github.javiersantos.appupdater.enums.AppUpdaterError;
+import com.github.javiersantos.appupdater.enums.Display;
+import com.github.javiersantos.appupdater.enums.UpdateFrom;
+import com.github.javiersantos.appupdater.objects.Update;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
@@ -212,7 +218,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
     private ToggleTabVisibilityListener toggleTabVisibilityListener;
     private FeatureCollection featureCollection;
     private String poiFeatureId = "";
-    private boolean markerSelected = false, firstTimeLocationAccessed = false;
+    private boolean markerSelected = false, firstTimeLocationAccessed = false, appUpdateDialogShown = false;
     private boolean isinIndore;
 
     private class zoomobj {
@@ -375,6 +381,11 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
 
         View v = inflater.inflate(R.layout.map_fragment, container, false);
         mapScreen = v.findViewById(R.id.mapScreen);
+
+        //to check and inform users if there is app update in the playstore
+        //not show dialog if users clicks may be later option 3 times
+        if (IndoreApp.db().getInt(Keys.DONT_SHOW_APP_UPDATE) <= 3)
+            checkAppRelease();
 
         ViewTreeObserver vto = mapScreen.getViewTreeObserver();
         vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -572,6 +583,49 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         });
         return v;
     }
+
+    private void checkAppRelease() {
+        AppUpdaterUtils appUpdaterUtils = new AppUpdaterUtils(getContext())
+                .setUpdateFrom(UpdateFrom.GOOGLE_PLAY)
+                .withListener(new AppUpdaterUtils.UpdateListener() {
+                    @Override
+                    public void onSuccess(Update update, Boolean isUpdateAvailable) {
+                        if (isUpdateAvailable)
+                            if (!appUpdateDialogShown)
+                                showUpdateDialog(update.getLatestVersion());
+                    }
+
+                    @Override
+                    public void onFailed(AppUpdaterError error) {
+                        Log.d("AppUpdater Error", "Something went wrong" + error);
+                    }
+                });
+        appUpdaterUtils.start();
+    }
+
+    private void showUpdateDialog(String latestVersion) {
+        new AppUpdater(getContext())
+                .setContentOnUpdateAvailable("Version " + latestVersion + " is available. Download the latest version and you will get latest features, improvements and bug fixes")
+                .setButtonUpdate("Update now?")
+                .setButtonUpdateClickListener((dialog, which) ->
+                        openAppStore())
+                .setButtonDismiss("Maybe later")
+                .setButtonDismissClickListener((dialog, which) -> {
+                    IndoreApp.db().putInt(Keys.DONT_SHOW_APP_UPDATE, IndoreApp.db().getInt(Keys.DONT_SHOW_APP_UPDATE) + 1);
+                    dialog.dismiss();
+                })
+                .setCancelable(false)
+                .setUpdateFrom(UpdateFrom.GOOGLE_PLAY)
+                .setDisplay(Display.DIALOG)
+                .showAppUpdated(true)
+                .start();
+        appUpdateDialogShown = true;
+    }
+
+    private void openAppStore() {
+        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=org.kathmandulivinglabs.exploreindore")));
+    }
+
 
     private void showToastMessage(String s) {
         Toast.makeText(getContext(), s, Toast.LENGTH_SHORT).show();
