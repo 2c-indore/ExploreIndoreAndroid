@@ -190,11 +190,12 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
     private MapView mapView;
     private MapboxMap mapboxMap;
     private Style style;
-    private LinearLayout lm;
+    public static LinearLayout lm;
     private LinearLayout small_info;
     private TextView testText, detailNepaliTitle, detailEnglishTitle, detailPhone, detailWeb, detailMail;
     private ViewGroup mapScreen;
-    private LinearLayout detail_screen, websiteLayout, emailLayout;
+    private LinearLayout detail_screen;
+    private LinearLayout websiteLayout, emailLayout;
     private View amenityInfo;
     private LinearLayout containera;
     int screenHeight = 0;

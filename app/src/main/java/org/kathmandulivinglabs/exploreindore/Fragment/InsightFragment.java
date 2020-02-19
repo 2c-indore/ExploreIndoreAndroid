@@ -69,7 +69,7 @@ public class InsightFragment extends Fragment {
     androidx.appcompat.widget.AppCompatSpinner[] spinner_spinner;
 
     public interface onInsightSelected {
-        public void onInsight(Boolean vals);
+        void onInsight(Boolean vals);
     }
 
     @Override
@@ -276,7 +276,6 @@ public class InsightFragment extends Fragment {
     }
 
     private void populateWardSpinner(AppCompatSpinner sItems) {
-        int wardId;
         Realm realm = Realm.getDefaultInstance();
         final RealmResults<Ward> ward = realm.where(Ward.class).findAll().sort("number");
         List<String> wardArray = new ArrayList<String>();
@@ -288,16 +287,9 @@ public class InsightFragment extends Fragment {
             wardArray1.add("Ward Number: " + String.valueOf(ward.get(i).getNumber()));
         }
         SpinnertwolineAdapter adapter = new SpinnertwolineAdapter(getContext(), wardArray, wardArray1);
-//        ArrayAdapter<String> adapter = new ArrayAdapter<String>(
-//                getContext(), android.R.layout.simple_spinner_dropdown_item, wardArray);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-
-
-//        if(adapter!=null)
-//            adapter.clear();
         sItems.setAdapter(adapter);
         adapter.notifyDataSetChanged();
-        // sItems.setSelection(wardId,true);
         sItems.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {

@@ -103,6 +103,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+import static org.kathmandulivinglabs.exploreindore.Fragment.MapFragment.lm;
 import static org.kathmandulivinglabs.exploreindore.Interface.DownloadKeys.OFFLINE_MAP_LAYER;
 import static org.kathmandulivinglabs.exploreindore.Interface.DownloadKeys.UPDATE_DATA;
 
@@ -347,40 +348,30 @@ public class MainActivity extends AppCompatActivity
                 .setTitle("Confirmation")
                 .setIcon(R.drawable.ic_info)
                 .setMessage(giveMeMessage(type))
-                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        dialogInterface.dismiss();
-                    }
-                })
-                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        switch (type) {
-                            case UPDATE_DATA:
-                                updateRealm(oldtag);
-                                break;
-                            case DownloadKeys.OFFLINE_MAP_LAYER:
-                                if (Connectivity.isConnected(Mapbox.getApplicationContext())) {
-//                            downloadStarted();
-//                            downloadBaseMap();
-                                    if (!mapsDownloading)
-                                        checkDownloadedRegionList();
-                                    else
-                                        Toast.makeText(MainActivity.this, "Map is already downloading ", Toast.LENGTH_SHORT).show();
-                                } else
-                                    Snackbar.make(MainActivity.this.findViewById(android.R.id.content), "No internet connection", Snackbar.LENGTH_LONG).show();
-                                break;
+                .setNegativeButton("Cancel", (dialogInterface, i) -> dialogInterface.dismiss())
+                .setPositiveButton("Yes", (dialogInterface, i) -> {
+                    switch (type) {
+//                            case UPDATE_DATA:
+//                                updateRealm(oldtag);
+//                                break;
+                        case DownloadKeys.OFFLINE_MAP_LAYER:
+                            if (Connectivity.isConnected(Mapbox.getApplicationContext())) {
+                                if (!mapsDownloading)
+                                    checkDownloadedRegionList();
+                                else
+                                    Toast.makeText(MainActivity.this, "Map is already downloading ", Toast.LENGTH_SHORT).show();
+                            } else
+                                Snackbar.make(MainActivity.this.findViewById(android.R.id.content), "No internet connection", Snackbar.LENGTH_LONG).show();
+                            break;
 //
-                            case DownloadKeys.OFFLINE_MAP_DATA:
-                                if (Connectivity.isConnected(Mapbox.getApplicationContext())) {
-                                    downloadAll();
-                                } else
-                                    Snackbar.make(MainActivity.this.findViewById(android.R.id.content), "No internet connection", Snackbar.LENGTH_LONG).show();
-                                break;
-                        }
-
+                        case UPDATE_DATA:
+                            if (Connectivity.isConnected(Mapbox.getApplicationContext())) {
+                                downloadAll();
+                            } else
+                                Snackbar.make(MainActivity.this.findViewById(android.R.id.content), "No internet connection", Snackbar.LENGTH_LONG).show();
+                            break;
                     }
+
                 })
                 .show();
         dialog.getButton(dialog.BUTTON_NEGATIVE).setTextColor(Color.DKGRAY);
@@ -389,13 +380,13 @@ public class MainActivity extends AppCompatActivity
     private String giveMeMessage(String type) {
         String message = "";
         switch (type) {
-            case UPDATE_DATA:
-                message = "This action will download and update the data of " + tagMp.get(def_type) + ".\n\nDo you want to proceed?";
-                break;
+//            case UPDATE_DATA:
+//                message = "This action will download and update the data of " + tagMp.get(def_type) + ".\n\nDo you want to proceed?";
+//                break;
             case DownloadKeys.OFFLINE_MAP_LAYER:
                 message = "This action will download the map for offline purpose.\n\nDo you want to proceed?";
                 break;
-            case DownloadKeys.OFFLINE_MAP_DATA:
+            case UPDATE_DATA:
                 message = "This action will download the data of all the amenities so that you can see the details of all the points even when there is no internet connection.\n\nDo you want to proceed?";
                 break;
             default:
@@ -486,13 +477,10 @@ public class MainActivity extends AppCompatActivity
 
     private void setupDrawerContent(NavigationView navigationView) {
         navigationView.setNavigationItemSelectedListener(
-                new NavigationView.OnNavigationItemSelectedListener() {
-                    @Override
-                    public boolean onNavigationItemSelected(MenuItem menuItem) {
-                        menuItem.setChecked(true);
-                        drawer.closeDrawers();
-                        return true;
-                    }
+                menuItem -> {
+                    menuItem.setChecked(true);
+                    drawer.closeDrawers();
+                    return true;
                 });
     }
 
@@ -523,7 +511,6 @@ public class MainActivity extends AppCompatActivity
         final RealmResults<ExploreSchema> explore = realm.where(ExploreSchema.class).contains("tag", selectedkey).findAll();
         realm.close();
         def_type = selectedkey;
-        Log.d(TAG, "makeMapData: " + explore.size());
         if (explore.size() == 0) {
             showProgressDialog();
             saveDataFromV2Api(selectedkey);
@@ -543,8 +530,8 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void prepareListData() {
-        listDataHeader = new ArrayList<ExpandedMenuModel>();
-        listDataChild = new HashMap<ExpandedMenuModel, List<String>>();
+        listDataHeader = new ArrayList<>();
+        listDataChild = new HashMap<>();
         ExpandedMenuModel healthFacilities = new ExpandedMenuModel();
         healthFacilities.setIconName("Health Facilities");
         listDataHeader.add(healthFacilities);
@@ -559,7 +546,7 @@ public class MainActivity extends AppCompatActivity
 
 
         ExpandedMenuModel download = new ExpandedMenuModel();
-        download.setIconName("Download");
+        download.setIconName("Update");
         listDataHeader.add(download);
 
 
@@ -594,8 +581,7 @@ public class MainActivity extends AppCompatActivity
 
         downloadlist.add("Update data");
         // downloadlist.add("Download map data");
-//        downloadlist.add("Offline map layer");
-        downloadlist.add("Offline map data");
+//        downloadlist.add("Offline map data");
 
         aboutlist.add("About Us");
 
@@ -603,11 +589,6 @@ public class MainActivity extends AppCompatActivity
         listDataChild.put(listDataHeader.get(1), publicFacilitiesList);
         listDataChild.put(listDataHeader.get(2), downloadlist);
         listDataChild.put(listDataHeader.get(3), aboutlist);
-    }
-
-
-    public String getSelected() {
-        return def_type;
     }
 
     private void setupViewPager(CustomViewPager viewPager) {
@@ -623,29 +604,19 @@ public class MainActivity extends AppCompatActivity
 
     private void removedata(String amenity_type) {
         Realm realm = Realm.getDefaultInstance();
-        realm.executeTransaction(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                final RealmResults<ExploreSchema> explore = realm.where(ExploreSchema.class).contains("tag", amenity_type).findAll();
-                if (explore.size() != 0) explore.deleteAllFromRealm();
-                final RealmResults<FilterSchema> filter = realm.where(FilterSchema.class).contains("amenity", amenity_type).findAll();
-                if (filter.size() != 0) filter.deleteAllFromRealm();
-                realm.delete(Ward.class);
-            }
+        realm.executeTransaction(realm12 -> {
+            final RealmResults<ExploreSchema> explore = realm12.where(ExploreSchema.class).contains("tag", amenity_type).findAll();
+            if (explore.size() != 0) explore.deleteAllFromRealm();
+            final RealmResults<FilterSchema> filter = realm12.where(FilterSchema.class).contains("amenity", amenity_type).findAll();
+            if (filter.size() != 0) filter.deleteAllFromRealm();
+            realm12.delete(Ward.class);
         });
-        realm.executeTransaction(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
+        realm.executeTransaction(realm1 -> {
 
-            }
         });
-        realm.executeTransaction(new Realm.Transaction() {
-            @Override
-            public void execute(Realm realm) {
-                realm.delete(PokharaBoundary.class);
-//                realm.delete(Ward.class);
-                realm.delete(Tag.class);
-            }
+        realm.executeTransaction(realm13 -> {
+            realm13.delete(PokharaBoundary.class);
+            realm13.delete(Tag.class);
         });
         realm.close();
 
@@ -666,7 +637,6 @@ public class MainActivity extends AppCompatActivity
         ApiInterface apiInterface = new ApiHelper().getApiInterface();
 
         Call<Features> call = apiInterface.getFeature(def_type, "mobile");
-        //  showProgressDialog();
         call.enqueue(new Callback<Features>() {
             @Override
             public void onResponse(Call<Features> call, Response<Features> response) {
@@ -808,8 +778,6 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onFailure(Call<Features> call, Throwable t) {
                 t.printStackTrace();
-//                    Toast.makeText(getApplicationContext(), "Are you connected to internet? If not, connect and update the data", Toast.LENGTH_LONG).show();
-//                    updateMapView = true;
                 if (!downloadalldata) {
                     setSnackbar("Could not update data. Please connect to the internet and hit 'Retry'");
                     snackbar.show();
@@ -867,7 +835,6 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void savetag() {
-        Log.d("onSave", "savefunc: ");
         ApiInterface api = new ApiHelper().getApiInterface();
         Call<Tags> call = api.getTag();
         // showProgressDialog();
@@ -920,14 +887,11 @@ public class MainActivity extends AppCompatActivity
         String tagfeature = "android:switcher:" + R.id.viewpager + ":" + 1;
         MapFragment mpfrag = (MapFragment) getSupportFragmentManager().findFragmentByTag(tagmap);
         if (mpfrag != null) {
-            Log.d("inside mapfrag", "inside");
             mpfrag.setArguments(args);
             if (update_data) {
-//                mpfrag.doSomething("first");
                 update_data = false;
             }
             mpfrag.setFilter(true);
-//            else mpfrag.doSomething(def_type);
 
         }
         InsightFragment infrag = (InsightFragment) getSupportFragmentManager().findFragmentByTag(tagfeature);
@@ -954,11 +918,14 @@ public class MainActivity extends AppCompatActivity
             String tagmap = "android:switcher:" + R.id.viewpager + ":" + 0;
             MapFragment mpfrag = (MapFragment) getSupportFragmentManager().findFragmentByTag(tagmap);
             if (filter_applied) {
-                filter_applied = false;
-                fragmentRefresh();
-            } else if (mpfrag == null || !((Backlistner) mpfrag).onBackPressed()) {
+                if ((lm != null && lm.getVisibility() == View.VISIBLE))
+                    ((Backlistner) mpfrag).onBackPressed();
+                else {
+                    filter_applied = false;
+                    fragmentRefresh();
+                }
+            } else if (mpfrag == null || !((Backlistner) mpfrag).onBackPressed())
                 super.onBackPressed();
-            }
         }
     }
 
@@ -1245,7 +1212,7 @@ public class MainActivity extends AppCompatActivity
 
 
         mBuilder.setProgress(100, 0, false);
-        Toast.makeText(getApplicationContext(), "Map is downloading", Toast.LENGTH_SHORT).show();
+        Toast.makeText(getApplicationContext(), "Downloading data...", Toast.LENGTH_SHORT).show();
         mNotificationManager.notify(0, mBuilder.build());
     }
 

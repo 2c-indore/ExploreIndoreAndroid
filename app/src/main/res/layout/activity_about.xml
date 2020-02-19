@@ -81,6 +81,7 @@
                 android:lineSpacingExtra="2dp"
                 android:paddingTop="0dp"
                 android:text="@string/acropolis_address"
+                android:autoLink="all"
                 android:textSize="12sp" />
         </LinearLayout>
 
@@ -117,6 +118,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:autoLink="all"
                 android:text="contact@kathmandulivinglabs.org"
                 android:textSize="12sp" />
         </LinearLayout>
@@ -154,6 +156,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:autoLink="all"
                 android:text="hiu_info@state.gov"
                 android:textSize="12sp" />
         </LinearLayout>
