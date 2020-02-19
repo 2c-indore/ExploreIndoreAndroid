@@ -1,10 +1,12 @@
 <component name="libraryTable">
   <library name="Gradle: com.appyvet:materialrangebar:1.4.2@aar">
     <CLASSES>
-      <root url="jar://$USER_HOME$/.gradle/caches/transforms-1/files-1.1/jetified-materialrangebar-1.4.2.aar/b68d246a615dafd2bbe7612f2708d29f/jars/classes.jar!/" />
-      <root url="file://$USER_HOME$/.gradle/caches/transforms-1/files-1.1/jetified-materialrangebar-1.4.2.aar/b68d246a615dafd2bbe7612f2708d29f/res" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/5ea6dcc1268d4e6632003dfc631bbcbc/jetified-materialrangebar-1.4.2/jars/classes.jar!/" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/5ea6dcc1268d4e6632003dfc631bbcbc/jetified-materialrangebar-1.4.2/res" />
     </CLASSES>
-    <JAVADOC />
+    <JAVADOC>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.appyvet/materialrangebar/1.4.2/d0dbbef8b0a957486381e3e8896f9d838a153e36/materialrangebar-1.4.2-javadoc.jar!/" />
+    </JAVADOC>
     <SOURCES>
       <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.appyvet/materialrangebar/1.4.2/1d911aba59b20677f01deea139dcdea04f00b57/materialrangebar-1.4.2-sources.jar!/" />
     </SOURCES>

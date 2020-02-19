@@ -4,21 +4,19 @@ package org.kathmandulivinglabs.exploreindore.Fragment;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.PointF;
 import android.location.Location;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
@@ -31,6 +29,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.GestureDetector;
@@ -44,7 +43,6 @@ import android.view.ViewTreeObserver;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
@@ -56,29 +54,21 @@ import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
-import com.google.android.gms.common.api.Result;
-import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
-import com.google.android.material.snackbar.Snackbar;
 import com.google.gson.Gson;
 import com.mapbox.android.core.permissions.PermissionsListener;
 import com.mapbox.android.core.permissions.PermissionsManager;
-import com.mapbox.geojson.BoundingBox;
 import com.mapbox.geojson.Feature;
 import com.mapbox.geojson.FeatureCollection;
-import com.mapbox.geojson.Geometry;
 import com.mapbox.geojson.Point;
 import com.mapbox.mapboxsdk.Mapbox;
-import com.mapbox.mapboxsdk.annotations.Icon;
-import com.mapbox.mapboxsdk.annotations.IconFactory;
 import com.mapbox.mapboxsdk.annotations.Marker;
 import com.mapbox.mapboxsdk.annotations.PolygonOptions;
-import com.mapbox.mapboxsdk.camera.CameraPosition;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.geometry.LatLngBounds;
@@ -89,7 +79,6 @@ import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.Style;
 import com.mapbox.mapboxsdk.style.expressions.Expression;
 import com.mapbox.mapboxsdk.style.layers.CircleLayer;
-import com.mapbox.mapboxsdk.style.layers.LineLayer;
 import com.mapbox.mapboxsdk.style.layers.PropertyFactory;
 import com.mapbox.mapboxsdk.style.layers.SymbolLayer;
 import com.mapbox.mapboxsdk.style.sources.GeoJsonOptions;
@@ -99,13 +88,13 @@ import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.kathmandulivinglabs.exploreindore.Activity.LoginActivity;
 import org.kathmandulivinglabs.exploreindore.Activity.MainActivity;
 import org.kathmandulivinglabs.exploreindore.Adapter.SearchListAdapter;
-import org.kathmandulivinglabs.exploreindore.Api_helper.Wards;
 import org.kathmandulivinglabs.exploreindore.FilterParcel;
 import org.kathmandulivinglabs.exploreindore.Activity.Edit.EditDialogActivity;
-import org.kathmandulivinglabs.exploreindore.Helper.Connectivity;
 import org.kathmandulivinglabs.exploreindore.Helper.EditAmenityEvent;
 import org.kathmandulivinglabs.exploreindore.Helper.Keys;
 import org.kathmandulivinglabs.exploreindore.Helper.Utils;
@@ -129,7 +118,10 @@ import com.mapbox.services.android.navigation.v5.navigation.NavigationRoute;
 import com.mapbox.api.directions.v5.models.DirectionsResponse;
 import com.mapbox.api.directions.v5.models.DirectionsRoute;
 
+import java.io.BufferedReader;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -149,6 +141,8 @@ import io.realm.RealmQuery;
 import io.realm.RealmResults;
 import timber.log.Timber;
 
+import static android.icu.lang.UCharacter.GraphemeClusterBreak.T;
+import static androidx.core.content.ContextCompat.checkSelfPermission;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.all;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.get;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.gte;
@@ -163,11 +157,15 @@ import static com.mapbox.mapboxsdk.style.expressions.Expression.toNumber;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.zoom;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.circleColor;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.circleRadius;
+import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.fillColor;
+import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.fillOpacity;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconAllowOverlap;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconImage;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconOffset;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconSize;
+import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineCap;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineColor;
+import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineJoin;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineWidth;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.textAllowOverlap;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.textColor;
@@ -180,6 +178,8 @@ import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.textSize;
 public class MapFragment extends Fragment implements PermissionsListener, MainActivity.Backlistner, GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener {
+    public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
+
     private static final String SINGLE_EARTHQUAKE_TRIANGLE_ICON_ID = "single-quake-icon-id";
     private static final String SELECTED_SINGLE_EARTHQUAKE_TRIANGLE_ICON_ID = "selected_single-quake-icon-id";
     private static final String EARTHQUAKE_SOURCE_ID = "earthquakes";
@@ -210,7 +210,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
     private ToggleTabVisibilityListener toggleTabVisibilityListener;
     private FeatureCollection featureCollection;
     private String poiFeatureId = "";
-    private boolean markerSelected = false;
+    private boolean markerSelected = false, firstTimeLocationAccessed = false;
     private boolean isinIndore;
 
     private class zoomobj {
@@ -254,10 +254,10 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
     private DirectionsRoute currentRoute;
     private static final String TAG = "Map Fragment";
     private Button edit_btn;
-    private ImageButton gps, zoomtoextant, closebtn, expandinfo, attraction_close;
+    private ImageButton btnGPS, zoomtoextant, closebtn, expandinfo, attraction_close;
 
     private boolean iff_ondown = false, iff_onswipe = false;
-    private FancyButton navButton;
+    private FancyButton btnRoute;
     NestedScrollView scroll;
     private String editName, editLat, editLong, editSnippet;
     private Map<String, com.mapbox.mapboxsdk.annotations.Icon> tagMp_blue;
@@ -281,7 +281,6 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
     public boolean onBackPressed() {
         final boolean[] b = {true};
         if ((detail_screen != null && detail_screen.getChildCount() > 0) || (lm.getVisibility() == View.VISIBLE)) {
-            Log.d(TAG, "onBackPressed: if");
             swipeValue = 0;
             lm.setLayoutParams(llp);
             small_info.setVisibility(View.VISIBLE);
@@ -294,28 +293,21 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
             if (mSearchMenuItem != null)
                 mSearchMenuItem.collapseActionView(); //because search view still remains there of not collapsed
         } else {
-            Log.d(TAG, "onBackPressed: else");
             AlertDialog.Builder alertDialog = new AlertDialog.Builder(
                     getActivity());
             alertDialog.setTitle("");
             alertDialog.setMessage("Are you sure you want to exit?");
 
             alertDialog.setPositiveButton("YES",
-                    new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            Objects.requireNonNull(getActivity()).finish();
-                            getActivity().finishAffinity();
-                            System.exit(0);
-                            b[0] = false;
-                        }
+                    (dialog, which) -> {
+                        Objects.requireNonNull(getActivity()).finish();
+                        getActivity().finishAffinity();
+                        System.exit(0);
+                        b[0] = false;
                     });
 
             alertDialog.setNegativeButton("NO",
-                    new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            b[0] = true;
-                        }
-                    });
+                    (dialog, which) -> b[0] = true);
 
             alertDialog.show();
         }
@@ -381,12 +373,9 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
                 } else SearchListAdapter.searchText = "";
                 newText = newText.toLowerCase();
                 ArrayList<Search> search = new ArrayList<>();
-                int flag = 0;
-                // List<String> searchString = new ArrayList<>();
                 if (uniList.size() > 0) {
                     for (Map.Entry<LatLng, String> aitem : uniList.entrySet()) {
                         if (aitem.getValue().toLowerCase().contains(newText)) {
-//                            Log.wtf(aitem.getValue(), "Item");
                             Search hs = new Search(null, null);
                             hs.cord = aitem.getKey();
                             hs.name = aitem.getValue();
@@ -419,7 +408,6 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
                 InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
                 imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
             }
-//           searchView.setIconified(true);
             searchView.clearFocus();
         }
 
@@ -433,9 +421,6 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
 
         View v = inflater.inflate(R.layout.map_fragment, container, false);
         mapScreen = v.findViewById(R.id.mapScreen);
-        //for gps related api
-        if (googleApiClient == null)
-            setUpGClient();
 
         ViewTreeObserver vto = mapScreen.getViewTreeObserver();
         vto.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -453,10 +438,17 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         }
         detail_screen = v.findViewById(R.id.detailView);
         ImageButton close_btn = v.findViewById(R.id.close_btn);
-        gps = v.findViewById(R.id.gps_btn);
+        btnGPS = v.findViewById(R.id.gps_btn);
         zoomtoextant = v.findViewById(R.id.zoom_fix);
-        gps.setOnClickListener(view ->
-                checkPermissions());
+        btnGPS.setOnClickListener(view -> {
+            if (mylocation != null)
+                if (checkIfIsInIndore(mylocation))
+                    showToastMessage("Your gps has already been enabled!");
+                else
+                    showToastMessage("Sorry, You are out of Indore!");
+            else
+                checkLocationPermission();
+        });
         zoomb.setLat(22.7203851);
         zoomb.setLng(75.8682103);
         zoomb.setZoom(9.3);
@@ -484,7 +476,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         insightfilter = new FilterParcel();
 
         setUpNewMarkerIcons();
-        navButton = v.findViewById(R.id.startButton);
+        btnRoute = v.findViewById(R.id.startButton);
         if (getArguments() != null) {
             FilterParcel filterdata = getArguments().getParcelable("FilterValue");
             selectedType = getArguments().getString("selectedType", "attractions");
@@ -575,33 +567,15 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
                     detail_screen.removeAllViews();
                 }
         );
-        navButton.setOnClickListener(view -> {
-            if (navButton.getText().toString().equalsIgnoreCase("Route")) {
-                if (mylocation != null) {
-                    originCoord = new LatLng(mylocation.getLatitude(), mylocation.getLongitude());
-                    originPosition = Point.fromLngLat(originCoord.getLongitude(), originCoord.getLatitude());
-                    if (isinIndore) {
-                        getRoute(originPosition, destinationPosition);
-                        Toast.makeText(getContext(), "Please wait...", Toast.LENGTH_SHORT).show();
-                    } else
-                        Toast.makeText(getContext(), "Sorry, You are out of Indore!", Toast.LENGTH_SHORT).show();
-                } else {
-                    checkPermissions();
-                }
-            } else {
-                boolean simulateRoute = false;
-                NavigationLauncherOptions options = NavigationLauncherOptions.builder()
-                        .directionsRoute(currentRoute)
-                        .shouldSimulateRoute(simulateRoute)
-                        .build();
-                // Call this method with Context from within an Activity
-                NavigationLauncher.startNavigation(getActivity(), options);
-            }
-        });
+
+        btnRoute.setOnClickListener(view ->
+                performRouting());
+
         LatLngBounds latLngBounds = new LatLngBounds.Builder()
                 .include(new LatLng(22.8202, 76.0467)) // Northeast
                 .include(new LatLng(22.6248, 75.7202)) // Southwest
                 .build();
+
         mapView.getMapAsync(mapboxMap -> {
             MapFragment.this.mapboxMap = mapboxMap;
             mapboxMap.setStyle(getString(R.string.mapbox_style_mapbox_streets), style -> {
@@ -641,6 +615,34 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         return v;
     }
 
+    private void showToastMessage(String s) {
+        Toast.makeText(getContext(), s, Toast.LENGTH_SHORT).show();
+
+    }
+
+    private void performRouting() {
+        if (btnRoute.getText().toString().equalsIgnoreCase("Route")) {
+            if (mylocation != null) {
+                originCoord = new LatLng(mylocation.getLatitude(), mylocation.getLongitude());
+                originPosition = Point.fromLngLat(originCoord.getLongitude(), originCoord.getLatitude());
+                if (isinIndore && destinationPosition != null) {
+                    getRoute(originPosition, destinationPosition);
+                    Toast.makeText(getContext(), "Please wait...", Toast.LENGTH_LONG).show();
+                } else
+                    Toast.makeText(getContext(), "Sorry, You are out of Indore!", Toast.LENGTH_LONG).show();
+            } else
+                checkLocationPermission();
+        } else {
+            boolean simulateRoute = false;
+            NavigationLauncherOptions options = NavigationLauncherOptions.builder()
+                    .directionsRoute(currentRoute)
+                    .shouldSimulateRoute(simulateRoute)
+                    .build();
+            // Call this method with Context from within an Activity
+            NavigationLauncher.startNavigation(getActivity(), options);
+        }
+    }
+
     public void setSnackbar(String msg) {
         new AlertDialog.Builder(getActivity())
                 .setTitle("No Internet")
@@ -676,14 +678,14 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
                         }
                         navigationMapRoute.addRoute(currentRoute);
                         if (navigationMapRoute != null) {
-                            navButton.setText("Navigate");
-                            navButton.setBackgroundColor(getResources().getColor(R.color.colorPrimaryDark));
+                            btnRoute.setText("Navigate");
+                            btnRoute.setBackgroundColor(getResources().getColor(R.color.colorPrimaryDark));
+                            Toast.makeText(getContext(), "Click the navigate button to start!", Toast.LENGTH_SHORT).show();
                         }
                     }
 
                     @Override
                     public void onFailure(Call<DirectionsResponse> call, Throwable throwable) {
-                        Log.e(TAG, "Error: mapbox " + throwable.getMessage());
                         setSnackbar("Please connect to the internet to get the route!");
                     }
                 });
@@ -731,21 +733,6 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         orangeMarkers.put("private_schools", R.drawable.red_private_school);
         orangeMarkers.put("parks_playgrounds", R.drawable.red_playground);
         orangeMarkers.put("pharmacies", R.drawable.red_pharmacy);
-    }
-
-    static String loadGeoJsonFromAsset(Context context, String filename) {
-        try {
-            // Load GeoJSON file from local asset folder
-            InputStream is = context.getAssets().open(filename);
-            int size = is.available();
-            byte[] buffer = new byte[size];
-            is.read(buffer);
-            is.close();
-            return new String(buffer, "UTF-8");
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
-
     }
 
     @Override
@@ -866,33 +853,19 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
 
     protected void initCameraListener(Style style) {
         try {
+            new DrawIndoreGeoJson().execute();
             addItemsToClusterPlugin();
-            GeoJsonSource boundary = new GeoJsonSource("boundary", loadGeoJsonFromAsset(getContext(), "indore_geojson.json"));
-            style.addSource(boundary);
-            LineLayer boundaryLine = new LineLayer("boundaryLayer", "boundary")
-                    .withProperties(lineWidth(0.8f),
-                            lineColor(Color.GRAY));
-            int allLayer = style.getLayers().size();
-            style.addLayerAt(boundaryLine, allLayer - 10);
-
             List<LatLng> polygon = new ArrayList<>();
             Realm realm = Realm.getDefaultInstance();
             RealmResults<PokharaBoundary> wardResult = realm.where(PokharaBoundary.class).contains("tag", "all_boundary").findAll();
             realm.close();
             if (polygon.size() > 0) polygon.clear();
             polygon = new ArrayList<>();
-            for (PokharaBoundary pbs : wardResult
-            ) {
+            for (PokharaBoundary pbs : wardResult)
                 polygon.add(new LatLng(pbs.getCoordinateslat(), pbs.getCoordinateslong()));
-            }
-//            wardBound(polygon);
-            mapboxMap.setOnMarkerClickListener(new MapboxMap.OnMarkerClickListener() {
-                @Override
-                public boolean onMarkerClick(@NonNull final Marker marker) {
-                    Log.d(TAG, "onMarkerClick: ");
-                    markerclickAction(marker);
-                    return true;
-                }
+            mapboxMap.setOnMarkerClickListener(marker -> {
+                markerclickAction(marker);
+                return true;
             });
 
         } catch (Exception e) {
@@ -900,8 +873,71 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         }
     }
 
+
+    private class DrawIndoreGeoJson extends AsyncTask<Void, Void, List<LatLng>> {
+
+        @Override
+        protected List<LatLng> doInBackground(Void... voids) {
+            ArrayList<LatLng> points = new ArrayList<>();
+
+            try {
+                InputStream inputStream = getContext().getAssets().open("Indore_City_Boundary.json");
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, Charset.forName("UTF-8")));
+                StringBuilder stringBuilder = new StringBuilder();
+                int cp;
+                while ((cp = bufferedReader.read()) != -1) {
+                    stringBuilder.append((char) cp);
+                }
+                inputStream.close();
+
+                JSONObject jsonObject = new JSONObject(stringBuilder.toString());
+                JSONArray features = jsonObject.getJSONArray("features");
+                JSONObject feature = features.getJSONObject(0);
+                JSONObject geometry = feature.getJSONObject("geometry");
+                if (geometry != null) {
+                    String type = geometry.getString("type");
+
+                    if (!TextUtils.isEmpty(type) && type.equalsIgnoreCase("LineString")) {
+
+                        JSONArray coordinates = geometry.getJSONArray("coordinates");
+                        for (int i = 0; i < coordinates.length(); i++) {
+                            JSONArray coordinate = coordinates.getJSONArray(i);
+                            LatLng latLng = new LatLng(coordinate.getDouble(1), coordinate.getDouble(0));
+                            points.add(latLng);
+                        }
+                    }
+                }
+            } catch (Exception exception) {
+                Log.e(TAG, "GeoJSON: " + exception.toString());
+            }
+
+            return points;
+        }
+
+        @Override
+        protected void onPostExecute(List<LatLng> points) {
+            super.onPostExecute(points);
+            indoreBound(points);
+        }
+    }
+
+    private void indoreBound(List<LatLng> polygon) {
+        List<LatLng> polygonbound = new ArrayList<>();
+        polygonbound.add(new LatLng(21.647217065387817, 74.8443603515625));
+        polygonbound.add(new LatLng(21.652322721683642, 76.90429687500001));
+        polygonbound.add(new LatLng(23.609295317664735, 76.915283203125));
+        polygonbound.add(new LatLng(23.629427267052417, 74.81689453125));
+        polygonbound.add(new LatLng(21.647217065387817, 74.8443603515625));
+        mapboxMap.addPolygon(new PolygonOptions()
+                .addAll(polygonbound)
+                .addHole(polygon)
+                .alpha(0.5f)
+                .fillColor(Color.parseColor("#000000")));
+    }
+
     private void wardBound(List<LatLng> polygon) {
         List<LatLng> polygonbound = new ArrayList<>();
+        //this points are boundary of indore to show wardbound in respect to indore
         polygonbound.add(new LatLng(22.8202, 76.0467));
         polygonbound.add(new LatLng(22.6248, 76.0467));
         polygonbound.add(new LatLng(22.6248, 75.7202));
@@ -964,8 +1000,8 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
             iff_ondown = false;
             iff_onswipe = false;
             //to keep teh color to blue/ colorPrimary
-//            navButton.setBackgroundColor(getResources().getColor(R.color.tertiaryText));
-            navButton.setText("Route");
+//            btnRoute.setBackgroundColor(getResources().getColor(R.color.tertiaryText));
+            btnRoute.setText("Route");
             if (navigationMapRoute != null) navigationMapRoute.removeRoute();
             if (swipeValue == 1) {
                 if (detailPhone != null)
@@ -1155,7 +1191,6 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         poi.type = "FeatureCollection";
         poi.features = poiFeatures;
         addClusteredGeoJsonSource(new Gson().toJson(poi));
-
     }
 
     private void addClusteredGeoJsonSource(String poi) {
@@ -1185,7 +1220,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         //Creating a SymbolLayer icon layer for single data/icon points after cluster
         style.addLayer(unclusteredSymbolLayer);
 
-// Add the selected marker source and layer
+        // Add the selected marker source and layer
         style.addSource(new GeoJsonSource(SELECTED_MARKER));
         addSelectedMarkersLayer();
 
@@ -1243,12 +1278,6 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
                             iconSize(0.8f)));
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
-                                           @NonNull int[] grantResults) {
-        permissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
-    }
-
 
     @Override
     @SuppressWarnings({"MissingPermission"})
@@ -1265,19 +1294,6 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
             mapView.onResume();
         }
     }
-
-    public RealmQuery<ExploreSchema> find(RealmQuery<ExploreSchema> qe, String
-            fieldName, String[] values) {
-        if (values == null || values.length == 0) {
-            throw new IllegalArgumentException("EMPTY_VALUES");
-        }
-        qe.beginGroup().equalTo(fieldName, values[0]);
-        for (int i = 1; i < values.length; i++) {
-            qe.or().equalTo(fieldName, values[i]);
-        }
-        return qe.endGroup();
-    }
-
 
     @Override
     public void onPause() {
@@ -1346,6 +1362,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
     private void enableLocationComponent(@NonNull Style loadedMapStyle) {
         // Check if permissions are enabled and if not request
         if (PermissionsManager.areLocationPermissionsGranted(getActivity())) {
+            Toast.makeText(getContext(), "GPS is locating you!", Toast.LENGTH_SHORT).show();
             // Activate the MapboxMap LocationComponent to show user location
             // Adding in LocationComponentOptions is also an optional parameter
             locationComponent = mapboxMap.getLocationComponent();
@@ -1361,20 +1378,25 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
 
     @Override
     public void onLocationChanged(Location location) {
+        Log.d(TAG, "onLocationChanged: direction ");
         if (location != null) {
-            Log.d(TAG, "onLocationChanged: " + mylocation);
             mylocation = location;
-            if (mylocation.getLatitude() > 22.8202 || mylocation.getLatitude() < 22.6248
-                    || mylocation.getLongitude() > 76.0467 || mylocation.getLongitude() < 75.7202) {
-                isinIndore = false;
-            } else
-                isinIndore = true;
+            isinIndore = checkIfIsInIndore(mylocation);
+
+            if (!firstTimeLocationAccessed) {
+                firstTimeLocationAccessed = true;
+                performRouting();
+            }
+
         }
     }
 
-    private void setCameraPosition(Location location) {
-        mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
-                new LatLng(location.getLatitude(), location.getLongitude()), 13));
+    private boolean checkIfIsInIndore(Location mylocation) {
+        if (mylocation.getLatitude() > 22.8202 || mylocation.getLatitude() < 22.6248
+                || mylocation.getLongitude() > 76.0467 || mylocation.getLongitude() < 75.7202) {
+            return false;
+        } else
+            return true;
     }
 
     class MyGestureListener extends GestureDetector.SimpleOnGestureListener {
@@ -1504,7 +1526,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         //swipeValue = 1;
         iff_ondown = false;
         iff_onswipe = false;
-        navButton.setText("Route");
+        btnRoute.setText("Route");
         if (navigationMapRoute != null) navigationMapRoute.removeRoute();
         if (swipeValue == 1) {
             if (detailPhone != null)
@@ -1527,31 +1549,18 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
 
     @Override
     public void onConnected(Bundle bundle) {
-    }
-
-    private void checkPermissions() {
-        int permissionLocation = ContextCompat.checkSelfPermission(getActivity(),
-                android.Manifest.permission.ACCESS_FINE_LOCATION);
-        List<String> listPermissionsNeeded = new ArrayList<>();
-        if (permissionLocation != PackageManager.PERMISSION_GRANTED) {
-            listPermissionsNeeded.add(android.Manifest.permission.ACCESS_FINE_LOCATION);
-            if (!listPermissionsNeeded.isEmpty()) {
-                ActivityCompat.requestPermissions(getActivity(),
-                        listPermissionsNeeded.toArray(new String[listPermissionsNeeded.size()]), Keys.LOCATION_REQUEST);
-            }
-        } else {
-            gps.setImageResource(0);
-            gps.setImageResource(R.drawable.ic_action_gps_fixed);
-            gps.setTag("gps_fixed");
-            getMyLocation();
-        }
-
+        Log.d(TAG, "onConnected: direction");
+        btnGPS.setImageResource(0);
+        btnGPS.setImageResource(R.drawable.ic_action_gps_fixed);
+        btnGPS.setTag("gps_fixed");
+        getMyLocation();
     }
 
     private void getMyLocation() {
+        Log.d(TAG, "getMyLocation: direction");
         if (googleApiClient != null) {
             if (googleApiClient.isConnected()) {
-                int permissionLocation = ContextCompat.checkSelfPermission(getActivity(),
+                int permissionLocation = checkSelfPermission(getActivity(),
                         Manifest.permission.ACCESS_FINE_LOCATION);
                 if (permissionLocation == PackageManager.PERMISSION_GRANTED) {
                     mylocation = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
@@ -1567,56 +1576,52 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
                     PendingResult result =
                             LocationServices.SettingsApi
                                     .checkLocationSettings(googleApiClient, builder.build());
-                    result.setResultCallback(new ResultCallback() {
-                        @Override
-                        public void onResult(@NonNull Result result) {
-                            final Status status = result.getStatus();
-                            switch (status.getStatusCode()) {
-                                case LocationSettingsStatusCodes.SUCCESS:
-                                    // All location settings are satisfied.
-                                    // You can initialize location requests here.
-                                    int permissionLocation = ContextCompat
-                                            .checkSelfPermission(getActivity(),
-                                                    Manifest.permission.ACCESS_FINE_LOCATION);
-                                    if (permissionLocation == PackageManager.PERMISSION_GRANTED) {
-                                        mylocation = LocationServices.FusedLocationApi
-                                                .getLastLocation(googleApiClient);
-                                    }
-                                    break;
-                                case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-                                    // Location settings are not satisfied.
-                                    // But could be fixed by showing the user a dialog.
-                                    try {
-                                        // Show the dialog by calling startResolutionForResult(),
-                                        // and check the result in onActivityResult().
-                                        // Ask to turn on GPS automatically
-                                        status.startResolutionForResult(getActivity(),
-                                                Keys.GPS_REQUEST);
-                                    } catch (IntentSender.SendIntentException e) {
-                                        // Ignore the error.
-                                    }
-                                    break;
-                                case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
-                                    // Location settings are not satisfied. However, we have no way to fix the
-                                    // settings so we won't show the dialog.
-                                    //finish();
-                                    break;
-                            }
+                    result.setResultCallback(result1 -> {
+                        final Status status = result1.getStatus();
+                        switch (status.getStatusCode()) {
+                            case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                                // Location settings are not satisfied.
+                                // But could be fixed by showing the user a dialog.
+                                try {
+                                    // Show the dialog by calling startResolutionForResult(),
+                                    status.startResolutionForResult(getActivity(),
+                                            Keys.GPS_REQUEST);
+                                } catch (IntentSender.SendIntentException e) {
+                                    // Ignore the error.
+                                }
+                                break;
+                            case LocationSettingsStatusCodes.SUCCESS:
+                                // All location settings are satisfied.
+                                // You can initialize location requests here.
+                                int permissionLocation1 = checkSelfPermission(getActivity(),
+                                        Manifest.permission.ACCESS_FINE_LOCATION);
+                                if (permissionLocation1 == PackageManager.PERMISSION_GRANTED) {
+                                    mylocation = LocationServices.FusedLocationApi
+                                            .getLastLocation(googleApiClient);
+                                }
+                                Toast.makeText(getContext(), "Please wait...", Toast.LENGTH_LONG).show();
+                                break;
+                            case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                                // Location settings are not satisfied. However, we have no way to fix the
+                                // settings so we won't show the dialog.
+                                //finish();
+                                break;
                         }
                     });
                 }
             } else googleApiClient.connect();
-        }
+        } else setUpGClient();
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        Log.d(TAG, "onActivityResult: direction " + resultCode + " request " + requestCode);
         switch (requestCode) {
             case Keys.GPS_REQUEST:
                 switch (resultCode) {
                     case Activity.RESULT_OK:
-                        Toast.makeText(getContext(), "Please wait the gps is locating you", Toast.LENGTH_LONG).show();
+                        Toast.makeText(getContext(), "Please wait the GPS is locating you", Toast.LENGTH_LONG).show();
                         getMyLocation();
                         break;
                     case Activity.RESULT_CANCELED:
@@ -1644,6 +1649,66 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         String[] editInfo = {amenity, editName, editLat, editLong};
         i.putExtra("amenity", editInfo);
         startActivity(i);
+    }
+
+    public void checkLocationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Log.d(TAG, "checkLocationPermission: direction marshmello");
+            if (checkSelfPermission(getContext(),
+                    Manifest.permission.ACCESS_FINE_LOCATION)
+                    != PackageManager.PERMISSION_GRANTED) {
+
+                // Should we show an explanation?
+                if (shouldShowRequestPermissionRationale(
+                        Manifest.permission.ACCESS_FINE_LOCATION)) {
+
+                    // Show an explanation to the user *asynchronously* -- don't block
+                    // this thread waiting for the user's response! After the user
+                    // sees the explanation, try again to request the permission.
+                    new AlertDialog.Builder(getContext())
+                            .setTitle(R.string.title_location_permission)
+                            .setMessage(R.string.text_location_permission)
+                            .setPositiveButton(R.string.ok, (dialogInterface, i) -> {
+                                //Prompt the user once explanation has been shown
+                                requestPermissions(
+                                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                                        MY_PERMISSIONS_REQUEST_LOCATION);
+                            })
+                            .create()
+                            .show();
+
+
+                } else {
+                    // No explanation needed, we can request the permission.
+                    requestPermissions(
+                            new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                            MY_PERMISSIONS_REQUEST_LOCATION);
+                }
+            } else getMyLocation();
+        } else getMyLocation();
+    }
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_LOCATION: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    //means location has not been accessed before so is permission requested
+                    firstTimeLocationAccessed = false;
+                    getMyLocation();
+
+                } else {
+
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+
+                }
+                return;
+            }
+
+        }
     }
 
 }
