@@ -199,10 +199,10 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
     private Style style;
     public static LinearLayout lm;
     private LinearLayout small_info;
-    private TextView testText, detailNepaliTitle, detailEnglishTitle, detailPhone, detailWeb, detailMail;
+    private TextView testText, detailNepaliTitle, detailEnglishTitle, detailPhone, detailMobile, detailWeb, detailMail;
     private ViewGroup mapScreen;
     private LinearLayout detail_screen;
-    private LinearLayout websiteLayout, emailLayout;
+    private LinearLayout websiteLayout, emailLayout, mobileLayout;
     private View amenityInfo;
     private LinearLayout containera;
     int screenHeight = 0;
@@ -450,11 +450,13 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         amenityInfo = inflate_info.inflate(R.layout.detailview, null);
         websiteLayout = amenityInfo.findViewById(R.id.websiteLayout);
         emailLayout = amenityInfo.findViewById(R.id.emailLayout);
+        mobileLayout = amenityInfo.findViewById(R.id.mobileLayout);
         containera = amenityInfo.findViewById(R.id.detailLayout);
         closebtn = amenityInfo.findViewById(R.id.btn_close);
         detailEnglishTitle = amenityInfo.findViewById(R.id.txt_detail_enname);
         detailNepaliTitle = amenityInfo.findViewById(R.id.txt_detail_nename);
         detailPhone = amenityInfo.findViewById(R.id.txt_detail_phone);
+        detailMobile = amenityInfo.findViewById(R.id.txt_detail_mobile);
         detailWeb = amenityInfo.findViewById(R.id.txt_detail_web);
         detailMail = amenityInfo.findViewById(R.id.txt_detail_email);
         edit_btn = amenityInfo.findViewById(R.id.edit_btn);
@@ -564,9 +566,6 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
                         BitmapUtils.getBitmapFromDrawable(getResources().getDrawable(orangeMarkers.get(selectedType))),
                         false
                 );
-                mapboxMap.addOnMapClickListener(point -> {
-                    return handleClickIcon(mapboxMap.getProjection().toScreenLocation(point), point);
-                });
 
                 if (IndoreApp.db().getInt(Keys.AMENITY_SELECTED) == 2)
                     EventBus.getDefault().post(new ShowDownloadAllDialogEvent());
@@ -597,7 +596,6 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
 
                     @Override
                     public void onFailed(AppUpdaterError error) {
-                        Log.d("AppUpdater Error", "Something went wrong" + error);
                     }
                 });
         appUpdaterUtils.start();
@@ -834,25 +832,34 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
                     }
                     i++;
                 }
-                if (dbvalue.getContact_phone() == null && mob == null) {
+                if (mob != null && !mob.isEmpty()) {
+                    mobileLayout.setVisibility(View.VISIBLE);
+                    detailMobile.setText(mob);
+                    detailMobile.setOnClickListener(view1 -> callIntent(detailMobile));
+                } else
+                    mobileLayout.setVisibility(View.GONE);
+
+                if (dbvalue.getContact_phone() == null) {
                     detailPhone.setText("-");
                 } else {
                     String pho = null;
                     if (dbvalue.getContact_phone() != null) pho = dbvalue.getContact_phone();
-                    if (mob != null) {
-                        if (pho != null)
-                            pho = pho + "," + mob;
-                        else pho = mob;
-                    }
+//                    if (mob != null) {
+//                        if (pho != null)
+//                            pho = pho + "," + mob;
+//                        else pho = mob;
+//                    }
                     detailPhone.setText(pho);
-                    detailPhone.setOnClickListener(view1 -> {
-                        Intent intent = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + detailPhone.getText().toString().split(",")[0]));
-                        startActivity(intent);
-                    });
+                    detailPhone.setOnClickListener(view1 -> callIntent(detailPhone));
                 }
             }
         }
 
+    }
+
+    private void callIntent(TextView txtView) {
+        Intent intent = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + txtView.getText().toString().split(",")[0]));
+        startActivity(intent);
     }
 
     public void setFilter(Boolean fp) {
@@ -875,12 +882,20 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
             polygon = new ArrayList<>();
             for (PokharaBoundary pbs : wardResult)
                 polygon.add(new LatLng(pbs.getCoordinateslat(), pbs.getCoordinateslong()));
-            mapboxMap.setOnMarkerClickListener(marker -> {
-                markerclickAction(marker);
-                return true;
+
+            mapboxMap.addOnMapClickListener(point -> {
+                Log.d(TAG, "onCreateView: on map click ");
+                return handleClickIcon(mapboxMap.getProjection().toScreenLocation(point), point);
             });
+//            mapboxMap.setOnMarkerClickListener(marker -> {
+//                Toast.makeText(getContext(), "Clicked", Toast.LENGTH_SHORT).show();
+//                Log.d(TAG, "initCameraListener: marker click");
+//                markerclickAction(marker);
+//                return true;
+//            });
 
         } catch (Exception e) {
+            Log.d(TAG, "initCameraListener: exception " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -1471,7 +1486,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
             if (markerSelected) {
                 deselectMarker(selectedMarkerSymbolLayer);
             }
-
+            Log.d(TAG, "handleClickIcon: " + features);
 
             if (!features.isEmpty()) {
                 if (zoom < 10)

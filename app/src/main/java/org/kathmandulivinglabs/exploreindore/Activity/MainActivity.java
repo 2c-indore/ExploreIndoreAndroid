@@ -1325,6 +1325,9 @@ public class MainActivity extends AppCompatActivity
         mNotificationManager.notify(0, mBuilder.build());
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
             notificationManager.notify(0, mBuilder.build());
+
+        IndoreApp.db().putInt(Keys.AMENITY_SELECTED, 3); //to not show dialog to download all data again
+
     }
 
     public void downloadInterrupted() {
