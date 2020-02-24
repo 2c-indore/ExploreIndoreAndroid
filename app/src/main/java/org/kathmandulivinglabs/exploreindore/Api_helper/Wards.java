@@ -6,6 +6,7 @@ import com.google.gson.annotations.SerializedName;
 import org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.Features;
 
 import java.util.List;
+import java.util.Map;
 
 import io.realm.RealmObject;
 
@@ -85,7 +86,11 @@ public class Wards {
                 private String type;
                 @SerializedName("coordinates")
                 @Expose
-                private List<List<List<List<Double>>>> coordinates = null;
+                public Object coordinates;
+//                private List<List<List<List<Double>>>> m_coordinates = null;
+//                @SerializedName("coordinates")
+//                @Expose
+//                private List<List<List<Double>>> p_coordinates = null;
 
                 public String getType() {
                     return type;
@@ -95,13 +100,21 @@ public class Wards {
                     this.type = type;
                 }
 
-                public List<List<List<List<Double>>>> getCoordinates() {
-                    return coordinates;
-                }
-
-                public void setCoordinates(List<List<List<List<Double>>>> coordinates) {
-                    this.coordinates = coordinates;
-                }
+//                public List<List<List<List<Double>>>> getMCoordinates() {
+//                    return m_coordinates;
+//                }
+//
+//                public void setMCoordinates(List<List<List<List<Double>>>> coordinates) {
+//                    this.m_coordinates = coordinates;
+//                }
+//
+//                public List<List<List<Double>>> getPCoordinates() {
+//                    return p_coordinates;
+//                }
+//
+//                public void setCoordinates(List<List<List<Double>>> coordinates) {
+//                    this.p_coordinates = coordinates;
+//                }
             }
 
             public class Properties {
@@ -302,14 +315,14 @@ public class Wards {
                 this.id = id;
             }
 
-            public class Geometry_{
+            public class Geometry_ {
 
                 @SerializedName("type")
                 @Expose
                 private String type;
                 @SerializedName("coordinates")
                 @Expose
-                private List<List<List<Double>>> coordinates = null;
+                public Object coordinates = null;
 
                 public String getType() {
                     return type;
@@ -319,9 +332,9 @@ public class Wards {
                     this.type = type;
                 }
 
-                public List<List<List<Double>>> getCoordinates() {
-                    return coordinates;
-                }
+//                public List<List<List<Double>>> getCoordinates() {
+//                    return coordinates;
+//                }
 
                 public void setCoordinates(List<List<List<Double>>> coordinates) {
                     this.coordinates = coordinates;

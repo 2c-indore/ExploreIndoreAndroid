@@ -17,6 +17,7 @@ import android.os.Handler;
 import android.os.PersistableBundle;
 import android.os.ResultReceiver;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.tabs.TabLayout;
@@ -39,10 +40,13 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.ExpandableListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.geometry.LatLngBounds;
@@ -55,6 +59,8 @@ import com.mapbox.mapboxsdk.offline.OfflineTilePyramidRegionDefinition;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.kathmandulivinglabs.exploreindore.Adapter.ExpandableMenuAdapter;
 import org.kathmandulivinglabs.exploreindore.Adapter.ExpandedMenuModel;
@@ -88,6 +94,10 @@ import org.kathmandulivinglabs.exploreindore.Realmstore.Ward;
 import org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.Features;
 import org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.Filter;
 import org.kathmandulivinglabs.exploreindore.View.ProgressDialogFragment;
+import org.kathmandulivinglabs.exploreindore.models.Multipolygon;
+import org.kathmandulivinglabs.exploreindore.models.MultipolygonCoordinates;
+import org.kathmandulivinglabs.exploreindore.models.Polygon;
+import org.kathmandulivinglabs.exploreindore.models.PolygonCoordinates;
 
 
 import java.nio.charset.StandardCharsets;
@@ -162,6 +172,10 @@ public class MainActivity extends AppCompatActivity
     private NotificationManager notificationManager;
     private Backlistner mBack = null;
     private boolean backPressed = false;
+    List<List<List<Double>>> pCoordinates = new ArrayList<>();
+    List<List<List<List<Double>>>> mCoordinates = new ArrayList<>();
+    List<List<List<Double>>> mCoordinates2 = new ArrayList<>();
+    List<List<Double>> pCoordinates2 = new ArrayList<>();
 
     int PROGRESS_MAX = 100;
     int PROGRESS_CURRENT = 0;
@@ -657,6 +671,7 @@ public class MainActivity extends AppCompatActivity
         call.enqueue(new Callback<Features>() {
             @Override
             public void onResponse(Call<Features> call, Response<Features> response) {
+                Log.d(TAG, "onResponse: " + response.body().getGeometries().getBoundaryWithWards().getFeatures().toString());
                 if (response.body() != null) {
                     if (response.body().getSuccess() == 1) {
                         Realm realm = Realm.getDefaultInstance();
@@ -795,6 +810,7 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onFailure(Call<Features> call, Throwable t) {
                 t.printStackTrace();
+                Log.d(TAG, "onFailure: " + t.getMessage());
                 if (!downloadalldata) {
                     setSnackbar("Could not update data. Please connect to the internet and hit 'Retry'");
                     snackbar.show();
@@ -808,15 +824,72 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void saveward(Realm realm, Wards.Boundary bound, List<Wards.BoundaryWithWards.Feature> ward_bounds) {
-        for (List<List<Double>> bound_prop : bound.getFeatures().get(0).getGeometry().getCoordinates().get(0)) {
-            for (List<Double> bound_coord : bound_prop
-            ) {
-                PokharaBoundary pb = realm.createObject(PokharaBoundary.class);
-                pb.setTag("all_boundary");
-                pb.setCoordinateslong(bound_coord.get(0));
-                pb.setCoordinateslat(bound_coord.get(1));
+        Log.d(TAG, "saveward: geometry " + bound.getFeatures().get(0).getGeometry());
+        Toast.makeText(this, "save ward", Toast.LENGTH_SHORT).show();
+        String type = bound.getFeatures().get(0).getGeometry().getType();
+        Object object = bound.getFeatures().get(0).getGeometry().coordinates;
+        Log.d(TAG, "saveward: minion " + type);
+        if (type.equalsIgnoreCase("polygon")) {
+            try {
+                JSONArray array1 = new JSONArray(object.toString());
+                JSONArray jsonArray = (JSONArray) array1.get(0);
+                if (jsonArray != null) {
+                    int len = jsonArray.length();
+                    for (int i = 0; i < len; i++) {
+                        JSONArray jsonArray1 = (JSONArray) jsonArray.get(i);
+                        Log.d(TAG, "saveward: minion1" + jsonArray1.get(0) + " " + jsonArray1.get(1));
+                        PokharaBoundary pb = realm.createObject(PokharaBoundary.class);
+                        pb.setTag("all_boundary");
+                        pb.setCoordinateslong(Double.parseDouble(jsonArray1.get(0).toString()));
+                        pb.setCoordinateslat(Double.parseDouble(jsonArray1.get(1).toString()));
+                    }
+                }
+
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
+//            for (List<Double> bound_coord : pCoordinates.get(0)) {
+//                {
+//                    PokharaBoundary pb = realm.createObject(PokharaBoundary.class);
+//                    pb.setTag("all_boundary");
+//                    pb.setCoordinateslong(bound_coord.get(0));
+//                    pb.setCoordinateslat(bound_coord.get(1));
+//                }
+//            }
+        } else if (type.equalsIgnoreCase("multipolygon")) {
+            try {
+                JSONArray array1 = new JSONArray(object.toString());
+                JSONArray array2 = new JSONArray(array1.get(0).toString());
+
+                JSONArray jsonArray = (JSONArray) array2.get(0);
+                if (jsonArray != null) {
+                    int len = jsonArray.length();
+                    for (int i = 0; i < len; i++) {
+                        JSONArray jsonArray1 = (JSONArray) jsonArray.get(i);
+                        Log.d(TAG, "saveward: minion1" + jsonArray1.get(0) + " " + jsonArray1.get(1));
+                        PokharaBoundary pb = realm.createObject(PokharaBoundary.class);
+                        pb.setTag("all_boundary");
+                        pb.setCoordinateslong(Double.parseDouble(jsonArray1.get(0).toString()));
+                        pb.setCoordinateslat(Double.parseDouble(jsonArray1.get(1).toString()));
+                    }
+                }
+//                for (List<List<Double>> bound_prop : mCoordinates.get(0)) {
+//                    for (List<Double> bound_coord : list
+//                    ) {
+//                        Log.d(TAG, "saveward: inside mp");
+//                        PokharaBoundary pb = realm.createObject(PokharaBoundary.class);
+//                        pb.setTag("all_boundary");
+//                        pb.setCoordinateslong(bound_coord.get(0));
+//                        pb.setCoordinateslat(bound_coord.get(1));
+//                    }
+//                }
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
         }
+
         for (Wards.BoundaryWithWards.Feature ward_prop : ward_bounds
         ) {
             Ward ward = realm.createObject(Ward.class);
@@ -834,18 +907,70 @@ public class MainActivity extends AppCompatActivity
             RealmList<PokharaBoundary> pbound;
             pbound = new RealmList<>();
 
-            for (List<List<Double>> sds : geom.getCoordinates()
-            ) {
-                for (List<Double> coord : sds
-                ) {
-                    PokharaBoundary pb = realm.createObject(PokharaBoundary.class);
-                    pb.setTag("ward_boundary");
-                    pb.setCoordinateslong(coord.get(0));
-                    pb.setCoordinateslat(coord.get(1));
-                    pbound.add(pb);
+            String gtype = geom.getType();
+            Object gobject = geom.coordinates;
+            Log.d(TAG, "saveward:minion9 type " + gtype);
+            if (gtype.equalsIgnoreCase("polygon")) {
+                try {
+                    JSONArray array1 = new JSONArray(gobject.toString());
+                    JSONArray jsonArray = (JSONArray) array1.get(0);
+                    if (jsonArray != null) {
+                        int len = jsonArray.length();
+                        for (int i = 0; i < len; i++) {
+                            JSONArray jsonArray1 = (JSONArray) jsonArray.get(i);
+                            Log.d(TAG, "saveward: minion6" + jsonArray1.get(0) + " " + jsonArray1.get(1));
+                            PokharaBoundary pb = realm.createObject(PokharaBoundary.class);
+                            pb.setTag("ward_boundary");
+                            pb.setCoordinateslong(Double.parseDouble(jsonArray1.get(0).toString()));
+                            pb.setCoordinateslat(Double.parseDouble(jsonArray1.get(1).toString()));
+                            pbound.add(pb);
+                        }
+                    }
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            } else if (gtype.equalsIgnoreCase("multipolygon")) {
+                Log.d(TAG, "saveward: rythm");
+                try {
+                    JSONArray array1 = new JSONArray(gobject.toString());
+                    JSONArray array2 = new JSONArray(array1.get(0).toString());
+
+                    JSONArray jsonArray = (JSONArray) array2.get(0);
+                    Log.d(TAG, "saveward: minion7" + jsonArray);
+                    if (jsonArray != null) {
+                        int len = jsonArray.length();
+                        for (int i = 0; i < len; i++) {
+                            JSONArray jsonArray1 = (JSONArray) jsonArray.get(i);
+                            Log.d(TAG, "saveward: minion8" + jsonArray1.get(0) + " " + jsonArray1.get(1));
+                            PokharaBoundary pb = realm.createObject(PokharaBoundary.class);
+                            pb.setTag("ward_boundary");
+                            pb.setCoordinateslong(Double.parseDouble(jsonArray1.get(0).toString()));
+                            pb.setCoordinateslat(Double.parseDouble(jsonArray1.get(1).toString()));
+                            pbound.add(pb);
+                        }
+                    }
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
 
+
+//                mCoordinates2 = new Gson().fromJson(gobject.toString(), Multipolygon.class).coordinates2;
+//                for (List<List<Double>> sds : mCoordinates2
+//                ) {
+//                    for (List<Double> coord : sds
+//                    ) {
+//                        PokharaBoundary pb = realm.createObject(PokharaBoundary.class);
+//                        pb.setTag("ward_boundary");
+//                        pb.setCoordinateslong(coord.get(0));
+//                        pb.setCoordinateslat(coord.get(1));
+//                        pbound.add(pb);
+//                    }
+//
+//                }
             }
+
             ward.setBoundry(pbound);
         }
 

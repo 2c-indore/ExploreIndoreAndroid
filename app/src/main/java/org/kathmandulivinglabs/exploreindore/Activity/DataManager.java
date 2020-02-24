@@ -9,6 +9,7 @@ import android.os.ResultReceiver;
 import androidx.annotation.Nullable;
 
 import android.util.Log;
+import android.widget.Toast;
 
 import org.kathmandulivinglabs.exploreindore.Api_helper.ApiHelper;
 import org.kathmandulivinglabs.exploreindore.Api_helper.ApiInterface;
@@ -68,8 +69,9 @@ public class DataManager extends IntentService {
     }
 
     private void saveDataFromV2Api(final String def_type, Intent intent) {
+//        Toast.makeText(this, "data manager", Toast.LENGTH_SHORT).show();
         ApiInterface apiInterface = new ApiHelper().getApiInterface();
-
+        Log.d(TAG, "saveDataFromV2Api: ");
         Call<Features> call = apiInterface.getFeature(def_type, "mobile");
         call.enqueue(new Callback<Features>() {
             @Override
@@ -205,15 +207,15 @@ public class DataManager extends IntentService {
     }
 
     private void saveward(Realm realm, Wards.Boundary bound, List<Wards.BoundaryWithWards.Feature> ward_bounds) {
-        for (List<List<Double>> bound_prop : bound.getFeatures().get(0).getGeometry().getCoordinates().get(0)) {
-            for (List<Double> bound_coord : bound_prop
-            ) {
-                PokharaBoundary pb = realm.createObject(PokharaBoundary.class);
-                pb.setTag("all_boundary");
-                pb.setCoordinateslong(bound_coord.get(0));
-                pb.setCoordinateslat(bound_coord.get(1));
-            }
-        }
+//        for (List<List<Double>> bound_prop : bound.getFeatures().get(0).getGeometry().getMCoordinates().get(0)) {
+//            for (List<Double> bound_coord : bound_prop
+//            ) {
+//                PokharaBoundary pb = realm.createObject(PokharaBoundary.class);
+//                pb.setTag("all_boundary");
+//                pb.setCoordinateslong(bound_coord.get(0));
+//                pb.setCoordinateslat(bound_coord.get(1));
+//            }
+//        }
         for (Wards.BoundaryWithWards.Feature ward_prop : ward_bounds
         ) {
             Ward ward = realm.createObject(Ward.class);
@@ -231,18 +233,18 @@ public class DataManager extends IntentService {
             RealmList<PokharaBoundary> pbound;
             pbound = new RealmList<>();
 
-            for (List<List<Double>> sds : geom.getCoordinates()
-            ) {
-                for (List<Double> coord : sds
-                ) {
-                    PokharaBoundary pb = realm.createObject(PokharaBoundary.class);
-                    pb.setTag("ward_boundary");
-                    pb.setCoordinateslong(coord.get(0));
-                    pb.setCoordinateslat(coord.get(1));
-                    pbound.add(pb);
-                }
-
-            }
+//            for (List<List<Double>> sds : geom.getCoordinates()
+//            ) {
+//                for (List<Double> coord : sds
+//                ) {
+//                    PokharaBoundary pb = realm.createObject(PokharaBoundary.class);
+//                    pb.setTag("ward_boundary");
+//                    pb.setCoordinateslong(coord.get(0));
+//                    pb.setCoordinateslat(coord.get(1));
+//                    pbound.add(pb);
+//                }
+//
+//            }
             ward.setBoundry(pbound);
         }
 
