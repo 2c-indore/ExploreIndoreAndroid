@@ -9,6 +9,7 @@ import android.os.ResultReceiver;
 import androidx.annotation.Nullable;
 
 import android.util.Log;
+import android.widget.Toast;
 
 import org.kathmandulivinglabs.exploreindore.Api_helper.ApiHelper;
 import org.kathmandulivinglabs.exploreindore.Api_helper.ApiInterface;
@@ -36,6 +37,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 import static androidx.constraintlayout.widget.Constraints.TAG;
+import static org.kathmandulivinglabs.exploreindore.Activity.MainActivity.saveward;
 
 
 public class DataManager extends IntentService {
@@ -69,7 +71,7 @@ public class DataManager extends IntentService {
 
     private void saveDataFromV2Api(final String def_type, Intent intent) {
         ApiInterface apiInterface = new ApiHelper().getApiInterface();
-
+        Log.d(TAG, "saveDataFromV2Api: ");
         Call<Features> call = apiInterface.getFeature(def_type, "mobile");
         call.enqueue(new Callback<Features>() {
             @Override
@@ -173,15 +175,6 @@ public class DataManager extends IntentService {
                                 List<Wards.BoundaryWithWards.Feature> ward_bounds = response.body().getGeometries().getBoundaryWithWards().getFeatures();
                                 saveward(realm, bound, ward_bounds);
                             }
-/*
-                            Intent in = new Intent(ACTION);
-                            // Put extras into the intent as usual
-                            in.putExtra("resultCode", Activity.RESULT_OK);
-                            in.putExtra("resultValue", "My Result Value. Passed in: " + def_type);
-                            // Fire the broadcast with intent packaged
-                            LocalBroadcastManager.getInstance(getApplicationContext()).sendBroadcast(in);
-                            // or sendBroadcast(in) for a normal broadcast;
-  */
 
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -192,7 +185,6 @@ public class DataManager extends IntentService {
                     }
                 } else {
                 }
-//                    dismissProgressDialog();
             }
 
             @Override
@@ -201,50 +193,6 @@ public class DataManager extends IntentService {
             }
 
         });
-
-    }
-
-    private void saveward(Realm realm, Wards.Boundary bound, List<Wards.BoundaryWithWards.Feature> ward_bounds) {
-        for (List<List<Double>> bound_prop : bound.getFeatures().get(0).getGeometry().getCoordinates().get(0)) {
-            for (List<Double> bound_coord : bound_prop
-            ) {
-                PokharaBoundary pb = realm.createObject(PokharaBoundary.class);
-                pb.setTag("all_boundary");
-                pb.setCoordinateslong(bound_coord.get(0));
-                pb.setCoordinateslat(bound_coord.get(1));
-            }
-        }
-        for (Wards.BoundaryWithWards.Feature ward_prop : ward_bounds
-        ) {
-            Ward ward = realm.createObject(Ward.class);
-            String wardname = ward_prop.getProperties().getWard_name();
-//
-            String dbname = ward_prop.getProperties().getWard_no();
-            int wardno = Integer.parseInt(dbname);
-//            Log.wtf(wardname, "ward");
-//
-            ward.setName(wardname);
-            ward.setNumber(wardno);
-            ward.setOsmID(dbname);
-//
-            Wards.BoundaryWithWards.Feature.Geometry_ geom = ward_prop.getGeometry();
-            RealmList<PokharaBoundary> pbound;
-            pbound = new RealmList<>();
-
-            for (List<List<Double>> sds : geom.getCoordinates()
-            ) {
-                for (List<Double> coord : sds
-                ) {
-                    PokharaBoundary pb = realm.createObject(PokharaBoundary.class);
-                    pb.setTag("ward_boundary");
-                    pb.setCoordinateslong(coord.get(0));
-                    pb.setCoordinateslat(coord.get(1));
-                    pbound.add(pb);
-                }
-
-            }
-            ward.setBoundry(pbound);
-        }
 
     }
 
