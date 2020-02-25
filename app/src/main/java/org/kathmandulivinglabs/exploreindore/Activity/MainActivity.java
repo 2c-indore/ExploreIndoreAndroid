@@ -94,11 +94,6 @@ import org.kathmandulivinglabs.exploreindore.Realmstore.Ward;
 import org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.Features;
 import org.kathmandulivinglabs.exploreindore.RetrofitPOJOs.Filter;
 import org.kathmandulivinglabs.exploreindore.View.ProgressDialogFragment;
-import org.kathmandulivinglabs.exploreindore.models.Multipolygon;
-import org.kathmandulivinglabs.exploreindore.models.MultipolygonCoordinates;
-import org.kathmandulivinglabs.exploreindore.models.Polygon;
-import org.kathmandulivinglabs.exploreindore.models.PolygonCoordinates;
-
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
