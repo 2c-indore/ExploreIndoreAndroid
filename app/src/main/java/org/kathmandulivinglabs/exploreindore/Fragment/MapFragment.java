@@ -362,6 +362,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         if (markerCord != null) {
             mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(markerCord, 17), 400);
             //markerclickAction(clickedmarker);
+            handleClickIcon(mapboxMap.getProjection().toScreenLocation(markerCord), markerCord);
             listView.setVisibility(GONE);
             View view = this.getActivity().getCurrentFocus();
             if (view != null) {
@@ -563,12 +564,10 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         listView = v.findViewById(R.id.listView);
         uniList = new HashMap<>();
         searches = new ArrayList<>();
-        searchListAdapter = new
-
-                SearchListAdapter(this.getContext(), searches);
+        searchListAdapter = new SearchListAdapter(this.getContext(), searches);
         listView.setOnItemClickListener((parent, view, position, id) ->
-
         {
+            Log.d(TAG, "onCreateView: search clicked");
             Search selected = (Search) listView.getItemAtPosition(position);
             clickmarker(selected.cord, selected.name);
         });
@@ -1158,7 +1157,6 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         //for clustering
         convertIntoPoiJSonForClustering(results);
         mapboxMap.addOnMapClickListener(point -> {
-            Log.d(TAG, "onCreateView: on map click ");
             return handleClickIcon(mapboxMap.getProjection().toScreenLocation(point), point);
         });
     }
