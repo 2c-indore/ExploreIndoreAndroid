@@ -10,7 +10,9 @@
 
     <application
         android:name=".IndoreApp"
-        android:allowBackup="true"
+        android:allowBackup="false"
+        android:fullBackupContent="false"
+        android:fullBackupOnly="false"
         android:largeHeap="true"
         android:hardwareAccelerated="false"
         android:icon="@mipmap/ic_launcher"

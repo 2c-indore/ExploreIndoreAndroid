@@ -883,10 +883,6 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
             for (PokharaBoundary pbs : wardResult)
                 polygon.add(new LatLng(pbs.getCoordinateslat(), pbs.getCoordinateslong()));
 
-            mapboxMap.addOnMapClickListener(point -> {
-                Log.d(TAG, "onCreateView: on map click ");
-                return handleClickIcon(mapboxMap.getProjection().toScreenLocation(point), point);
-            });
 //            mapboxMap.setOnMarkerClickListener(marker -> {
 //                Toast.makeText(getContext(), "Clicked", Toast.LENGTH_SHORT).show();
 //                Log.d(TAG, "initCameraListener: marker click");
@@ -1169,6 +1165,10 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         setUpSearchData(results, amenity);
         //for clustering
         convertIntoPoiJSonForClustering(results);
+        mapboxMap.addOnMapClickListener(point -> {
+            Log.d(TAG, "onCreateView: on map click ");
+            return handleClickIcon(mapboxMap.getProjection().toScreenLocation(point), point);
+        });
     }
 
     private void setUpSearchData(RealmList<ExploreSchema> results, String amenity) {
@@ -1459,7 +1459,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         //this is required because we remove the layer in zoom to extent
         addSelectedMarkersLayer();
         double zoom = mapboxMap.getCameraPosition().zoom;
-
+        Log.d(TAG, "handleClickIcon: style" + style+" marker "+markerSelected);
         if (style != null) {
             selectedMarkerSymbolLayer = (SymbolLayer) style.getLayer(SELECTED_MARKER_LAYER);
             List<Feature> features = mapboxMap.queryRenderedFeatures(toScreenLocation, UNCLUSTERED_POINTS);
@@ -1467,7 +1467,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
                     toScreenLocation, SELECTED_MARKER_LAYER);
 
             if (selectedFeature.size() > 0 && markerSelected) {
-                return false;
+//                return false;
             }
 
             if (features.isEmpty()) {
