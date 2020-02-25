@@ -765,8 +765,6 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
     public void detailView(boolean detailbool) {
         if (detailbool) {
             Realm realm = Realm.getDefaultInstance();
-
-
             RealmQuery<ExploreSchema> query = realm.where(ExploreSchema.class);
             ExploreSchema dbvalue = query
                     .equalTo("osm_id", poiFeatureId)
@@ -876,7 +874,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
             addItemsToClusterPlugin();
             List<LatLng> polygon = new ArrayList<>();
             Realm realm = Realm.getDefaultInstance();
-            RealmResults<PokharaBoundary> wardResult = realm.where(PokharaBoundary.class).contains("tag", "all_boundary").findAll();
+            RealmResults<PokharaBoundary> wardResult = realm.where(PokharaBoundary.class).equalTo("tag", "all_boundary").findAll();
             realm.close();
             if (polygon.size() > 0) polygon.clear();
             polygon = new ArrayList<>();
@@ -1050,8 +1048,8 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
             ) {
                 try {
                     if ((filter_data.getKey().equals("wardid") && !filter_data.getValue().equals("all"))) {
-                        RealmResults<Ward> wardR = realm.where(Ward.class).contains("osmID", filter_data.getValue()).findAll();
-                        RealmList<PokharaBoundary> pbound = wardR.get(0).getBoundry();
+                        Ward wardHeaven = realm.where(Ward.class).equalTo("osmID", filter_data.getValue()).findFirst();
+                        RealmList<PokharaBoundary> pbound = wardHeaven.getBoundry();
                         polygon = new ArrayList<>();
                         double west = 0.0;
                         double east = 0.0;
@@ -1465,7 +1463,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
             List<Feature> selectedFeature = mapboxMap.queryRenderedFeatures(
                     toScreenLocation, SELECTED_MARKER_LAYER);
 
-            Log.d(TAG, "handleClickIcon: "+selectedFeature.size()+" marker "+markerSelected);
+            Log.d(TAG, "handleClickIcon: " + selectedFeature.size() + " marker " + markerSelected);
             if (selectedFeature.size() > 0 && markerSelected) {
 //                return false;
             }

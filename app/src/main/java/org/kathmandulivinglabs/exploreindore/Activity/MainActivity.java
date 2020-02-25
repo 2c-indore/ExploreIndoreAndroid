@@ -165,12 +165,6 @@ public class MainActivity extends AppCompatActivity
     private Snackbar snackbar;
     private NotificationChannel channel;
     private NotificationManager notificationManager;
-    private Backlistner mBack = null;
-    private boolean backPressed = false;
-    List<List<List<Double>>> pCoordinates = new ArrayList<>();
-    List<List<List<List<Double>>>> mCoordinates = new ArrayList<>();
-    List<List<List<Double>>> mCoordinates2 = new ArrayList<>();
-    List<List<Double>> pCoordinates2 = new ArrayList<>();
 
     int PROGRESS_MAX = 100;
     int PROGRESS_CURRENT = 0;
@@ -534,7 +528,7 @@ public class MainActivity extends AppCompatActivity
     private void makeMapData(String selectedkey) {
         Realm realm = Realm.getDefaultInstance();
         //TODO
-        final RealmResults<ExploreSchema> explore = realm.where(ExploreSchema.class).contains("tag", selectedkey).findAll();
+        final RealmResults<ExploreSchema> explore = realm.where(ExploreSchema.class).equalTo("tag", selectedkey).findAll();
         realm.close();
         def_type = selectedkey;
         if (explore.size() == 0) {
@@ -874,9 +868,12 @@ public class MainActivity extends AppCompatActivity
             ward.setNumber(wardno);
             ward.setOsmID(dbname);
 
+
             Wards.BoundaryWithWards.Feature.Geometry_ geom = ward_prop.getGeometry();
             RealmList<PokharaBoundary> pbound;
             pbound = new RealmList<>();
+
+            Log.d(TAG, "saveward: banana " + ward.getName() + " num " + ward_prop.getGeometry().coordinates);
 
             String gtype = geom.getType();
             Object gobject = geom.coordinates;
