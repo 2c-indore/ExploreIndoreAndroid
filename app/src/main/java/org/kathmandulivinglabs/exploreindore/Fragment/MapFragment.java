@@ -29,7 +29,6 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 
-import android.os.Handler;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.TypedValue;
@@ -67,7 +66,6 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
-import com.google.android.material.snackbar.Snackbar;
 import com.google.gson.Gson;
 import com.mapbox.android.core.permissions.PermissionsListener;
 import com.mapbox.android.core.permissions.PermissionsManager;
@@ -87,6 +85,8 @@ import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.Style;
 import com.mapbox.mapboxsdk.style.expressions.Expression;
 import com.mapbox.mapboxsdk.style.layers.CircleLayer;
+import com.mapbox.mapboxsdk.style.layers.Layer;
+import com.mapbox.mapboxsdk.style.layers.Property;
 import com.mapbox.mapboxsdk.style.layers.PropertyFactory;
 import com.mapbox.mapboxsdk.style.layers.SymbolLayer;
 import com.mapbox.mapboxsdk.style.sources.GeoJsonOptions;
@@ -98,7 +98,6 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.kathmandulivinglabs.exploreindore.Activity.DataManager;
 import org.kathmandulivinglabs.exploreindore.Activity.LoginActivity;
 import org.kathmandulivinglabs.exploreindore.Activity.MainActivity;
 import org.kathmandulivinglabs.exploreindore.Adapter.SearchListAdapter;
@@ -106,12 +105,10 @@ import org.kathmandulivinglabs.exploreindore.Events.ShowDownloadAllDialogEvent;
 import org.kathmandulivinglabs.exploreindore.FilterParcel;
 import org.kathmandulivinglabs.exploreindore.Activity.Edit.EditDialogActivity;
 import org.kathmandulivinglabs.exploreindore.Events.EditAmenityEvent;
-import org.kathmandulivinglabs.exploreindore.Helper.Connectivity;
 import org.kathmandulivinglabs.exploreindore.Helper.Keys;
 import org.kathmandulivinglabs.exploreindore.Helper.Utils;
 
 import org.kathmandulivinglabs.exploreindore.IndoreApp;
-import org.kathmandulivinglabs.exploreindore.Interface.DownloadKeys;
 import org.kathmandulivinglabs.exploreindore.Interface.ToggleTabVisibilityListener;
 import org.kathmandulivinglabs.exploreindore.R;
 import org.kathmandulivinglabs.exploreindore.Realmstore.ExploreSchema;
@@ -154,6 +151,7 @@ import io.realm.RealmQuery;
 import io.realm.RealmResults;
 import timber.log.Timber;
 
+import static android.view.View.GONE;
 import static androidx.core.content.ContextCompat.checkSelfPermission;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.all;
 import static com.mapbox.mapboxsdk.style.expressions.Expression.get;
@@ -180,6 +178,7 @@ import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.textColor;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.textField;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.textIgnorePlacement;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.textSize;
+import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.visibility;
 
 //public class MapFragment extends Fragment implements PermissionsListener, LocationEngineListener, MainActivity.Backlistner {
 public class MapFragment extends Fragment implements PermissionsListener, MainActivity.Backlistner, GoogleApiClient.ConnectionCallbacks,
@@ -187,13 +186,14 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         LocationListener {
     public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
 
-    private static final String SINGLE_EARTHQUAKE_TRIANGLE_ICON_ID = "single-quake-icon-id";
-    private static final String SELECTED_SINGLE_EARTHQUAKE_TRIANGLE_ICON_ID = "selected_single-quake-icon-id";
+    private static final String SINGLE_MARKER_ICON_ID = "single-quake-icon-id";
+    private static final String SELECTED_SINGLE_MARKER_ICON_ID = "selected_single-quake-icon-id";
     private static final String EARTHQUAKE_SOURCE_ID = "earthquakes";
     private static final String POINT_COUNT = "point_count";
     private static final String UNCLUSTERED_POINTS = "unclustered-points";
     private static final String SELECTED_MARKER_LAYER = "selected-marker-layer";
     private static final String SELECTED_MARKER = "selected-marker";
+    private static final double ZOOM_THRESHOLD = 9.3;
     private MapView mapView;
     private MapboxMap mapboxMap;
     private Style style;
@@ -314,7 +314,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
                 if (hasFocus) listView.setVisibility(View.VISIBLE);
-                if (!hasFocus) listView.setVisibility(View.GONE);
+                if (!hasFocus) listView.setVisibility(GONE);
             }
         });
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -322,7 +322,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
             @Override
             public boolean onQueryTextSubmit(String query) {
                 //clickmarker();
-                listView.setVisibility(View.GONE);
+                listView.setVisibility(GONE);
                 return false;
             }
 
@@ -362,7 +362,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         if (markerCord != null) {
             mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(markerCord, 17), 400);
             //markerclickAction(clickedmarker);
-            listView.setVisibility(View.GONE);
+            listView.setVisibility(GONE);
             View view = this.getActivity().getCurrentFocus();
             if (view != null) {
                 InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -416,7 +416,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         });
         zoomb.setLat(22.7203851);
         zoomb.setLng(75.8682103);
-        zoomb.setZoom(9.3);
+        zoomb.setZoom(ZOOM_THRESHOLD);
         zoomtoextant.setEnabled(false);
         zoomtoextant.setOnClickListener(View -> {
             style.removeLayer(SELECTED_MARKER_LAYER);
@@ -464,31 +464,21 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         if (Auth) {
             edit_btn.setVisibility(View.VISIBLE);
         } else {
-            edit_btn.setVisibility(View.GONE);
+            edit_btn.setVisibility(GONE);
         }
         edit_btn.setOnClickListener(view -> {
             ((AppCompatActivity) getActivity()).getSupportActionBar().show();
             toggleTabVisibilityListener.showTabs();
             editAmenity(selectedType);
         });
-        closebtn.setOnClickListener(view -> {
-            swipeValue = 0;
-            style.removeLayer(SELECTED_MARKER_LAYER);// to change red icon to blue
-            lm.setLayoutParams(lp_shrink);
-            small_info.setVisibility(View.VISIBLE);
-            ((AppCompatActivity) getActivity()).getSupportActionBar().show();
-            toggleTabVisibilityListener.showTabs();
-            lm.setVisibility(View.GONE);
-            if (navigationMapRoute != null) navigationMapRoute.removeRoute();
-            detail_screen.removeAllViews();
-        });
+        closebtn.setOnClickListener(view -> hideDetailScreen(lp_shrink));
 
         lm.setOnTouchListener((view, motionEvent) -> {
             mDetector.onTouchEvent(motionEvent);
             if (swipeValue == 1 || (iff_ondown && !iff_onswipe)) {
                 ((AppCompatActivity) getActivity()).getSupportActionBar().hide();
                 toggleTabVisibilityListener.hideTabs();
-                small_info.setVisibility(View.GONE);
+                small_info.setVisibility(GONE);
                 lm.setLayoutParams(lp_expand);
                 detail_screen.removeAllViews();
                 detailView(detailbool);
@@ -498,7 +488,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
                 if (lm.getLayoutParams() == lp_shrink) {
                     ((AppCompatActivity) getActivity()).getSupportActionBar().show();
                     toggleTabVisibilityListener.showTabs();
-                    lm.setVisibility(View.GONE);
+                    lm.setVisibility(GONE);
                     detail_screen.removeView(amenityInfo);
                 } else {
                     lm.setLayoutParams(lp_shrink);
@@ -513,27 +503,15 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         expandinfo.setOnClickListener(view -> {
             ((AppCompatActivity) getActivity()).getSupportActionBar().hide();
             toggleTabVisibilityListener.hideTabs();
-            small_info.setVisibility(View.GONE);
+            small_info.setVisibility(GONE);
             lm.setLayoutParams(lp_expand);
             detail_screen.removeAllViews();
             detailView(detailbool);
             detail_screen.addView(amenityInfo);
         });
 
-        close_btn.setOnClickListener(view -> {
-                    swipeValue = 0;
-                    style.removeLayer(SELECTED_MARKER_LAYER);//to change red icon to blue
-                    if (navigationMapRoute != null) {
-                        navigationMapRoute.removeRoute();
-                    }
-                    lm.setLayoutParams(lp_shrink);
-                    small_info.setVisibility(View.VISIBLE);
-                    ((AppCompatActivity) getActivity()).getSupportActionBar().show();
-                    toggleTabVisibilityListener.showTabs();
-                    lm.setVisibility(View.GONE);
-                    detail_screen.removeAllViews();
-                }
-        );
+        close_btn.setOnClickListener(view ->
+                hideDetailScreen(lp_shrink));
 
         btnRoute.setOnClickListener(view ->
                 performRouting());
@@ -556,13 +534,14 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
 
                 initCameraListener(style);
                 style.addImageAsync(
-                        SINGLE_EARTHQUAKE_TRIANGLE_ICON_ID,
-                        BitmapUtils.getBitmapFromDrawable(getResources().getDrawable(blueMarkers.get(selectedType))),
+                        SINGLE_MARKER_ICON_ID,
+                        BitmapUtils.getBitmapFromDrawable(getResources().getDrawable(
+                                blueMarkers.get(selectedType))),
                         false
                 );
 
                 style.addImageAsync(
-                        SELECTED_SINGLE_EARTHQUAKE_TRIANGLE_ICON_ID,
+                        SELECTED_SINGLE_MARKER_ICON_ID,
                         BitmapUtils.getBitmapFromDrawable(getResources().getDrawable(orangeMarkers.get(selectedType))),
                         false
                 );
@@ -570,17 +549,44 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
                 if (IndoreApp.db().getInt(Keys.AMENITY_SELECTED) == 2)
                     EventBus.getDefault().post(new ShowDownloadAllDialogEvent());
 
+                mapboxMap.addOnCameraMoveListener(() -> {
+                    Layer markerLayer = style.getLayer(SELECTED_MARKER_LAYER);
+                    if (markerLayer != null)
+                        if (mapboxMap.getCameraPosition().zoom <= ZOOM_THRESHOLD) {
+                            //hide markers on zoom out
+                            markerLayer.setProperties(visibility(Property.NONE));
+                        } else markerLayer.setProperties(visibility(Property.VISIBLE));
+                });
+
             });
         });
         listView = v.findViewById(R.id.listView);
         uniList = new HashMap<>();
         searches = new ArrayList<>();
-        searchListAdapter = new SearchListAdapter(this.getContext(), searches);
-        listView.setOnItemClickListener((parent, view, position, id) -> {
+        searchListAdapter = new
+
+                SearchListAdapter(this.getContext(), searches);
+        listView.setOnItemClickListener((parent, view, position, id) ->
+
+        {
             Search selected = (Search) listView.getItemAtPosition(position);
             clickmarker(selected.cord, selected.name);
         });
         return v;
+    }
+
+    private void hideDetailScreen(LinearLayout.LayoutParams lp_shrink) {
+        swipeValue = 0;
+        style.removeLayer(SELECTED_MARKER_LAYER);//to change red icon to blue
+        if (navigationMapRoute != null) {
+            navigationMapRoute.removeRoute();
+        }
+        lm.setLayoutParams(lp_shrink);
+        small_info.setVisibility(View.VISIBLE);
+        ((AppCompatActivity) getActivity()).getSupportActionBar().show();
+        toggleTabVisibilityListener.showTabs();
+        lm.setVisibility(GONE);
+        detail_screen.removeAllViews();
     }
 
     private void checkAppRelease() {
@@ -790,14 +796,14 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
                             }
                     );
                 } else {
-                    websiteLayout.setVisibility(View.GONE);
+                    websiteLayout.setVisibility(GONE);
                     detailWeb.setText("-");
                 }
                 if (dbvalue.getContact_email() != null && !dbvalue.getContact_email().isEmpty()) {
                     emailLayout.setVisibility(View.VISIBLE);
                     detailMail.setText(dbvalue.getContact_email());
                 } else {
-                    emailLayout.setVisibility(View.GONE);
+                    emailLayout.setVisibility(GONE);
                     detailMail.setText("-");
                 }
 
@@ -835,18 +841,13 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
                     detailMobile.setText(mob);
                     detailMobile.setOnClickListener(view1 -> callIntent(detailMobile));
                 } else
-                    mobileLayout.setVisibility(View.GONE);
+                    mobileLayout.setVisibility(GONE);
 
                 if (dbvalue.getContact_phone() == null) {
                     detailPhone.setText("-");
                 } else {
                     String pho = null;
                     if (dbvalue.getContact_phone() != null) pho = dbvalue.getContact_phone();
-//                    if (mob != null) {
-//                        if (pho != null)
-//                            pho = pho + "," + mob;
-//                        else pho = mob;
-//                    }
                     detailPhone.setText(pho);
                     detailPhone.setOnClickListener(view1 -> callIntent(detailPhone));
                 }
@@ -880,13 +881,6 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
             polygon = new ArrayList<>();
             for (PokharaBoundary pbs : wardResult)
                 polygon.add(new LatLng(pbs.getCoordinateslat(), pbs.getCoordinateslong()));
-
-//            mapboxMap.setOnMarkerClickListener(marker -> {
-//                Toast.makeText(getContext(), "Clicked", Toast.LENGTH_SHORT).show();
-//                Log.d(TAG, "initCameraListener: marker click");
-//                markerclickAction(marker);
-//                return true;
-//            });
 
         } catch (Exception e) {
             Log.d(TAG, "initCameraListener: exception " + e.getMessage());
@@ -1103,7 +1097,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
                         mapboxMap.setLatLngBoundsForCameraTarget(latLngBounds);
                         mapboxMap.setMinZoomPreference(10.5);
                         wardBound(polygon);
-                        query.contains("ward_id", filter_data.getValue());
+                        query.equalTo("ward_id", filter_data.getValue());
                     }
                     if (filter_data.getKey().endsWith("max")) {
                         String rangeMax = filter_data.getKey().split("max")[0];
@@ -1237,8 +1231,9 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         }
 
         SymbolLayer unclusteredSymbolLayer = new SymbolLayer(UNCLUSTERED_POINTS, EARTHQUAKE_SOURCE_ID).withProperties(
-                iconImage(SINGLE_EARTHQUAKE_TRIANGLE_ICON_ID),
+                iconImage(SINGLE_MARKER_ICON_ID),
                 iconAllowOverlap(true),
+                textAllowOverlap(true),
                 iconSize(0.8f)
         );
 
@@ -1297,8 +1292,8 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
             style.addLayer(new SymbolLayer(SELECTED_MARKER_LAYER, SELECTED_MARKER)
                     .withProperties(PropertyFactory
 //                                    .iconImage(SELECTED_SINGLE_EARTHQUAKE_TRIANGLE_ICON_ID),
-                                    .iconImage(step(zoom(), literal(SELECTED_SINGLE_EARTHQUAKE_TRIANGLE_ICON_ID),
-                                            stop(zoomb.zoom < 14, SINGLE_EARTHQUAKE_TRIANGLE_ICON_ID))),
+                                    .iconImage(step(zoom(), literal(SELECTED_SINGLE_MARKER_ICON_ID),
+                                            stop(zoomb.zoom < 14, SINGLE_MARKER_ICON_ID))),
                             iconAllowOverlap(true),
                             iconSize(0.8f)));
     }
@@ -1463,20 +1458,21 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
             List<Feature> selectedFeature = mapboxMap.queryRenderedFeatures(
                     toScreenLocation, SELECTED_MARKER_LAYER);
 
-            Log.d(TAG, "handleClickIcon: " + selectedFeature.size() + " marker " + markerSelected);
-            if (selectedFeature.size() > 0 && markerSelected) {
+            Log.d(TAG, "handleClickIcon: " + selectedFeature.size() + " marker " + markerSelected + " features " + features.size());
+//            if (selectedFeature.size() > 0 && markerSelected) {
 //                return false;
-            }
+//            }
 
             if (features.isEmpty()) {
                 if (markerSelected) {
+                    hideDetailScreen(llp);
                     deselectMarker(selectedMarkerSymbolLayer);
                 }
-                return false;
+//                return false;
             }
 
             GeoJsonSource source = style.getSourceAs(SELECTED_MARKER);
-            if (source != null) {
+            if (source != null && !features.isEmpty()) {
                 source.setGeoJson(FeatureCollection.fromFeatures(
                         new Feature[]{Feature.fromGeometry(features.get(0).geometry())}));
             }
@@ -1486,16 +1482,17 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
             }
             Log.d(TAG, "handleClickIcon: " + features);
 
-            if (!features.isEmpty()) {
-                if (zoom < 10)
-                    mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(point, 12), 600);
-                else if (zoom < 14)
-                    mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(point, 14), 500);
-                else if (zoom < 16)
-                    mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(point, zoom + 1), 400);
-                else if (zoom < 18)
-                    mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(point, zoom + 1), 300);
 
+            if (zoom < 10)
+                mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(point, 12), 600);
+            else if (zoom < 14)
+                mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(point, 14), 500);
+            else if (zoom < 16)
+                mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(point, zoom + 1), 400);
+            else if (zoom < 18)
+                mapboxMap.animateCamera(CameraUpdateFactory.newLatLngZoom(point, zoom + 1), 300);
+
+            if (!features.isEmpty()) {
                 String name = features.get(0).id();
                 if (features.get(0).getBooleanProperty("cluster") != null)
                     //to handle first time auto selection of marker
@@ -1517,14 +1514,14 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
 
     private void selectMarker(SymbolLayer selectedMarkerSymbolLayer) {
         selectedMarkerSymbolLayer.setProperties(
-                PropertyFactory.iconImage(SELECTED_SINGLE_EARTHQUAKE_TRIANGLE_ICON_ID)
+                PropertyFactory.iconImage(SELECTED_SINGLE_MARKER_ICON_ID)
         );
         markerSelected = true;
     }
 
     private void deselectMarker(SymbolLayer selectedMarkerSymbolLayer) {
         selectedMarkerSymbolLayer.setProperties(
-                PropertyFactory.iconImage(SINGLE_EARTHQUAKE_TRIANGLE_ICON_ID)
+                PropertyFactory.iconImage(SINGLE_MARKER_ICON_ID)
         );
         markerSelected = false;
     }
@@ -1740,7 +1737,7 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
             small_info.setVisibility(View.VISIBLE);
             ((AppCompatActivity) getActivity()).getSupportActionBar().show();
             toggleTabVisibilityListener.showTabs();
-            lm.setVisibility(View.GONE);
+            lm.setVisibility(GONE);
             if (navigationMapRoute != null) navigationMapRoute.removeRoute();
             style.removeLayer(SELECTED_MARKER_LAYER); //to change red icon to blue
             detail_screen.removeAllViews();
