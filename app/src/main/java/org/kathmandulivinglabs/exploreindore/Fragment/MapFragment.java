@@ -1459,13 +1459,13 @@ public class MapFragment extends Fragment implements PermissionsListener, MainAc
         //this is required because we remove the layer in zoom to extent
         addSelectedMarkersLayer();
         double zoom = mapboxMap.getCameraPosition().zoom;
-        Log.d(TAG, "handleClickIcon: style" + style+" marker "+markerSelected);
         if (style != null) {
             selectedMarkerSymbolLayer = (SymbolLayer) style.getLayer(SELECTED_MARKER_LAYER);
             List<Feature> features = mapboxMap.queryRenderedFeatures(toScreenLocation, UNCLUSTERED_POINTS);
             List<Feature> selectedFeature = mapboxMap.queryRenderedFeatures(
                     toScreenLocation, SELECTED_MARKER_LAYER);
 
+            Log.d(TAG, "handleClickIcon: "+selectedFeature.size()+" marker "+markerSelected);
             if (selectedFeature.size() > 0 && markerSelected) {
 //                return false;
             }
