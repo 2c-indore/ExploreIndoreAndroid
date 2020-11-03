@@ -217,34 +217,31 @@ public class InsightFragment extends Fragment {
             }
             i++;
         }
-        applyFilter.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Log.d(TAG, "onClick: " + range_bar + " ward id " + wardid);
-                filter_param.put("wardid", wardid);
-                for (int i = 0; i < range_size; i++) {
-                    if (null != range[i] && null != range_bar[i]) {
-                        filter_param.put(range[i] + "max", String.valueOf(range_bar[i].getMaxValue().intValue()));
-                        filter_param.put(range[i] + "min", String.valueOf(range_bar[i].getMinValue().intValue()));
-                    }
+        applyFilter.setOnClickListener(view -> {
+            Log.d(TAG, "onClick: " + range_bar + " ward id " + wardid);
+            filter_param.put("wardid", wardid);
+            for (int i1 = 0; i1 < range_size; i1++) {
+                if (null != range[i1] && null != range_bar[i1]) {
+                    filter_param.put(range[i1] + "max", String.valueOf(range_bar[i1].getMaxValue().intValue()));
+                    filter_param.put(range[i1] + "min", String.valueOf(range_bar[i1].getMinValue().intValue()));
                 }
-                for (Map.Entry<String, String> switch_vals : switch_selected.entrySet()) {
-                    filter_param.put(switch_vals.getKey(), switch_vals.getValue());
-                }
-                for (Map.Entry<String, String> check_vals : check_selected.entrySet()) {
-                    filter_param.put(check_vals.getKey() + "check", check_vals.getValue());
-                }
+            }
+            for (Map.Entry<String, String> switch_vals : switch_selected.entrySet()) {
+                filter_param.put(switch_vals.getKey(), switch_vals.getValue());
+            }
+            for (Map.Entry<String, String> check_vals : check_selected.entrySet()) {
+                filter_param.put(check_vals.getKey() + "check", check_vals.getValue());
+            }
 
 //                Log.wtf(filter_param.toString(),"FilterParam");
-                MainActivity.filter_param = filter_param;
-                mapfilter.setFilter_parameter(filter_param);
+            MainActivity.filter_param = filter_param;
+            mapfilter.setFilter_parameter(filter_param);
 
-                ags = true;
+            ags = true;
 
-                Intent i = new Intent(getActivity().getBaseContext(), MainActivity.class);
-                i.putExtra("FilterValue", mapfilter);
-                mCallback.onInsight(ags);
-            }
+            Intent i1 = new Intent(getActivity().getBaseContext(), MainActivity.class);
+            i1.putExtra("FilterValue", mapfilter);
+            mCallback.onInsight(ags);
         });
 
         resetFilter.setOnClickListener(new View.OnClickListener() {

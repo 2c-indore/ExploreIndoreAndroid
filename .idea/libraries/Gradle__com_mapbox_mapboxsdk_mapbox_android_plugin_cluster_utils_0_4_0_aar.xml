@@ -1,8 +1,8 @@
 <component name="libraryTable">
   <library name="Gradle: com.mapbox.mapboxsdk:mapbox-android-plugin-cluster-utils:0.4.0@aar">
     <CLASSES>
-      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/68277134dfc21efdc5f436208341f775/jetified-mapbox-android-plugin-cluster-utils-0.4.0/jars/classes.jar!/" />
-      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/68277134dfc21efdc5f436208341f775/jetified-mapbox-android-plugin-cluster-utils-0.4.0/res" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/f90813d178b2d8118d539bbe41d44e95/jetified-mapbox-android-plugin-cluster-utils-0.4.0/jars/classes.jar!/" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-2/files-2.1/f90813d178b2d8118d539bbe41d44e95/jetified-mapbox-android-plugin-cluster-utils-0.4.0/res" />
     </CLASSES>
     <JAVADOC>
       <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/com.mapbox.mapboxsdk/mapbox-android-plugin-cluster-utils/0.4.0/bca80db5b327ff3fb400c1782025970b6e913531/mapbox-android-plugin-cluster-utils-0.4.0-javadoc.jar!/" />
